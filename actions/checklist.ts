@@ -65,7 +65,7 @@ export async function updateTask(id: string, updates: Partial<Task>) {
     const supabase = await createClient()
     const { error } = await supabase
         .from('tasks')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
 
     if (error) return { error: error.message }
