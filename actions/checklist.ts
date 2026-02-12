@@ -40,8 +40,8 @@ export async function addTask(formData: FormData) {
     const budget = parseInt(formData.get('budget') as string) || 0
     const memo = formData.get('memo') as string
 
-    const { error } = await supabase
-        .from('tasks')
+    const { error } = await (supabase
+        .from('tasks') as any)
         .insert({
             user_id: user.id,
             title,
@@ -49,7 +49,7 @@ export async function addTask(formData: FormData) {
             estimated_budget: budget,
             description: memo, // Mapping memo to description
             is_completed: false
-        } as any)
+        })
 
     if (error) {
         console.error('Error adding task:', error)
@@ -63,9 +63,9 @@ export async function addTask(formData: FormData) {
 
 export async function updateTask(id: string, updates: Partial<Task>) {
     const supabase = await createClient()
-    const { error } = await supabase
-        .from('tasks')
-        .update(updates as any)
+    const { error } = await (supabase
+        .from('tasks') as any)
+        .update(updates)
         .eq('id', id)
 
     if (error) return { error: error.message }
@@ -77,8 +77,8 @@ export async function updateTask(id: string, updates: Partial<Task>) {
 
 export async function deleteTasks(ids: string[]) {
     const supabase = await createClient()
-    const { error } = await supabase
-        .from('tasks')
+    const { error } = await (supabase
+        .from('tasks') as any)
         .delete()
         .in('id', ids)
 
