@@ -52,7 +52,7 @@ export async function getPost(id: string) {
     // Increment view count (fire and forget)
     // supabase.rpc('increment_view_count', { post_id: id }) - if RPC exists
     // Or simple update:
-    await supabase.from('posts').update({ view_count: (data.view_count || 0) + 1 }).eq('id', id)
+    await (supabase.from('posts') as any).update({ view_count: (data.view_count || 0) + 1 }).eq('id', id)
 
     return data as Post
 }
@@ -81,8 +81,8 @@ export async function createPost(formData: FormData) {
     const content = formData.get('content') as string
     const category = formData.get('category') as 'free' | 'notice' || 'free'
 
-    const { error } = await supabase
-        .from('posts')
+    const { error } = await (supabase
+        .from('posts') as any)
         .insert({
             user_id: user.id,
             title,
@@ -104,8 +104,8 @@ export async function createComment(formData: FormData) {
     const postId = formData.get('post_id') as string
     const content = formData.get('content') as string
 
-    const { error } = await supabase
-        .from('comments')
+    const { error } = await (supabase
+        .from('comments') as any)
         .insert({
             user_id: user.id,
             post_id: parseInt(postId),

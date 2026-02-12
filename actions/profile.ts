@@ -9,8 +9,8 @@ export async function updateWeddingDate(date: string) {
 
     if (!user) return { error: 'Unauthorized' }
 
-    const { error } = await supabase
-        .from('profiles')
+    const { error } = await (supabase
+        .from('profiles') as any)
         .update({ wedding_date: date })
         .eq('id', user.id)
 
