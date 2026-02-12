@@ -52,6 +52,7 @@ export async function getPost(id: string) {
     // Increment view count (fire and forget)
     // supabase.rpc('increment_view_count', { post_id: id }) - if RPC exists
     // Or simple update:
+    // @ts-ignore
     await (supabase.from('posts') as any).update({ view_count: (data.view_count || 0) + 1 }).eq('id', id)
 
     return data as Post
