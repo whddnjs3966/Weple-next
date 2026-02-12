@@ -10,7 +10,8 @@ export default async function CommunityPage({
 }) {
     const resolvedSearchParams = await searchParams
     const category = (resolvedSearchParams.category === 'notice' ? 'notice' : 'free') as 'notice' | 'free'
-    const { posts, count } = await getPosts(category)
+    const { posts: rawPosts, count } = await getPosts(category)
+    const posts = rawPosts as unknown as any[]
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-8 animate-in fade-in">

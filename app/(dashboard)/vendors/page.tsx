@@ -13,10 +13,11 @@ export default async function VendorsPage({
     const category = typeof resolvedSearchParams.category === 'string' ? resolvedSearchParams.category : undefined
     const region = typeof resolvedSearchParams.region === 'string' ? resolvedSearchParams.region : undefined
 
-    const [categories, vendors] = await Promise.all([
+    const [categories, rawVendors] = await Promise.all([
         getVendorCategories(),
         getVendors({ category, region }),
     ])
+    const vendors = rawVendors as unknown as any[]
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
