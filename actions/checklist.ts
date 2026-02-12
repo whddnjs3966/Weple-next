@@ -49,7 +49,7 @@ export async function addTask(formData: FormData) {
             estimated_budget: budget,
             description: memo, // Mapping memo to description
             is_completed: false
-        })
+        } as any)
 
     if (error) {
         console.error('Error adding task:', error)
