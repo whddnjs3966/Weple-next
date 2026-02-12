@@ -14,11 +14,11 @@ export default async function Dashboard() {
     }
 
     // 2. Get Profile & Wedding Date
-    const { data: profile } = await supabase
-        .from('profiles')
+    const { data: profile } = await (supabase
+        .from('profiles') as any)
         .select('wedding_date')
         .eq('id', user.id)
-        .single<{ wedding_date: string | null }>()
+        .single()
 
     const weddingDate = profile?.wedding_date ? new Date(profile.wedding_date) : null
     const today = new Date()
