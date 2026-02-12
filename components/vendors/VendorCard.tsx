@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Vendor } from '@/actions/vendors'
 import { Star, MapPin, Image as ImageIcon } from 'lucide-react'
 
-export default function VendorCard({ vendor }: { vendor: Vendor }) {
+export default function VendorCard({ vendor }: { vendor: any }) {
     return (
         <div className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full">
 
