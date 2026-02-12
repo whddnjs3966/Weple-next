@@ -9,7 +9,7 @@ export default async function VendorDetailPage({
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
-    const vendor = await getVendorById(Number(id))
+    const vendor = (await getVendorById(Number(id))) as unknown as any
 
     if (!vendor) {
         notFound()
