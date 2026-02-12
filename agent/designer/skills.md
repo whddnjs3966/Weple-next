@@ -1,4 +1,4 @@
-# Design Specialist Agent Skills — Weple Project (Next.js)
+# Design Specialist Agent Skills — Wepln Project (Next.js)
 
 > **역할**: UI/UX Designer & Frontend Specialist
 > **핵심 기술**: Tailwind CSS · React/JSX · Framer Motion · Figma (Conceptual)

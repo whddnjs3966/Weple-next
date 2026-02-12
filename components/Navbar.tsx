@@ -44,7 +44,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white shadow-sm shadow-primary/30">
                                 <Heart size={16} fill="white" />
                             </div>
-                            <span className="font-serif font-bold text-lg text-gray-800 tracking-wide hidden sm:block">Weple</span>
+                            <span className="font-serif font-bold text-lg text-gray-800 tracking-wide hidden sm:block">Wepln</span>
                         </Link>
 
                         {/* Center Navigation */}
@@ -78,7 +78,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                         {/* Mobile 'Phrase' Fallback for center (optional, or just hide on mobile) */}
                         <div className="md:hidden text-xs text-gray-400 font-medium flex items-center gap-1">
                             <Flower size={10} className="text-primary-light" />
-                            <span>Weple</span>
+                            <span>Wepln</span>
                         </div>
 
 

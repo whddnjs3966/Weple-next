@@ -1,8 +1,8 @@
-# Planning Manager Agent Skills — Weple Project (Next.js)
+# Planning Manager Agent Skills — Wepln Project (Next.js)
 
 > **역할**: Product Owner & Service Planner
 > **핵심 기술**: NotebookLM 경쟁사 분석 · User Story Mapping · Supabase Schema Design · SEO Strategy
-> **목표**: "웨플(Weple)"의 시장 경쟁력 확보 및 빈틈없는 기능 명세 (PRD) 제공
+> **목표**: "웨플(Wepln)"의 시장 경쟁력 확보 및 빈틈없는 기능 명세 (PRD) 제공
 
 ---
 
@@ -21,7 +21,7 @@
 > **기획부장**은 분석 작업 시 `mcp_notebooklm` 툴을 적극 활용합니다.
 
 ### Phase 1: 정보 수집
-- 경쟁사 URL, PDF, 아티클을 수집하여 "Weple Insight" 노트북 생성
+- 경쟁사 URL, PDF, 아티클을 수집하여 "Wepln Insight" 노트북 생성
 - 최신 웨딩 트렌드(모바일 청첩장, AI 매칭 등) 리서치
 
 ### Phase 2: 심층 질의

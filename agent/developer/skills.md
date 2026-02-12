@@ -1,4 +1,4 @@
-# Developer Agent Skills — Weple Project (Next.js)
+# Developer Agent Skills — Wepln Project (Next.js)
 
 > **역할**: Full Stack Developer & System Architect
 > **핵심 기술**: Next.js 14 (App Router) · TensorFlow/TypeScript · Supabase (Auth/DB/Realtime) · Tailwind CSS

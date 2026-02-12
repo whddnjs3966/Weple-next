@@ -55,7 +55,7 @@
   }
 
   /* Navigation Bar */
-  .weple-nav {
+  .wepln-nav {
     /* @apply relative rounded-full overflow-hidden bg-white/70 backdrop-blur-xl border border-white/50 shadow-lg transition-all duration-300 mx-auto w-fit; */
     position: relative;
     border-radius: 9999px;

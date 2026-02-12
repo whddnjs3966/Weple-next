@@ -27,7 +27,7 @@ export default async function DashboardLayout({
             </main>
 
             <footer className="py-8 text-center text-gray-400 text-[10px] font-medium tracking-widest uppercase">
-                © 2026 Weple Corporation
+                © 2026 Wepln Corporation
             </footer>
         </div>
     )

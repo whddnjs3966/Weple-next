@@ -34,6 +34,7 @@ export interface Database {
                     wedding_date?: string | null
                     updated_at?: string | null
                 }
+                Relationships: []
             }
             tasks: {
                 Row: {
@@ -69,6 +70,7 @@ export interface Database {
                     is_completed?: boolean | null
                     created_at?: string
                 }
+                Relationships: []
             }
             posts: {
                 Row: {
@@ -98,6 +100,7 @@ export interface Database {
                     view_count?: number
                     created_at?: string
                 }
+                Relationships: []
             }
             comments: {
                 Row: {
@@ -121,6 +124,7 @@ export interface Database {
                     content?: string
                     created_at?: string
                 }
+                Relationships: []
             }
             vendors: {
                 Row: {
@@ -162,6 +166,7 @@ export interface Database {
                     price_range?: string | null
                     created_at?: string
                 }
+                Relationships: []
             }
             vendor_categories: {
                 Row: {
@@ -179,6 +184,7 @@ export interface Database {
                     name?: string
                     slug?: string
                 }
+                Relationships: []
             }
         }
     }

@@ -18,7 +18,7 @@ export default async function Dashboard() {
         .from('profiles')
         .select('wedding_date')
         .eq('id', user.id)
-        .single()
+        .single<{ wedding_date: string | null }>()
 
     const weddingDate = profile?.wedding_date ? new Date(profile.wedding_date) : null
     const today = new Date()
@@ -61,7 +61,7 @@ export default async function Dashboard() {
                     </div>
                 ) : (
                     <div className="animate-fade-in-up">
-                        <h1 className="font-serif text-6xl md:text-8xl font-bold text-white mb-6">Welcome to Weple</h1>
+                        <h1 className="font-serif text-6xl md:text-8xl font-bold text-white mb-6">Welcome to Wepln</h1>
                         <button
                             className="inline-block px-8 py-4 rounded-full bg-white text-black font-bold text-lg hover:scale-105 transition-transform"
                         >

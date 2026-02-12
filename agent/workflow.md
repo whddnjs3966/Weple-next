@@ -1,4 +1,4 @@
-# Weple Development Workflow (Next.js)
+# Wepln Development Workflow (Next.js)
 
 > **개발부장(Developer)**, **디자인부장(Designer)**, **기획부장(Planner)** 의 협업 워크플로우입니다.
 > **기술 스택**: Next.js 14, Supabase, Tailwind CSS, Vercel

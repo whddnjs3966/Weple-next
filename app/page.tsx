@@ -25,7 +25,7 @@ export default function LandingPage() {
         <div className="max-w-[1200px] mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-white font-serif text-2xl font-bold no-underline transition-colors hover:opacity-80">
             <Heart className="text-[#FF8E8E] fill-[#FF8E8E]" size={20} />
-            <span className={cn(scrolled ? "text-gray-900" : "text-white")}>Weple</span>
+            <span className={cn(scrolled ? "text-gray-900" : "text-white")}>Wepln</span>
           </Link>
           <div className="flex items-center gap-4">
             {/* Login Button Removed as per request */}
@@ -55,7 +55,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-white/70 mb-10 leading-relaxed">
-            복잡한 결혼 준비, <strong>Weple</strong> 하나로 끝내세요.<br className="hidden md:block" />
+            복잡한 결혼 준비, <strong>Wepln</strong> 하나로 끝내세요.<br className="hidden md:block" />
             일정 관리부터 예산, 업체 선정까지 완벽하게.
           </p>
 
@@ -103,7 +103,7 @@ export default function LandingPage() {
           <div className="text-center mb-16">
             <span className="inline-block text-xs font-bold tracking-[3px] text-[#FF8E8E] uppercase mb-4 px-4 py-1.5 rounded-full bg-[#FF8E8E]/10">Features</span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 tracking-tight">결혼 준비,<br className="md:hidden" /> 이렇게 쉬웠나요?</h2>
-            <p className="text-gray-500">Weple이 제공하는 핵심 기능을 소개합니다.</p>
+            <p className="text-gray-500">Wepln이 제공하는 핵심 기능을 소개합니다.</p>
           </div>
 
           <div className="landing-features__grid">
@@ -207,7 +207,7 @@ export default function LandingPage() {
             <span>완벽한 웨딩 플랜</span>을 시작하세요.
           </h2>
           <p className="landing-cta__desc">
-            이미 많은 커플이 Weple과 함께<br />
+            이미 많은 커플이 Wepln과 함께<br />
             행복한 결혼 준비를 하고 있어요.
           </p>
           <Link href="/login" className="landing-btn landing-btn--white">
@@ -221,9 +221,9 @@ export default function LandingPage() {
       <footer className="py-8 bg-gray-50 border-t border-gray-100 text-center">
         <div className="flex items-center justify-center gap-2 mb-2 opacity-50">
           <Heart size={16} className="fill-gray-400 text-gray-400" />
-          <span className="font-serif font-bold text-gray-600">Weple</span>
+          <span className="font-serif font-bold text-gray-600">Wepln</span>
         </div>
-        <p className="text-xs text-gray-400">© 2026 Weple Corporation. All rights reserved.</p>
+        <p className="text-xs text-gray-400">© 2026 Wepln Corporation. All rights reserved.</p>
       </footer>
 
     </div>

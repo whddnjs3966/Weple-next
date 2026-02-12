@@ -1,8 +1,9 @@
 import "./globals.css";
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Weple - 웨딩 플래너",
-  description: "당신의 아름다운 웨딩을 위한 완벽한 플래너",
+  title: "Wepln - 웨딩 플래너",
+  description: "당신만의 완벽한 웨딩을 위한 스마트 플래너",
 };
 
 export default function RootLayout({

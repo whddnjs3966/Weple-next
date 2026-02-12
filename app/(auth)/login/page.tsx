@@ -41,7 +41,7 @@ export default function LoginPage() {
     const handleSocialLogin = async (provider: 'naver' | 'kakao' | 'google') => {
         setLoading(true)
         const { error } = await supabase.auth.signInWithOAuth({
-            provider: provider,
+            provider: provider as any,
             options: {
                 redirectTo: `${window.location.origin}/api/auth/callback`,
             },
@@ -101,7 +101,7 @@ export default function LoginPage() {
                         </h2>
                         <p className="text-gray-600 text-sm mb-12 text-center leading-relaxed">
                             가장 완벽한 결혼 준비의 시작,<br />
-                            Weple과 함께 꿈꾸던 순간을 만드세요.
+                            Wepln과 함께 꿈꾸던 순간을 만드세요.
                         </p>
 
                         {/* Social Login Buttons Container */}

@@ -29,7 +29,7 @@
 ## 3. Project Context
 
 ### 프로젝트 개요
-- **서비스명**: 웨플(Weple) — Next.js 기반 웨딩 플래너 서비스 (마이그레이션 프로젝트)
+- **서비스명**: 웨플(Wepln) — Next.js 기반 웨딩 플래너 서비스 (마이그레이션 프로젝트)
 - **기술 스택**: Next.js 14 (App Router) / TypeScript / Supabase / Tailwind CSS
 - **배포**: Vercel (Frontend/Edge), Supabase (DB/Auth)
 

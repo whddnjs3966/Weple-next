@@ -2,7 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
-export default function Particles() {
+interface ParticlesProps {
+    className?: string;
+    quantity?: number;
+    staticity?: number;
+    ease?: number;
+}
+
+export default function Particles({ className = "", quantity = 30, staticity = 50, ease = 50 }: ParticlesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -15,9 +22,8 @@ export default function Particles() {
         let h = (canvas.height = window.innerHeight);
 
         const particles: { x: number; y: number; r: number; dx: number; dy: number; opacity: number }[] = [];
-        const maxParticles = 100;
 
-        for (let i = 0; i < maxParticles; i++) {
+        for (let i = 0; i < quantity; i++) {
             particles.push({
                 x: Math.random() * w,
                 y: Math.random() * h,
@@ -60,7 +66,7 @@ export default function Particles() {
 
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
-    }, []);
+    }, [quantity]);
 
-    return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
+    return <canvas ref={canvasRef} className={`absolute inset-0 z-0 pointer-events-none ${className}`} />;
 }

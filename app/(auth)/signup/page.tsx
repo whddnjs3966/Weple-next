@@ -57,7 +57,7 @@ export default function SignupPage() {
                             <Heart size={24} className="fill-current" />
                         </div>
                         <h2 className="font-serif text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
-                        <p className="text-gray-500 text-sm font-medium">Start your journey with Weple</p>
+                        <p className="text-gray-500 text-sm font-medium">Start your journey with Wepln</p>
                     </div>
 
                     {/* Signup Form */}
