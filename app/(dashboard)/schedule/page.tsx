@@ -1,11 +1,16 @@
 import { getTasks } from '@/actions/checklist'
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import { calculateDDay, getDDayActions, TimelineEvent } from '@/lib/logic/wedding'
 import ScheduleClient from '@/components/schedule/ScheduleClient'
 
 export default async function SchedulePage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        redirect('/login')
+    }
 
     // Fetch user profile for wedding date
     const { data: profile } = await supabase
