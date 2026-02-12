@@ -23,7 +23,7 @@ export default async function SchedulePage() {
     const dDay = calculateDDay(weddingDate)
 
     // Tasks
-    const tasks = await getTasks()
+    const tasks = (await getTasks()) as unknown as any[] // Force cast to any[] first then let it match or just any
 
     // Prepare data for UI
     const dDayActions = dDay !== null ? getDDayActions(dDay) : []

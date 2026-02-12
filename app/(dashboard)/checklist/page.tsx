@@ -2,7 +2,7 @@ import { getTasks } from '@/actions/checklist'
 import ChecklistClient from '@/components/checklist/ChecklistClient'
 
 export default async function ChecklistPage() {
-    const tasks = await getTasks()
+    const tasks = (await getTasks()) as unknown as any[]
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in">
