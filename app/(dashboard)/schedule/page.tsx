@@ -16,7 +16,7 @@ export default async function SchedulePage() {
     const { data: profile } = await supabase
         .from('profiles') // Assuming 'profiles' table exists and linked
         .select('wedding_date')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single()
 
     const weddingDate = profile?.wedding_date || null // Start with null
