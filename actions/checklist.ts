@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -6,6 +5,8 @@ import { Database } from '@/lib/types/database.types'
 import { revalidatePath } from 'next/cache'
 
 export type Task = Database['public']['Tables']['tasks']['Row']
+export type TaskInsert = Database['public']['Tables']['tasks']['Insert']
+export type TaskUpdate = Database['public']['Tables']['tasks']['Update']
 
 export async function getTasks() {
     const supabase = await createClient()
@@ -17,16 +18,12 @@ export async function getTasks() {
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)
-        .order('d_day', { ascending: true }) // Typical default sort for checklist
+        .order('d_day', { ascending: true })
 
     if (error) {
         console.error('Error fetching tasks:', error)
         return []
     }
-
-    // Calculate d_day_offset if needed dynamically, or rely on what's in DB if it is stored.
-    // Django model had `d_day` (integer offset?) or calculated it.
-    // The schema I created has `d_day` as integer. I should assume it stores the "D-Day offset" (e.g. -30 for 30 days before).
 
     return data
 }
@@ -41,16 +38,20 @@ export async function addTask(formData: FormData) {
     const budget = parseInt(formData.get('budget') as string) || 0
     const memo = formData.get('memo') as string
 
+    // Strictly typed payload
+    const newTask: TaskInsert = {
+        user_id: user.id,
+        title,
+        d_day,
+        estimated_budget: budget,
+        description: memo,
+        is_completed: false
+    }
+
+    // Supabase inference bug workaround: Cast chain to any, but keep strict payload type
     const { error } = await (supabase
         .from('tasks') as any)
-        .insert({
-            user_id: user.id,
-            title,
-            d_day,
-            estimated_budget: budget,
-            description: memo, // Mapping memo to description
-            is_completed: false
-        })
+        .insert(newTask)
 
     if (error) {
         console.error('Error adding task:', error)
@@ -62,12 +63,18 @@ export async function addTask(formData: FormData) {
     return { success: true }
 }
 
-export async function updateTask(id: string, updates: Partial<Task>) {
+export async function updateTask(id: string, updates: TaskUpdate) {
     const supabase = await createClient()
+
+    // Check auth for security
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
     const { error } = await (supabase
         .from('tasks') as any)
         .update(updates)
         .eq('id', id)
+        .eq('user_id', user.id)
 
     if (error) return { error: error.message }
 
@@ -78,10 +85,15 @@ export async function updateTask(id: string, updates: Partial<Task>) {
 
 export async function deleteTasks(ids: string[]) {
     const supabase = await createClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
     const { error } = await (supabase
         .from('tasks') as any)
         .delete()
         .in('id', ids)
+        .eq('user_id', user.id)
 
     if (error) return { error: error.message }
 
@@ -99,6 +111,9 @@ export async function updateTaskBudget(id: string, budget: number) {
 }
 
 export async function updateTaskDate(id: string, date: string) {
-    // date string YYYY-MM-DD
     return await updateTask(id, { due_date: date })
+}
+
+export async function updateTaskActualCost(id: string, cost: number) {
+    return await updateTask(id, { actual_cost: cost })
 }

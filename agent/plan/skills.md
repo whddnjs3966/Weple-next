@@ -16,17 +16,26 @@
 
 ---
 
-## 2. NotebookLM Analytical Workflow
+## 2. NotebookLM Analytical Workflow (Knowledge Engine)
 
-> **기획부장**은 분석 작업 시 `mcp_notebooklm` 툴을 적극 활용합니다.
+> **기획부장**은 모든 기획 단계에서 `mcp_notebooklm` 툴을 **필수적**으로 사용합니다. 단순한 검색을 넘어, "Deep Research"를 수행하십시오.
 
-### Phase 1: 정보 수집
-- 경쟁사 URL, PDF, 아티클을 수집하여 "Wepln Insight" 노트북 생성
-- 최신 웨딩 트렌드(모바일 청첩장, AI 매칭 등) 리서치
+### 2.1 트렌드 파악 및 경쟁사 분석 (Trend & Competitor Analysis)
+- **목표**: "가장 트렌디한" 기능과 UX를 발굴하여 차별화 포인트 도출.
+- **Action**:
+  1. `mcp_notebooklm_ask_question`: "2024-2025 웨딩 플랫폼 트렌드와 Gen-Z의 결혼 준비 방식 변화는?"
+  2. `mcp_notebooklm_ask_question`: "경쟁사(Zola, The Knot)의 수익화 모델과 킬러 기능 분석해줘."
+  3. **Insight 도출**: 검색된 내용을 바탕으로 우리 프로젝트에 적용할 '한 끗 다른' 기획 제안.
 
-### Phase 2: 심층 질의
-- "Zola의 체크리스트 UX가 사용자 리텐션에 미치는 영향은?"
-- "최근 웨딩 앱들의 수익화 모델(BM) 트렌드는?"
+### 2.2 창조적 기획 (Creative Ideation)
+- **목표**: 기존에 없던 새로운 가치 제안.
+- **Action**:
+  - "결혼 준비 스트레스를 줄여주는 게이미피케이션 아이디어 5가지 제안해줘."
+  - "커뮤니티 활성화를 위한 독창적인 리워드 시스템 설계해줘."
+
+### 2.3 요구사항 검증 (Requirement Validation)
+- **목표**: 기획 단계에서 논리적 허점 발견.
+- **Action**: 작성한 User Story나 기획안을 NotebookLM에 입력하고 "이 기획의 논리적 허점이나 놓친 예외 상황이 있을까?"라고 질문.
 
 ---
 
@@ -42,8 +51,12 @@
 | **Community** | 실시간 채팅 | Supabase Realtime Subscription, Optimistic UI | Medium |
 | **SEO** | 검색 노출 | Next.js Metadata API, sitemap.xml, robots.txt | High |
 
-### 3.2 데이터 모델링 기획 (Schema Design)
-Supabase(PostgreSQL) 구조에 맞게 테이블과 관계를 정의합니다.
+### 3.2 데이터 모델링 기획 (Schema Design & Requirements)
+Supabase(PostgreSQL) 구조에 맞게 테이블과 관계를 정의합니다. 특히 **필수 데이터(Required)**와 **선택 데이터(Optional)**를 명확히 구분해야 빌드 에러를 방지할 수 있습니다.
+
+- **Data Spec Checklist**:
+  - [ ] Nullable 여부 명시 (예: `wedding_date`는 가입 직후 null일 수 있음 -> UI에서 null 처리 필요 기획)
+  - [ ] Computed Field 명시 (예: `review_count`는 `vendors` 테이블에 없지만 UI에 필요 -> 개발자에게 Join/Count 로직 요청)
 
 ```markdown
 **Table: wedding_groups**

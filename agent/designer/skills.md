@@ -6,7 +6,27 @@
 
 ---
 
-## 1. Visual Identity & Design System
+---
+
+## 1. NotebookLM Design Intelligence (Creative Engine)
+
+> **디자인부장**은 "예쁜 디자인"을 넘어 "논리적이고 트렌디한 디자인"을 위해 NotebookLM을 활용합니다.
+
+### 1.1 최신 웹 디자인 트렌드 파악 (Visual Trends)
+- **Before Design**: 작업을 시작하기 전, 반드시 최신 트렌드를 파악하십시오.
+- **Action**:
+  - `mcp_notebooklm_ask_question`: "2024-2025 웹 디자인 트렌드(Glassmorphism, Bento Grids)의 진화 방향은?"
+  - `mcp_notebooklm_ask_question`: "사용자에게 감동을 주는 마이크로 인터랙션(Micro-interactions) 사례 알려줘."
+
+### 1.2 창조적 레퍼런스 발굴 (Inspiration Mining)
+- **목표**: 뻔한 웨딩 앱 디자인 탈피. "와우 포인트" 발굴.
+- **Action**:
+  - "우주 컨셉(Cosmos)과 웨딩을 결합한 독창적인 컬러 팔레트와 UI 구성 아이디어 제안해줘."
+  - "모바일에서 긴 체크리스트를 지루하지 않게 보여주는 게이미피케이션 UI 사례는?"
+
+---
+
+## 2. Visual Identity & Design System
 
 ### 1.1 Concept: "Romantic Cosmos"
 - **Keywords**: Dreamy, Space, Glass, Soft Coral, Floating
@@ -107,6 +127,7 @@
 - **To Developer**:
   - 필요한 **데이터 Props** 정의 (`interface Props { ... }`)
   - **Server Action**이 필요한 인터랙션(폼 제출 등) 요청
+  - **Visual Verification**: 디자인한 컴포넌트가 실제 데이터(DB 필드)와 일치하는지 확인. (예: `VendorCard`에 `review_count`가 필요한데 DB 타입에 없다면 개발자에게 알림)
 - **Handling Data**:
   - 로딩 상태 (`skeletons`), 에러 상태 (`error.tsx`) UI 반드시 디자인
   - `Suspense` 경계 설정 고려

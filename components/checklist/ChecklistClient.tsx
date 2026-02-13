@@ -1,11 +1,10 @@
-'use client'
-
 import { useState } from 'react'
-import { Task, deleteTasks, toggleTaskCompletion, updateTaskBudget, updateTaskDate } from '@/actions/checklist'
-import { Plus, Trash2, Info, Calendar, CheckSquare, Square, Wallet, X } from 'lucide-react'
+import { Task, deleteTasks, toggleTaskCompletion, updateTaskBudget, updateTaskDate, updateTaskActualCost } from '@/actions/checklist'
+import { Plus, Trash2, Info, Calendar, CheckSquare, Square, Wallet, X, TrendingUp } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import AddTaskModal from './AddTaskModal'
+import SmartBudgetValidator from './SmartBudgetValidator'
 import { useRouter } from 'next/navigation'
 
 export default function ChecklistClient({ initialTasks }: { initialTasks: Task[] }) {
@@ -16,7 +15,9 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: Task[]
     const [dateModalTask, setDateModalTask] = useState<Task | null>(null)
 
     // Budget Calc
-    const totalBudget = tasks.reduce((sum, task) => sum + (task.estimated_budget || 0), 0)
+    const totalEstimated = tasks.reduce((sum, task) => sum + (task.estimated_budget || 0), 0)
+    const totalActual = tasks.reduce((sum, task) => sum + (task.actual_cost || 0), 0)
+    const budgetGap = totalActual - totalEstimated
 
     // Handlers
     const handleToggleSelect = (id: string) => {
@@ -36,7 +37,6 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: Task[]
         if (!confirm(`선택한 ${selectedIds.size}개의 항목을 삭제하시겠습니까?`)) return
 
         await deleteTasks(Array.from(selectedIds))
-        // Optimistic update
         setTasks(tasks.filter(t => !selectedIds.has(t.id)))
         setSelectedIds(new Set())
         router.refresh()
@@ -58,6 +58,15 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: Task[]
         router.refresh()
     }
 
+    const handleActualCostChange = async (task: Task, newVal: string) => {
+        const cost = parseInt(newVal.replace(/[^0-9]/g, '')) || 0
+        if (cost === task.actual_cost) return
+
+        setTasks(tasks.map(t => t.id === task.id ? { ...t, actual_cost: cost } : t))
+        await updateTaskActualCost(task.id, cost)
+        router.refresh()
+    }
+
     const handleDateSave = async (dateStr: string) => {
         if (!dateModalTask) return
 
@@ -71,10 +80,23 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: Task[]
         <div className="animate-in fade-in duration-500">
             {/* Top Action Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-md border border-white/50 shadow-sm">
-                    <Wallet className="text-primary" size={20} />
-                    <span className="text-sm text-gray-500">Total Budget:</span>
-                    <span className="text-base font-bold text-gray-800">{totalBudget.toLocaleString()}원</span>
+                <div className="flex gap-3">
+                    <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-md border border-white/50 shadow-sm">
+                        <Wallet className="text-gray-400" size={20} />
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Est. Budget</span>
+                            <span className="text-base font-bold text-gray-800">{totalEstimated.toLocaleString()}원</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-md border border-pink-100 shadow-sm">
+                        <TrendingUp className={cn(budgetGap > 0 ? "text-red-400" : "text-emerald-400")} size={20} />
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Actual Spent</span>
+                            <span className={cn("text-base font-bold", budgetGap > 0 ? "text-red-500" : "text-emerald-600")}>
+                                {totalActual.toLocaleString()}원
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="flex gap-2">
@@ -114,15 +136,16 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: Task[]
 
                 {/* Table */}
                 <div className="px-4 py-3 overflow-x-auto">
-                    <table className="w-full min-w-[800px]">
+                    <table className="w-full min-w-[900px]">
                         <thead>
                             <tr className="text-xs uppercase tracking-wider text-gray-400 font-bold border-b border-gray-100/50">
                                 <th className="py-3 px-3 text-center w-[5%]">
                                     <input type="checkbox" onChange={handleSelectAll} checked={selectedIds.size === tasks.length && tasks.length > 0} className="rounded border-gray-300 text-primary focus:ring-primary/20" />
                                 </th>
-                                <th className="py-3 px-2 text-center w-[10%]">시기 (D-Day)</th>
-                                <th className="py-3 px-2 text-left w-[38%]">할 일 (Task)</th>
-                                <th className="py-3 px-2 text-center w-[14%]">예상 예산</th>
+                                <th className="py-3 px-2 text-center w-[8%]">시기 (D-Day)</th>
+                                <th className="py-3 px-2 text-left w-[35%]">할 일 (Task)</th>
+                                <th className="py-3 px-2 text-center w-[12%]">예상 예산</th>
+                                <th className="py-3 px-2 text-center w-[15%]">실제 지출 (Actual)</th>
                                 <th className="py-3 px-2 text-center w-[15%]">일정 (Date)</th>
                                 <th className="py-3 px-2 text-center w-[10%]">완료여부</th>
                             </tr>
@@ -163,12 +186,32 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: Task[]
                                     </td>
 
                                     <td className="py-3.5 px-2 text-center">
-                                        <input
-                                            type="text"
-                                            className="w-24 mx-auto text-center text-xs font-semibold text-gray-500 bg-white/60 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                            defaultValue={task.estimated_budget?.toLocaleString()}
-                                            onBlur={(e) => handleBudgetChange(task, e.target.value)}
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                className="w-24 mx-auto text-center text-xs font-semibold text-gray-500 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary focus:outline-none transition-all placeholder-gray-300"
+                                                placeholder="0"
+                                                defaultValue={task.estimated_budget?.toLocaleString()}
+                                                onBlur={(e) => handleBudgetChange(task, e.target.value)}
+                                            />
+                                        </div>
+                                    </td>
+
+                                    <td className="py-3.5 px-2 text-center">
+                                        <div className="flex items-center justify-center">
+                                            <input
+                                                type="text"
+                                                className="w-24 text-center text-xs font-bold text-gray-700 bg-white/60 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all placeholder-gray-300"
+                                                placeholder="0"
+                                                defaultValue={task.actual_cost?.toLocaleString()}
+                                                onBlur={(e) => handleActualCostChange(task, e.target.value)}
+                                            />
+                                            <SmartBudgetValidator
+                                                amount={task.actual_cost || 0}
+                                                title={task.title}
+                                                category={task.category}
+                                            />
+                                        </div>
                                     </td>
 
                                     <td className="py-3.5 px-2 text-center">
@@ -209,7 +252,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: Task[]
 
                             {tasks.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="text-center py-12 text-gray-400">
+                                    <td colSpan={7} className="text-center py-12 text-gray-400">
                                         <CheckSquare size={48} className="mx-auto mb-3 opacity-30" />
                                         <p className="text-sm">등록된 체크리스트가 없습니다.</p>
                                     </td>

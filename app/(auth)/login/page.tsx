@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Heart } from 'lucide-react'
 import Particles from '@/components/Particles'
@@ -38,12 +38,15 @@ export default function LoginPage() {
         setRotateY(0)
     }
 
+    const searchParams = useSearchParams()
+    const next = searchParams.get('next') || '/dashboard' // Default to dashboard if no next param
+
     const handleSocialLogin = async (provider: 'naver' | 'kakao' | 'google') => {
         setLoading(true)
         const { error } = await supabase.auth.signInWithOAuth({
             provider: provider as any,
             options: {
-                redirectTo: `${window.location.origin}/api/auth/callback`,
+                redirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(next)}`,
             },
         })
 

@@ -16,6 +16,7 @@ export interface Database {
                     full_name: string | null
                     avatar_url: string | null
                     wedding_date: string | null
+                    role: 'admin' | 'user' | null
                     updated_at: string | null
                 }
                 Insert: {
@@ -24,6 +25,7 @@ export interface Database {
                     full_name?: string | null
                     avatar_url?: string | null
                     wedding_date?: string | null
+                    role?: 'admin' | 'user' | null
                     updated_at?: string | null
                 }
                 Update: {
@@ -32,6 +34,7 @@ export interface Database {
                     full_name?: string | null
                     avatar_url?: string | null
                     wedding_date?: string | null
+                    role?: 'admin' | 'user' | null
                     updated_at?: string | null
                 }
                 Relationships: []
@@ -45,6 +48,8 @@ export interface Database {
                     d_day: number | null
                     due_date: string | null
                     estimated_budget: number | null
+                    actual_cost: number | null
+                    category: string | null
                     is_completed: boolean | null
                     created_at: string
                 }
@@ -56,6 +61,8 @@ export interface Database {
                     d_day?: number | null
                     due_date?: string | null
                     estimated_budget?: number | null
+                    actual_cost?: number | null
+                    category?: string | null
                     is_completed?: boolean | null
                     created_at?: string
                 }
@@ -67,6 +74,8 @@ export interface Database {
                     d_day?: number | null
                     due_date?: string | null
                     estimated_budget?: number | null
+                    actual_cost?: number | null
+                    category?: string | null
                     is_completed?: boolean | null
                     created_at?: string
                 }
