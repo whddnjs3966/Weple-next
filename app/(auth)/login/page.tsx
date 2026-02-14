@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Heart } from 'lucide-react'
 import Particles from '@/components/Particles'
 
-export default function LoginPage() {
+function LoginPageContent() {
     const [loading, setLoading] = useState(false)
     const supabase = createClient()
 
@@ -157,5 +157,13 @@ export default function LoginPage() {
             </div>
 
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className='min-h-screen flex items-center justify-center bg-pink-50'>Loading...</div>}>
+            <LoginPageContent />
+        </Suspense>
     )
 }
