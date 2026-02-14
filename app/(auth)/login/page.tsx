@@ -32,14 +32,20 @@ function LoginPageContent() {
         setRotateX(rotateXValue)
         setRotateY(rotateYValue)
     }
-
     const handleMouseLeave = () => {
         setRotateX(0)
         setRotateY(0)
     }
 
     const searchParams = useSearchParams()
-    const next = searchParams.get('next') || '/dashboard' // Default to dashboard if no next param
+    const next = searchParams.get('next') || '/dashboard'
+    const errorParam = searchParams.get('error')
+
+    useEffect(() => {
+        if (errorParam === 'auth-code-error') {
+            alert('인증 코드를 교환하는 중 오류가 발생했습니다. 다시 시도해 주세요.')
+        }
+    }, [errorParam])
 
     const handleSocialLogin = async (provider: 'naver' | 'kakao' | 'google') => {
         setLoading(true)

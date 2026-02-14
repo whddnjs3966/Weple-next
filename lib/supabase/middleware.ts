@@ -35,8 +35,13 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
+    // Authenticated User: Redirect to dashboard if trying to access auth pages or landing
+    // Check for Supabase user OR NextAuth session
+    const isNextAuthUser = request.cookies.has('next-auth.session-token') || request.cookies.has('__Secure-next-auth.session-token')
+
     if (
         !user &&
+        !isNextAuthUser &&
         !request.nextUrl.pathname.startsWith('/login') &&
         !request.nextUrl.pathname.startsWith('/auth') &&
         !request.nextUrl.pathname.startsWith('/signup') &&
@@ -52,7 +57,7 @@ export async function updateSession(request: NextRequest) {
 
     // Authenticated User: Redirect to dashboard if trying to access auth pages or landing
     // Check for Supabase user OR NextAuth session
-    const isNextAuthUser = request.cookies.has('next-auth.session-token') || request.cookies.has('__Secure-next-auth.session-token')
+    // isNextAuthUser is already declared above
 
     if (user || isNextAuthUser) {
         if (
