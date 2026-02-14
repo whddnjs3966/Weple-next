@@ -110,9 +110,15 @@ export default function LoginPage() {
                         {/* Social Login Buttons Container */}
                         <div className="w-full space-y-3">
 
-                            {/* Naver Button - Reduced Height (h-12) */}
+                            {/* Naver Button - Uses NextAuth */}
                             <button
-                                onClick={() => handleSocialLogin('naver')}
+                                onClick={() => {
+                                    setLoading(true)
+                                    // Dynamically import signIn to avoid SSR issues if needed, or just use standard import
+                                    import('next-auth/react').then(({ signIn }) => {
+                                        signIn('naver', { callbackUrl: next })
+                                    })
+                                }}
                                 className="w-full h-12 rounded-xl bg-[#03C75A] hover:bg-[#02b351] flex items-center justify-center gap-3 text-white transition-all hover:scale-[1.02] hover:shadow-lg hover:shadow-[#03C75A]/20 group"
                             >
                                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M16.273 12.845L7.376 0H0v24h7.726V11.156L16.624 24H24V0h-7.727v12.845z" /></svg>

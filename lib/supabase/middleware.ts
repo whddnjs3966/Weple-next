@@ -46,7 +46,36 @@ export async function updateSession(request: NextRequest) {
         // no user, potentially respond with 401 or redirect
         const url = request.nextUrl.clone()
         url.pathname = '/login'
+        url.searchParams.set('next', request.nextUrl.pathname)
         return NextResponse.redirect(url)
+    }
+
+    // Authenticated User: Redirect to dashboard if trying to access auth pages or landing
+    // Check for Supabase user OR NextAuth session
+    const isNextAuthUser = request.cookies.has('next-auth.session-token') || request.cookies.has('__Secure-next-auth.session-token')
+
+    if (user || isNextAuthUser) {
+        if (
+            request.nextUrl.pathname.startsWith('/login') ||
+            request.nextUrl.pathname.startsWith('/signup') ||
+            request.nextUrl.pathname === '/'
+        ) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/dashboard'
+
+            // Create the redirect response
+            const redirectResponse = NextResponse.redirect(url)
+
+            // COPY COOKIES from supabaseResponse to redirectResponse
+            // This is critical: if we don't do this, the refreshed session cookies are lost,
+            // leading to the infinite login loop.
+            const allCookies = supabaseResponse.cookies.getAll()
+            allCookies.forEach(cookie => {
+                redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+            })
+
+            return redirectResponse
+        }
     }
 
     return supabaseResponse
