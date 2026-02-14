@@ -35,6 +35,7 @@ export default function OnboardingPage() {
             // 1. Update Profile with Wedding Date
             const { error: profileError } = await supabase
                 .from('profiles')
+                // @ts-ignore
                 .update({ wedding_date: formData.weddingDate })
                 .eq('id', user.id)
 
@@ -153,8 +154,8 @@ export default function OnboardingPage() {
                                                 })
                                             }}
                                             className={`p-4 rounded-xl text-left transition-all border ${formData.styles.includes(style.id)
-                                                    ? 'bg-pink-500/20 border-pink-400'
-                                                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                                ? 'bg-pink-500/20 border-pink-400'
+                                                : 'bg-white/5 border-white/10 hover:bg-white/10'
                                                 }`}
                                         >
                                             <div className="font-bold text-lg">{style.label}</div>
