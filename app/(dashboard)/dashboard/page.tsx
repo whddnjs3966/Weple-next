@@ -7,20 +7,43 @@ import Link from "next/link"
 export default async function Dashboard() {
     const supabase = await createClient()
 
-    // 1. Get User
-    const { data: { user } } = await supabase.auth.getUser()
+    // 1. Get User (Supabase or NextAuth)
+    const { data: { user: supabaseUser } } = await supabase.auth.getUser()
+
+    let user = supabaseUser
+    let isNextAuth = false
+
     if (!user) {
-        redirect('/login')
+        // Check NextAuth session
+        const { getServerSession } = await import("next-auth/next")
+        const { authOptions } = await import("@/lib/auth")
+        const session = await getServerSession(authOptions)
+
+        if (session?.user) {
+            user = session.user as any
+            isNextAuth = true
+        } else {
+            redirect('/login')
+        }
     }
 
     // 2. Get Profile & Wedding Date
-    const { data: profile } = await (supabase
-        .from('profiles') as any)
-        .select('wedding_date')
-        .eq('id', user.id)
-        .single()
+    // Only fetch profile if it's a Supabase user with an ID
+    let weddingDate: Date | null = null
 
-    const weddingDate = profile?.wedding_date ? new Date(profile.wedding_date) : null
+    if (user && !isNextAuth) {
+        const { data: profile } = await (supabase
+            .from('profiles') as any)
+            .select('wedding_date')
+            .eq('id', user.id)
+            .single()
+
+        weddingDate = profile?.wedding_date ? new Date(profile.wedding_date) : null
+    }
+
+    // For NextAuth users, we currently don't have a profile logic synced yet
+    // So weddingDate defaults to null, which shows the "Set Your Date" UI (safe fallback)
+
     const today = new Date()
 
     let dDay = null
