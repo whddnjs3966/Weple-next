@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Task, deleteTasks, toggleTaskCompletion, updateTaskBudget, updateTaskDate, updateTaskActualCost } from '@/actions/checklist'
 import { Plus, Trash2, Info, Calendar, CheckSquare, Square, Wallet, X, TrendingUp } from 'lucide-react'
