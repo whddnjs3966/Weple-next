@@ -17,6 +17,6 @@ const handler = NextAuth({
     },
     // Ensure we trust the host for production (Vercel)
     trustHost: true,
-})
+} as any)
 
 export { handler as GET, handler as POST }
