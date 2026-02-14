@@ -10,7 +10,7 @@ const handler = NextAuth({
         }),
     ],
     callbacks: {
-        async session({ session, token }) {
+        async session({ session, token }: { session: any; token: any }) {
             // Send properties to the client, like an access_token from a provider.
             return session
         },
