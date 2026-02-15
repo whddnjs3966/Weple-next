@@ -4,17 +4,46 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/dashboard'
 
     if (code) {
         const supabase = await createClient()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
+
         if (!error) {
-            return NextResponse.redirect(`${origin}${next}`)
+            // 1. 현재 유저 정보 가져오기
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (user) {
+                // 2. profiles 테이블에서 유저 존재 여부 확인
+                const { data: profile } = await (supabase as any)
+                    .from('profiles')
+                    .select('id, wedding_date')
+                    .eq('id', user.id)
+                    .single()
+
+                if (profile) {
+                    // 3. 프로필 존재 + wedding_date 있음 → 기존 유저 → /dashboard
+                    if (profile.wedding_date) {
+                        return NextResponse.redirect(new URL('/dashboard', origin).toString())
+                    }
+                    // 4. 프로필 존재 + wedding_date 없음 → 온보딩 미완료 → /onboarding
+                    return NextResponse.redirect(new URL('/onboarding', origin).toString())
+                }
+
+                // 5. 프로필 없음 → 신규 유저 → 프로필 자동 생성 후 /onboarding
+                await (supabase as any)
+                    .from('profiles')
+                    .upsert({
+                        id: user.id,
+                        email: user.email,
+                        nickname: user.user_metadata?.name || user.user_metadata?.full_name || null,
+                    }, { onConflict: 'id' })
+
+                return NextResponse.redirect(new URL('/onboarding', origin).toString())
+            }
         }
     }
 
-    // return the user to an error page with instructions
+    // 인증 실패 시 에러 파라미터와 함께 로그인 페이지로 리다이렉트
     return NextResponse.redirect(`${origin}/login?error=auth-code-error`)
 }

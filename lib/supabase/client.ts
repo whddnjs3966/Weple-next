@@ -14,7 +14,7 @@ export function createClient() {
             auth: {
                 storage: sessionAdapter,
                 autoRefreshToken: true,
-                persistSession: true,
+                persistSession: false,
                 detectSessionInUrl: true,
             },
         }

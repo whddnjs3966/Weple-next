@@ -15,12 +15,15 @@ export async function updateSession(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
                     supabaseResponse = NextResponse.next({
                         request,
                     })
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, options)
+                        supabaseResponse.cookies.set(name, value, {
+                            ...options,
+                            maxAge: undefined, // 세션 쿠키로 변환 (브라우저 종료 시 삭제)
+                        })
                     )
                 },
             },
@@ -35,48 +38,58 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Authenticated User: Redirect to dashboard if trying to access auth pages or landing
-    // Check for Supabase user OR NextAuth session
-    const isNextAuthUser = request.cookies.has('next-auth.session-token') || request.cookies.has('__Secure-next-auth.session-token')
+    const pathname = request.nextUrl.pathname
 
+    // ── 미인증 유저: 보호된 경로 접근 시 /login으로 리다이렉트 ──
     if (
         !user &&
-        !isNextAuthUser &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        !request.nextUrl.pathname.startsWith('/signup') &&
-        !request.nextUrl.pathname.startsWith('/api') &&
-        request.nextUrl.pathname !== '/'
+        !pathname.startsWith('/login') &&
+        !pathname.startsWith('/auth') &&
+        !pathname.startsWith('/signup') &&
+        !pathname.startsWith('/api') &&
+        pathname !== '/'
     ) {
-        // no user, potentially respond with 401 or redirect
+        // 가드: 이미 /login이면 리다이렉트 중단
+        if (pathname === '/login') return supabaseResponse
+
         const url = request.nextUrl.clone()
         url.pathname = '/login'
-        url.searchParams.set('next', request.nextUrl.pathname)
+        url.searchParams.set('next', pathname)
         return NextResponse.redirect(url)
     }
 
-    // Authenticated User: Redirect to dashboard if trying to access auth pages or landing
-    // Check for Supabase user OR NextAuth session
-    // isNextAuthUser is already declared above
-
-    if (user || isNextAuthUser) {
+    // ── 인증된 유저: 로그인/회원가입/랜딩 접근 시 프로필 존재 여부에 따라 분기 ──
+    if (user) {
         if (
-            request.nextUrl.pathname.startsWith('/login') ||
-            request.nextUrl.pathname.startsWith('/signup') ||
-            request.nextUrl.pathname === '/'
+            pathname.startsWith('/login') ||
+            pathname.startsWith('/signup') ||
+            pathname === '/'
+            // /onboarding은 인증된 유저가 접근해야 하므로 여기서 제외
         ) {
+            // DB에서 프로필 존재 여부 + wedding_date 확인
+            const { data: profile } = await (supabase as any)
+                .from('profiles')
+                .select('id, wedding_date')
+                .eq('id', user.id)
+                .single()
+
+            // wedding_date가 있으면 dashboard, 없거나 profile이 없으면 onboarding
+            const targetPath = (profile && profile.wedding_date) ? '/dashboard' : '/onboarding'
+
+            // 가드: 현재 URL이 이미 대상과 같으면 리다이렉트 중단
+            if (pathname === targetPath) return supabaseResponse
+
             const url = request.nextUrl.clone()
-            url.pathname = '/dashboard'
+            url.pathname = targetPath
 
-            // Create the redirect response
+            // 리다이렉트 응답 생성 및 쿠키 복사
             const redirectResponse = NextResponse.redirect(url)
-
-            // COPY COOKIES from supabaseResponse to redirectResponse
-            // This is critical: if we don't do this, the refreshed session cookies are lost,
-            // leading to the infinite login loop.
             const allCookies = supabaseResponse.cookies.getAll()
             allCookies.forEach(cookie => {
-                redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+                redirectResponse.cookies.set(cookie.name, cookie.value, {
+                    ...cookie,
+                    maxAge: undefined, // 세션 쿠키로 변환
+                })
             })
 
             return redirectResponse

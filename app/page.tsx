@@ -74,17 +74,17 @@ export default function LandingPage() {
           <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap">
             <div className="text-center">
               <span className="block text-3xl font-bold text-white mb-1">1,200+</span>
-              <span className="text-xs text-white/50 uppercase tracking-widest">Couples</span>
+              <span className="text-xs text-white/50 uppercase tracking-widest">커플 이용</span>
             </div>
             <div className="w-px h-8 bg-white/10"></div>
             <div className="text-center">
               <span className="block text-3xl font-bold text-white mb-1">98%</span>
-              <span className="text-xs text-white/50 uppercase tracking-widest">Satisfaction</span>
+              <span className="text-xs text-white/50 uppercase tracking-widest">만족도</span>
             </div>
             <div className="w-px h-8 bg-white/10"></div>
             <div className="text-center">
               <span className="block text-3xl font-bold text-white mb-1">500+</span>
-              <span className="text-xs text-white/50 uppercase tracking-widest">Vendors</span>
+              <span className="text-xs text-white/50 uppercase tracking-widest">업체 정보</span>
             </div>
           </div>
         </div>
@@ -217,13 +217,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
-      <footer className="py-8 bg-gray-50 border-t border-gray-100 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2 opacity-50">
-          <Heart size={16} className="fill-gray-400 text-gray-400" />
-          <span className="font-serif font-bold text-gray-600">Wepln</span>
+      {/* ─── Footer (Django Dark Style) ─── */}
+      <footer className="py-6 px-6" style={{ background: '#1a1a2e', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="max-w-[1200px] mx-auto flex items-center justify-between flex-col md:flex-row gap-3">
+          <div className="flex items-center gap-2 text-white">
+            <Heart size={14} className="fill-[#FF8E8E] text-[#FF8E8E]" />
+            <span className="font-serif font-semibold text-[1.1rem]">Wepln</span>
+          </div>
+          <p className="text-xs text-white/30">© 2026 Wepln Corporation. All rights reserved.</p>
         </div>
-        <p className="text-xs text-gray-400">© 2026 Wepln Corporation. All rights reserved.</p>
       </footer>
 
     </div>

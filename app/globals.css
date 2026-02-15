@@ -15,12 +15,13 @@
     /* leading-relaxed */
     letter-spacing: -0.025em;
     /* tracking-tight */
-    color: #2C3E50;
-
-    background-image: linear-gradient(135deg, #fdfbf7 0%, #fff0f5 100%);
-    background-attachment: fixed;
+    color: #1f2937;
+    /* Matches Django 'dark' color for text */
+    background-color: #fdfbf7;
+    /* Matches Django 'background' color */
   }
 
+  /* Global Heading Styles */
   h1,
   h2,
   h3,
@@ -30,6 +31,8 @@
     /* @apply font-bold tracking-tight; */
     font-weight: 700;
     letter-spacing: -0.025em;
+    color: #111827;
+    /* Darker text for headings */
   }
 }
 
@@ -38,21 +41,56 @@
   /* Glassmorphism Utilities */
   .glass-panel {
     /* @apply bg-white/40 backdrop-blur-md border border-white/60 shadow-glass rounded-2xl transition-all duration-300; */
-    background-color: rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-    border-radius: 16px;
-    /* rounded-2xl */
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    border-radius: 24px;
+    /* rounded-2xl -> 3xl */
+    transition: all 400ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /* Spring-like transition */
+  }
+
+  .glass-panel-depth {
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
+    box-shadow:
+      5px 5px 15px rgba(0, 0, 0, 0.05),
+      -5px -5px 15px rgba(255, 255, 255, 0.8),
+      inset 1px 1px 2px rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
   .glass-panel:hover {
     /* @apply bg-white/50 border-white/80 scale-[1.02]; */
-    background-color: rgba(255, 255, 255, 0.5);
-    border-color: rgba(255, 255, 255, 0.8);
-    transform: scale(1.02);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.2) 100%);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  /* 3D Utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  .text-gradient-cosmic {
+    background: linear-gradient(135deg, #2C3E50 0%, #FF8E8E 50%, #E67373 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .shadow-neon {
+    box-shadow: 0 0 10px rgba(255, 142, 142, 0.5), 0 0 20px rgba(255, 142, 142, 0.3);
   }
 
   /* Navigation Bar */

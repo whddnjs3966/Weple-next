@@ -14,9 +14,12 @@ export const authOptions: NextAuthOptions = {
         },
     },
     // Session-only configuration
+    // Session-only configuration
     session: {
         strategy: 'jwt',
-        maxAge: 30 * 24 * 60 * 60, // 30 days (but cookie will be session-only)
+        // maxAge removed to default (or to rely on cookie clearing)
+        // Note: Default maxAge is 30 days for JWT, but since cookie is session-only, 
+        // the session effectively ends when browser closes.
     },
     cookies: {
         sessionToken: {
@@ -26,10 +29,11 @@ export const authOptions: NextAuthOptions = {
                 sameSite: 'lax',
                 path: '/',
                 secure: process.env.NODE_ENV === 'production',
-                // maxAge: removed to make it a session cookie
+                // maxAge must be undefined to be a session cookie
             },
         },
     },
     // Ensure we trust the host for production (Vercel)
     trustHost: true,
+    debug: true, // Enable debugging to trace 307 loop issues
 } as any

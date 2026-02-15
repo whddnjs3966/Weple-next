@@ -17,6 +17,9 @@ export interface Database {
                     avatar_url: string | null
                     wedding_date: string | null
                     role: 'admin' | 'user' | null
+                    nickname: string | null
+                    invite_code: string | null
+                    wedding_group_id: string | null
                     updated_at: string | null
                 }
                 Insert: {
@@ -26,6 +29,9 @@ export interface Database {
                     avatar_url?: string | null
                     wedding_date?: string | null
                     role?: 'admin' | 'user' | null
+                    nickname?: string | null
+                    invite_code?: string | null
+                    wedding_group_id?: string | null
                     updated_at?: string | null
                 }
                 Update: {
@@ -35,6 +41,9 @@ export interface Database {
                     avatar_url?: string | null
                     wedding_date?: string | null
                     role?: 'admin' | 'user' | null
+                    nickname?: string | null
+                    invite_code?: string | null
+                    wedding_group_id?: string | null
                     updated_at?: string | null
                 }
                 Relationships: []
@@ -192,6 +201,33 @@ export interface Database {
                     id?: number
                     name?: string
                     slug?: string
+                }
+                Relationships: []
+            }
+            wedding_groups: {
+                Row: {
+                    id: string
+                    groom_name: string | null
+                    bride_name: string | null
+                    wedding_date: string | null
+                    total_budget: number | null
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    groom_name?: string | null
+                    bride_name?: string | null
+                    wedding_date?: string | null
+                    total_budget?: number | null
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    groom_name?: string | null
+                    bride_name?: string | null
+                    wedding_date?: string | null
+                    total_budget?: number | null
+                    created_at?: string
                 }
                 Relationships: []
             }

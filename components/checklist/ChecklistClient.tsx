@@ -1,320 +1,416 @@
 'use client'
 
 import { useState } from 'react'
-import { Task, deleteTasks, toggleTaskCompletion, updateTaskBudget, updateTaskDate, updateTaskActualCost } from '@/actions/checklist'
-import { Plus, Trash2, Info, Calendar, CheckSquare, Square, Wallet, X, TrendingUp } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, AlertCircle, Calendar, X, Save } from 'lucide-react'
 import { format } from 'date-fns'
-import { cn } from '@/lib/utils'
-import AddTaskModal from './AddTaskModal'
-import SmartBudgetValidator from './SmartBudgetValidator'
-import { useRouter } from 'next/navigation'
+import { useSchedule } from '@/contexts/ScheduleContext'
 
-export default function ChecklistClient({ initialTasks }: { initialTasks: Task[] }) {
-    const router = useRouter()
-    const [tasks, setTasks] = useState(initialTasks)
+interface Task {
+    id: string
+    title: string
+    description?: string
+    dDayOffset: number
+    estimatedBudget: number
+    scheduledDate: string | null
+    isDone: boolean
+}
+
+const defaultTasks: Task[] = [
+    { id: 'c1', title: '양가 상견례', description: '양가 부모님 인사 및 결혼 날짜 협의', dDayOffset: -365, estimatedBudget: 300000, scheduledDate: null, isDone: false },
+    { id: 'c2', title: '결혼 날짜 확정', description: '양가 의견 반영하여 택일', dDayOffset: -300, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c3', title: '웨딩홀 투어 및 계약', description: '예산, 하객 규모, 교통편, 식사 퀄리티 비교', dDayOffset: -270, estimatedBudget: 5000000, scheduledDate: null, isDone: false },
+    { id: 'c4', title: '스드메 상담 및 계약', description: '스튜디오·드레스·메이크업 패키지 비교 후 계약', dDayOffset: -240, estimatedBudget: 3000000, scheduledDate: null, isDone: false },
+    { id: 'c5', title: '신혼집 알아보기', description: '예산, 위치, 교통, 학군 등 비교', dDayOffset: -240, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c6', title: '본식 스냅/DVD 업체 예약', description: '결혼식 당일 촬영 업체 비교 후 예약', dDayOffset: -210, estimatedBudget: 800000, scheduledDate: null, isDone: false },
+    { id: 'c7', title: '신혼여행지 결정 및 예약', description: '여행지, 항공권, 숙소 예약 (비자·백신 확인)', dDayOffset: -180, estimatedBudget: 3000000, scheduledDate: null, isDone: false },
+    { id: 'c8', title: '예물 상담 및 구매', description: '웨딩링 등 여러 매장 방문 후 결정', dDayOffset: -150, estimatedBudget: 4000000, scheduledDate: null, isDone: false },
+    { id: 'c9', title: '가전·가구 리스트 작성', description: '신혼집 입주에 맞춰 필요 목록 정리', dDayOffset: -150, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c10', title: '피부 관리 시작', description: '결혼식 D-Day에 맞춰 관리 시작', dDayOffset: -120, estimatedBudget: 500000, scheduledDate: null, isDone: false },
+    { id: 'c11', title: '청첩장 디자인 선택', description: '문구 결정 및 시안 확정, 인쇄 의뢰', dDayOffset: -100, estimatedBudget: 200000, scheduledDate: null, isDone: false },
+    { id: 'c12', title: '예복·한복 준비', description: '예복/한복 피팅 및 예약 (맞춤 시 1개월 소요)', dDayOffset: -100, estimatedBudget: 1500000, scheduledDate: null, isDone: false },
+    { id: 'c13', title: '가전·가구 구매', description: '비교 후 주문, 배송 일정 조율', dDayOffset: -90, estimatedBudget: 10000000, scheduledDate: null, isDone: false },
+    { id: 'c14', title: '웨딩 촬영 진행', description: '스튜디오/야외 촬영, 소품·의상 준비', dDayOffset: -80, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c15', title: '드레스 최종 선택 및 가봉', description: '본식 드레스 확정 및 수선', dDayOffset: -70, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c16', title: '신혼여행 최종 점검', description: '항공권, 호텔, 여권, 여행자보험 확인', dDayOffset: -60, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c17', title: '청첩장 인쇄 및 발송', description: '최종 인쇄 확인 후 양가 하객에게 발송', dDayOffset: -50, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c18', title: '혼수·예단 목록 조율', description: '양가 부모님과 협의하여 결정', dDayOffset: -50, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c19', title: '주례·사회자·축가 섭외', description: '식순에 맞는 인원 섭외 및 확정', dDayOffset: -45, estimatedBudget: 300000, scheduledDate: null, isDone: false },
+    { id: 'c20', title: '메이크업 리허설', description: '본식 메이크업·헤어 스타일 사전 점검', dDayOffset: -40, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c21', title: '혼주 메이크업·의상 준비', description: '양가 부모님 의상 및 메이크업 예약', dDayOffset: -35, estimatedBudget: 500000, scheduledDate: null, isDone: false },
+    { id: 'c22', title: '감사선물·답례품 준비', description: '포장 및 수량 결정, 주문', dDayOffset: -30, estimatedBudget: 500000, scheduledDate: null, isDone: false },
+    { id: 'c23', title: '폐백 음식 준비', description: '폐백 업체 선정 및 예약', dDayOffset: -30, estimatedBudget: 300000, scheduledDate: null, isDone: false },
+    { id: 'c24', title: '영상 편지·식전 영상 제작', description: '상영할 영상 촬영 및 편집', dDayOffset: -25, estimatedBudget: 200000, scheduledDate: null, isDone: false },
+    { id: 'c25', title: '결혼 소식 알림', description: '지인에게 결혼 소식 알림톡/카드 발송', dDayOffset: -25, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c26', title: '부케 예약', description: '원하는 스타일 선택 후 예약', dDayOffset: -20, estimatedBudget: 150000, scheduledDate: null, isDone: false },
+    { id: 'c27', title: '하객 최종 명단 정리', description: '참석 인원 확인 및 좌석 배치', dDayOffset: -14, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c28', title: '식순 확정 및 세부 조율', description: '사회자·주례와 최종 식순 확인', dDayOffset: -14, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c29', title: '사례비·봉투 준비', description: '축의금 접수자, 사회자, 주례 사례비 준비', dDayOffset: -10, estimatedBudget: 500000, scheduledDate: null, isDone: false },
+    { id: 'c30', title: '웨딩드레스·턱시도 최종 피팅', description: '수선 완료 확인 및 최종 점검', dDayOffset: -7, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c31', title: '뷔페 최종 인원 확정', description: '예식장에 참석 최종 인원 전달', dDayOffset: -5, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c32', title: '개인 준비물 점검', description: '웨딩슈즈, 속옷, 액세서리, 소품 등', dDayOffset: -3, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c33', title: '혼인신고서·가족관계 서류', description: '필수 서류 미리 준비', dDayOffset: -3, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c34', title: '웨딩카 준비 확인', description: '당일 웨딩카 준비 상황 점검', dDayOffset: -1, estimatedBudget: 0, scheduledDate: null, isDone: false },
+    { id: 'c35', title: '결혼식 당일 🎉', description: '축하합니다! 행복한 하루 보내세요!', dDayOffset: 0, estimatedBudget: 0, scheduledDate: null, isDone: false },
+]
+
+export default function ChecklistClient() {
+    const [tasks, setTasks] = useState<Task[]>(defaultTasks)
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-    const [dateModalTask, setDateModalTask] = useState<Task | null>(null)
+    const [isDateModalOpen, setIsDateModalOpen] = useState(false)
+    const [dateModalTaskId, setDateModalTaskId] = useState<string | null>(null)
+    const [dateInput, setDateInput] = useState('')
+    const [selectAll, setSelectAll] = useState(false)
 
-    // Budget Calc
-    const totalEstimated = tasks.reduce((sum, task) => sum + (task.estimated_budget || 0), 0)
-    const totalActual = tasks.reduce((sum, task) => sum + (task.actual_cost || 0), 0)
-    const budgetGap = totalActual - totalEstimated
+    const { addEvent, events } = useSchedule()
 
-    // Handlers
-    const handleToggleSelect = (id: string) => {
+    const totalBudget = tasks.reduce((sum, t) => sum + t.estimatedBudget, 0)
+    const completedTasks = tasks.filter(t => t.isDone).length
+    const progress = Math.round((completedTasks / tasks.length) * 100) || 0
+
+    // Schedule tab events that are of type 'schedule' should also show here
+    const scheduleEvents = events.filter(e => e.type === 'schedule')
+
+    const toggleStatus = (id: string) => {
+        setTasks(tasks.map(t => t.id === id ? { ...t, isDone: !t.isDone } : t))
+    }
+
+    const toggleSelect = (id: string) => {
         const newSet = new Set(selectedIds)
         if (newSet.has(id)) newSet.delete(id)
         else newSet.add(id)
         setSelectedIds(newSet)
+        setSelectAll(newSet.size === tasks.length)
     }
 
-    const handleSelectAll = () => {
-        if (selectedIds.size === tasks.length) setSelectedIds(new Set())
-        else setSelectedIds(new Set(tasks.map(t => t.id)))
+    const toggleSelectAll = () => {
+        if (selectAll) {
+            setSelectedIds(new Set())
+            setSelectAll(false)
+        } else {
+            setSelectedIds(new Set(tasks.map(t => t.id)))
+            setSelectAll(true)
+        }
     }
 
-    const handleDeleteSelected = async () => {
+    const deleteSelected = () => {
         if (selectedIds.size === 0) return
-        if (!confirm(`선택한 ${selectedIds.size}개의 항목을 삭제하시겠습니까?`)) return
-
-        await deleteTasks(Array.from(selectedIds))
-        setTasks(tasks.filter(t => !selectedIds.has(t.id)))
-        setSelectedIds(new Set())
-        router.refresh()
+        if (confirm(`${selectedIds.size}개 항목을 삭제하시겠습니까?`)) {
+            setTasks(tasks.filter(t => !selectedIds.has(t.id)))
+            setSelectedIds(new Set())
+            setSelectAll(false)
+        }
     }
 
-    const handleToggleComplete = async (task: Task) => {
-        const newState = !task.is_completed
-        setTasks(tasks.map(t => t.id === task.id ? { ...t, is_completed: newState } : t))
-        await toggleTaskCompletion(task.id, newState)
-        router.refresh()
+    const updateBudget = (id: string, value: string) => {
+        const numValue = parseInt(value.replace(/,/g, '')) || 0
+        setTasks(tasks.map(t => t.id === id ? { ...t, estimatedBudget: numValue } : t))
     }
 
-    const handleBudgetChange = async (task: Task, newVal: string) => {
-        const budget = parseInt(newVal.replace(/[^0-9]/g, '')) || 0
-        if (budget === task.estimated_budget) return
-
-        setTasks(tasks.map(t => t.id === task.id ? { ...t, estimated_budget: budget } : t))
-        await updateTaskBudget(task.id, budget)
-        router.refresh()
+    const saveBudget = (id: string) => {
+        const task = tasks.find(t => t.id === id)
+        if (task) {
+            console.log(`예산 저장: ${task.title} → ${task.estimatedBudget.toLocaleString()}₩`)
+            // TODO: Supabase에 저장
+        }
     }
 
-    const handleActualCostChange = async (task: Task, newVal: string) => {
-        const cost = parseInt(newVal.replace(/[^0-9]/g, '')) || 0
-        if (cost === task.actual_cost) return
-
-        setTasks(tasks.map(t => t.id === task.id ? { ...t, actual_cost: cost } : t))
-        await updateTaskActualCost(task.id, cost)
-        router.refresh()
+    const openDateModal = (taskId: string) => {
+        const task = tasks.find(t => t.id === taskId)
+        setDateModalTaskId(taskId)
+        setDateInput(task?.scheduledDate || '')
+        setIsDateModalOpen(true)
     }
 
-    const handleDateSave = async (dateStr: string) => {
-        if (!dateModalTask) return
+    const handleScheduleDate = () => {
+        if (!dateModalTaskId || !dateInput) return
+        const task = tasks.find(t => t.id === dateModalTaskId)
+        if (!task) return
 
-        setTasks(tasks.map(t => t.id === dateModalTask.id ? { ...t, due_date: dateStr } : t))
-        await updateTaskDate(dateModalTask.id, dateStr)
-        setDateModalTask(null)
-        router.refresh()
+        // Update task with scheduled date
+        setTasks(tasks.map(t => t.id === dateModalTaskId ? { ...t, scheduledDate: dateInput } : t))
+
+        // Add to shared schedule context so it shows on calendar
+        addEvent({
+            title: task.title,
+            date: dateInput,
+            type: 'checklist',
+            checklistId: task.id,
+        })
+
+        setIsDateModalOpen(false)
+        setDateModalTaskId(null)
+        setDateInput('')
     }
+
+    const getDDayColor = (offset: number) => {
+        const abs = Math.abs(offset)
+        if (offset === 0) return 'bg-[#FF8E8E] text-white'
+        if (abs <= 7) return 'bg-red-500 text-white'
+        if (abs <= 14) return 'bg-red-400 text-white'
+        if (abs <= 30) return 'bg-orange-400 text-white'
+        if (abs <= 60) return 'bg-amber-400 text-white'
+        if (abs <= 90) return 'bg-yellow-400 text-gray-800'
+        if (abs <= 150) return 'bg-emerald-400 text-white'
+        if (abs <= 240) return 'bg-blue-400 text-white'
+        return 'bg-gray-400 text-white'
+    }
+
+    const dateModalTask = tasks.find(t => t.id === dateModalTaskId)
 
     return (
-        <div className="animate-in fade-in duration-500">
-            {/* Top Action Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                <div className="flex gap-3">
-                    <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-md border border-white/50 shadow-sm">
-                        <Wallet className="text-gray-400" size={20} />
-                        <div className="flex flex-col leading-tight">
-                            <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Est. Budget</span>
-                            <span className="text-base font-bold text-gray-800">{totalEstimated.toLocaleString()}원</span>
-                        </div>
+        <div className="max-w-6xl mx-auto px-6 pb-20">
+            {/* Header */}
+            <div className="text-center mb-6">
+                <h2 className="font-serif italic text-2xl md:text-3xl font-bold text-gray-800 tracking-tight mb-2">
+                    Checklist
+                </h2>
+                <div className="flex items-center justify-center gap-2 mt-1">
+                    <div className="w-10 h-[2px] bg-gradient-to-r from-transparent to-[#FF8E8E]"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#FF8E8E]"></div>
+                    <div className="w-10 h-[2px] bg-gradient-to-l from-transparent to-[#FF8E8E]"></div>
+                </div>
+            </div>
+
+            {/* Title Row */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <span className="text-[#FF8E8E]">📋</span> 웨딩 체크리스트 (Timeline)
+                </h3>
+                <div className="flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-50 rounded-lg px-3 py-1.5">
+                    <AlertCircle size={12} className="text-gray-300" />
+                    ※ 참고용입니다. 상황에 맞게 추가/삭제하세요.
+                </div>
+            </div>
+
+            {/* Stats + Actions */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2">
+                    <div className="bg-white rounded-xl px-3 py-2 border border-gray-100 shadow-sm flex items-center gap-2">
+                        <ClipboardCheck className="text-[#FF8E8E] w-4 h-4" />
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">예산 합계</span>
+                        <span className="text-gray-800 font-bold text-sm">{totalBudget.toLocaleString()}₩</span>
                     </div>
-                    <div className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white/70 backdrop-blur-md border border-pink-100 shadow-sm">
-                        <TrendingUp className={cn(budgetGap > 0 ? "text-red-400" : "text-emerald-400")} size={20} />
-                        <div className="flex flex-col leading-tight">
-                            <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Actual Spent</span>
-                            <span className={cn("text-base font-bold", budgetGap > 0 ? "text-red-500" : "text-emerald-600")}>
-                                {totalActual.toLocaleString()}원
-                            </span>
-                        </div>
+                    <div className="bg-white rounded-xl px-3 py-2 border border-gray-100 shadow-sm flex items-center gap-2">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">진행률</span>
+                        <span className="text-gray-800 font-bold text-sm">{completedTasks}/{tasks.length}</span>
+                        <span className="text-gray-400 text-[11px]">({progress}%)</span>
                     </div>
                 </div>
-
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-br from-primary to-primary-light text-white text-xs font-bold shadow-md shadow-primary/30 hover:-translate-y-0.5 transition-all"
-                    >
-                        <Plus size={16} />
-                        추가
-                    </button>
-                    <button
-                        onClick={handleDeleteSelected}
+                        onClick={deleteSelected}
                         disabled={selectedIds.size === 0}
-                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gray-100 text-gray-500 text-xs font-bold shadow-sm border border-gray-200 transition-all hover:bg-red-50 hover:text-red-400 hover:border-red-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none"
+                        className="h-8 px-3 rounded-lg bg-white border border-gray-200 flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 hover:border-red-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                     >
-                        <Trash2 size={16} />
-                        삭제
+                        <Trash2 size={13} />
+                        {selectedIds.size > 0 && <span className="font-bold">{selectedIds.size}개 삭제</span>}
+                    </button>
+                    <button className="h-8 flex items-center gap-1.5 px-4 rounded-lg bg-[#FF8E8E] hover:bg-[#ff7a7a] text-white font-bold text-xs shadow-md shadow-[#FF8E8E]/20 hover:-translate-y-0.5 transition-all">
+                        <Plus size={13} /> 추가
                     </button>
                 </div>
             </div>
 
-            {/* Checklist Card */}
-            <div className="rounded-[24px] bg-white/70 backdrop-blur-md border border-white/50 shadow-sm overflow-hidden" style={{ boxShadow: '0 8px 32px rgba(255,142,142,0.06)' }}>
-
-                {/* Header */}
-                <div className="px-6 py-5 border-b border-gray-100/60 flex flex-wrap items-center justify-between gap-2">
-                    <h5 className="font-bold text-gray-800 text-base m-0 flex items-center gap-2">
-                        <CheckSquare className="text-primary" size={20} />
-                        웨딩 체크리스트 (Timeline)
-                    </h5>
-                    <div className="flex flex-col items-end gap-1">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-50 text-gray-400 text-[10px] font-semibold border border-gray-100">
-                            <Info size={12} /> D-Day 순으로 정렬됩니다
-                        </span>
+            {/* Schedule Events from Calendar */}
+            {scheduleEvents.length > 0 && (
+                <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 mb-4">
+                    <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-2">📅 달력에서 등록된 일정</p>
+                    <div className="space-y-1">
+                        {scheduleEvents.map(evt => (
+                            <div key={evt.id} className="flex items-center gap-3 text-[12px] text-gray-600 bg-white rounded-lg px-3 py-1.5 border border-blue-50">
+                                <span className="font-bold text-blue-500">{evt.date}</span>
+                                <span>{evt.title}</span>
+                                {evt.time && <span className="text-gray-400">{evt.time}</span>}
+                            </div>
+                        ))}
                     </div>
                 </div>
+            )}
 
-                {/* Table */}
-                <div className="px-4 py-3 overflow-x-auto">
-                    <table className="w-full min-w-[900px]">
+            {/* Table */}
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
                         <thead>
-                            <tr className="text-xs uppercase tracking-wider text-gray-400 font-bold border-b border-gray-100/50">
-                                <th className="py-3 px-3 text-center w-[5%]">
-                                    <input type="checkbox" onChange={handleSelectAll} checked={selectedIds.size === tasks.length && tasks.length > 0} className="rounded border-gray-300 text-primary focus:ring-primary/20" />
+                            <tr className="bg-gray-50/80 border-b-2 border-gray-200">
+                                <th className="w-16 py-3 px-2 text-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectAll}
+                                        onChange={toggleSelectAll}
+                                        className="w-3.5 h-3.5 rounded border-gray-300 text-[#FF8E8E] focus:ring-[#FF8E8E] cursor-pointer"
+                                    />
                                 </th>
-                                <th className="py-3 px-2 text-center w-[8%]">시기 (D-Day)</th>
-                                <th className="py-3 px-2 text-left w-[35%]">할 일 (Task)</th>
-                                <th className="py-3 px-2 text-center w-[12%]">예상 예산</th>
-                                <th className="py-3 px-2 text-center w-[15%]">실제 지출 (Actual)</th>
-                                <th className="py-3 px-2 text-center w-[15%]">일정 (Date)</th>
-                                <th className="py-3 px-2 text-center w-[10%]">완료여부</th>
+                                <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '120px' }}>시기 (D-Day)</th>
+                                <th className="py-3 px-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">할 일 (TODO)</th>
+                                <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '180px' }}>예상 예산</th>
+                                <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '130px' }}>일정 등록</th>
+                                <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '100px' }}>완료</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {tasks.map((task) => (
-                                <tr key={task.id} className={cn("hover:bg-pink-50/30 transition-colors", task.is_completed && "opacity-40")}>
+                        <tbody>
+                            <AnimatePresence mode='popLayout'>
+                                {tasks.map((task, index) => (
+                                    <motion.tr
+                                        key={task.id}
+                                        initial={{ opacity: 0, y: 6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        transition={{ delay: index * 0.02 }}
+                                        layout
+                                        className={`border-b border-gray-200 transition-colors group ${task.isDone ? 'bg-gray-50/40' : 'hover:bg-pink-50/20'}`}
+                                    >
+                                        {/* Checkbox */}
+                                        <td className="py-3 px-2 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.has(task.id)}
+                                                onChange={() => toggleSelect(task.id)}
+                                                className="w-3.5 h-3.5 rounded border-gray-300 text-[#FF8E8E] focus:ring-[#FF8E8E] cursor-pointer"
+                                            />
+                                        </td>
 
-                                    <td className="py-3.5 px-3 text-center">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedIds.has(task.id)}
-                                            onChange={() => handleToggleSelect(task.id)}
-                                            className="rounded border-gray-300 text-primary focus:ring-primary/20"
-                                        />
-                                    </td>
-
-                                    <td className="py-3.5 px-2 text-center">
-                                        <span className={cn(
-                                            "inline-block px-2.5 py-1 rounded-full text-xs font-bold text-white",
-                                            (task.d_day ?? 0) < -180 ? "bg-gray-400" :
-                                                (task.d_day ?? 0) < -90 ? "bg-blue-400" :
-                                                    (task.d_day ?? 0) < -30 ? "bg-emerald-400" : "bg-red-400"
-                                        )}>
-                                            {task.d_day === 0 ? "D-Day" : `D${task.d_day}`}
-                                        </span>
-                                    </td>
-
-                                    <td className="py-3.5 px-2">
-                                        <div className="flex flex-col">
-                                            <span className={cn("font-semibold text-gray-800 text-sm", task.is_completed && "line-through text-gray-400")}>
-                                                {task.title}
+                                        {/* D-Day Badge */}
+                                        <td className="py-3 px-2 text-center">
+                                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold ${getDDayColor(task.dDayOffset)}`}>
+                                                {task.dDayOffset === 0 ? 'D-Day' : `D${task.dDayOffset}`}
                                             </span>
+                                        </td>
+
+                                        {/* Title + Description */}
+                                        <td className="py-3 px-3">
+                                            <div className={`font-semibold text-[13px] leading-snug ${task.isDone ? 'line-through text-gray-300' : 'text-gray-800'}`}>
+                                                {task.title}
+                                            </div>
                                             {task.description && (
-                                                <span className="text-gray-400 text-xs mt-0.5 truncate max-w-[350px]">{task.description}</span>
+                                                <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">{task.description}</p>
                                             )}
-                                        </div>
-                                    </td>
+                                        </td>
 
-                                    <td className="py-3.5 px-2 text-center">
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                className="w-24 mx-auto text-center text-xs font-semibold text-gray-500 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-primary focus:outline-none transition-all placeholder-gray-300"
-                                                placeholder="0"
-                                                defaultValue={task.estimated_budget?.toLocaleString()}
-                                                onBlur={(e) => handleBudgetChange(task, e.target.value)}
-                                            />
-                                        </div>
-                                    </td>
+                                        {/* Budget */}
+                                        <td className="py-3 px-2">
+                                            <div className="flex items-center gap-1 justify-center">
+                                                <input
+                                                    type="text"
+                                                    value={task.estimatedBudget > 0 ? task.estimatedBudget.toLocaleString() : ''}
+                                                    onChange={(e) => updateBudget(task.id, e.target.value)}
+                                                    placeholder="0"
+                                                    className="w-28 text-right text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg px-2 py-1.5 outline-none transition-all focus:border-[#FF8E8E] focus:ring-2 focus:ring-[#FF8E8E]/10 placeholder-gray-300"
+                                                />
+                                                <button
+                                                    onClick={() => saveBudget(task.id)}
+                                                    className="w-6 h-6 rounded-md bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 hover:border-emerald-200 transition-all"
+                                                    title="예산 저장"
+                                                >
+                                                    <Save size={11} />
+                                                </button>
+                                            </div>
+                                        </td>
 
-                                    <td className="py-3.5 px-2 text-center">
-                                        <div className="flex items-center justify-center">
-                                            <input
-                                                type="text"
-                                                className="w-24 text-center text-xs font-bold text-gray-700 bg-white/60 border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all placeholder-gray-300"
-                                                placeholder="0"
-                                                defaultValue={task.actual_cost?.toLocaleString()}
-                                                onBlur={(e) => handleActualCostChange(task, e.target.value)}
-                                            />
-                                            <SmartBudgetValidator
-                                                amount={task.actual_cost || 0}
-                                                title={task.title}
-                                                category={task.category}
-                                            />
-                                        </div>
-                                    </td>
-
-                                    <td className="py-3.5 px-2 text-center">
-                                        {task.due_date ? (
-                                            <button
-                                                onClick={() => setDateModalTask(task)}
-                                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/80 border border-gray-200 text-gray-600 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
-                                            >
-                                                <Calendar size={12} className="text-primary" />
-                                                {format(new Date(task.due_date), 'yyyy.MM.dd')}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => setDateModalTask(task)}
-                                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold text-white bg-gradient-to-br from-primary to-primary-light shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
-                                            >
-                                                <Plus size={12} />
-                                                일정 등록
-                                            </button>
-                                        )}
-                                    </td>
-
-                                    <td className="py-3.5 px-2 text-center">
-                                        <button
-                                            onClick={() => handleToggleComplete(task)}
-                                            className="transition-transform hover:scale-110"
-                                        >
-                                            {task.is_completed ? (
-                                                <CheckSquare className="text-emerald-500" size={20} fill="currentColor" stroke="white" />
+                                        {/* Schedule Date Button */}
+                                        <td className="py-3 px-2 text-center">
+                                            {task.scheduledDate ? (
+                                                <button
+                                                    onClick={() => openDateModal(task.id)}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 transition-colors"
+                                                >
+                                                    <Calendar size={10} />
+                                                    {task.scheduledDate.slice(5).replace('-', '/')}
+                                                </button>
                                             ) : (
-                                                <Square className="text-gray-300 hover:text-primary-light" size={20} />
+                                                <button
+                                                    onClick={() => openDateModal(task.id)}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-pink-50 text-[#FF8E8E] border border-pink-100 hover:bg-pink-100 transition-colors"
+                                                >
+                                                    <Calendar size={10} />
+                                                    등록
+                                                </button>
                                             )}
-                                        </button>
-                                    </td>
+                                        </td>
 
-                                </tr>
-                            ))}
-
-                            {tasks.length === 0 && (
-                                <tr>
-                                    <td colSpan={7} className="text-center py-12 text-gray-400">
-                                        <CheckSquare size={48} className="mx-auto mb-3 opacity-30" />
-                                        <p className="text-sm">등록된 체크리스트가 없습니다.</p>
-                                    </td>
-                                </tr>
-                            )}
+                                        {/* Completion Toggle */}
+                                        <td className="py-3 px-2 text-center">
+                                            <button
+                                                onClick={() => toggleStatus(task.id)}
+                                                className="transition-all hover:scale-110"
+                                            >
+                                                {task.isDone ? (
+                                                    <CheckCircle size={20} className="text-emerald-500" />
+                                                ) : (
+                                                    <Circle size={20} className="text-gray-200 hover:text-[#FF8E8E]" />
+                                                )}
+                                            </button>
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </AnimatePresence>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            {/* Add Task Modal */}
-            <AddTaskModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+            {/* Empty State */}
+            {tasks.length === 0 && (
+                <div className="text-center py-16 text-gray-300">
+                    <ClipboardCheck className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">체크리스트가 비어 있습니다. 항목을 추가하세요.</p>
+                </div>
+            )}
 
-            {/* Date Picker Modal */}
-            {dateModalTask && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setDateModalTask(null)}></div>
-                    <div className="relative w-full max-w-sm bg-white rounded-[24px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-6 text-center relative overflow-hidden">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:24px_24px]"></div>
+            {/* Date Registration Modal */}
+            {isDateModalOpen && dateModalTask && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsDateModalOpen(false)}></div>
+                    <div className="relative w-full max-w-sm bg-white rounded-[20px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Modal Header */}
+                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FF8E8E 0%, #FFB5B5 100%)', padding: '1.25rem 1.5rem' }}>
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:20px_20px]"></div>
                             <div className="relative z-10">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center mx-auto mb-2 text-white shadow-lg shadow-primary/30">
-                                    <Calendar size={20} />
-                                </div>
-                                <h3 className="font-serif font-bold text-lg text-white">일정 등록</h3>
-                                <p className="text-white/50 text-xs mt-1">{dateModalTask.title}</p>
+                                <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mb-0.5">일정 등록</p>
+                                <h3 className="font-bold text-base text-white">{dateModalTask.title}</h3>
+                                {dateModalTask.description && (
+                                    <p className="text-white/60 text-[11px] mt-1">{dateModalTask.description}</p>
+                                )}
                             </div>
                             <button
-                                onClick={() => setDateModalTask(null)}
-                                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+                                onClick={() => setIsDateModalOpen(false)}
+                                className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
                             >
-                                <X size={20} />
+                                <X size={14} />
                             </button>
                         </div>
-                        <div className="p-6 bg-white">
-                            <form onSubmit={(e) => {
-                                e.preventDefault()
-                                handleDateSave(new FormData(e.currentTarget).get('date') as string)
-                            }}>
-                                <div className="mb-6">
-                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
-                                        <Calendar size={12} className="text-primary" /> 날짜 선택
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="date"
-                                        defaultValue={dateModalTask.due_date || ''}
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-2xl py-3 px-4 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        required
-                                    />
-                                </div>
-                                <button type="submit" className="w-full py-3 rounded-2xl bg-gradient-to-br from-primary to-primary-light text-white font-bold text-sm shadow-lg shadow-primary/30 hover:-translate-y-0.5 transition-all">
-                                    저장하기
-                                </button>
-                            </form>
+
+                        <div className="p-5 space-y-4">
+                            <div>
+                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">날짜 선택</label>
+                                <input
+                                    type="date"
+                                    value={dateInput}
+                                    onChange={(e) => setDateInput(e.target.value)}
+                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none transition-all focus:border-[#FF8E8E] focus:bg-white focus:ring-4 focus:ring-[#FF8E8E]/10"
+                                />
+                            </div>
+                            <div className="text-[11px] text-gray-400 bg-blue-50 rounded-lg px-3 py-2 flex items-start gap-1.5">
+                                <span className="mt-0.5">💡</span>
+                                <span>이 일정은 <strong className="text-blue-500">스케줄 탭</strong>의 달력에도 자동으로 표시됩니다.</span>
+                            </div>
+                            <button
+                                onClick={handleScheduleDate}
+                                disabled={!dateInput}
+                                className="w-full py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{
+                                    background: 'linear-gradient(135deg, #FF8E8E 0%, #ff7a7a 100%)',
+                                    boxShadow: '0 4px 15px rgba(255, 142, 142, 0.3)',
+                                }}
+                            >
+                                <Calendar size={15} />
+                                일정 등록하기
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
-
         </div>
     )
 }

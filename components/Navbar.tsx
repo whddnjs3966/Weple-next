@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Heart, Flower, Settings, LogOut, Calendar, CheckSquare, Store, Users, User } from 'lucide-react'
+import { Heart, Flower, Settings, LogOut, Calendar, CheckSquare, Store, Users, User, Copy, Check } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 export default function Navbar({ userEmail }: { userEmail?: string }) {
@@ -13,8 +13,45 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
     const router = useRouter()
     const supabase = createClient()
     const [isProfileOpen, setIsProfileOpen] = useState(false)
+    const [nickname, setNickname] = useState('')
     const [newWeddingDate, setNewWeddingDate] = useState('')
+    const [inviteCode, setInviteCode] = useState('')
     const [isUpdating, setIsUpdating] = useState(false)
+    const [copied, setCopied] = useState(false)
+
+    // Load profile data when modal opens
+    useEffect(() => {
+        if (isProfileOpen) {
+            loadProfileData()
+        }
+    }, [isProfileOpen])
+
+    const loadProfileData = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('nickname, invite_code, wedding_group_id')
+            .eq('id', user.id)
+            .single() as { data: { nickname: string | null; invite_code: string | null; wedding_group_id: string | null } | null }
+
+        if (profile) {
+            setNickname(profile.nickname || '')
+            setInviteCode(profile.invite_code || '코드 없음')
+
+            if (profile.wedding_group_id) {
+                const { data: group } = await supabase
+                    .from('wedding_groups')
+                    .select('wedding_date')
+                    .eq('id', profile.wedding_group_id)
+                    .single() as { data: { wedding_date: string | null } | null }
+                if (group?.wedding_date) {
+                    setNewWeddingDate(group.wedding_date)
+                }
+            }
+        }
+    }
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
@@ -24,11 +61,32 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsUpdating(true)
-        const { updateWeddingDate } = await import('@/actions/profile')
-        await updateWeddingDate(newWeddingDate)
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user) {
+                await (supabase
+                    .from('profiles') as any)
+                    .update({ nickname })
+                    .eq('id', user.id)
+            }
+            if (newWeddingDate) {
+                const { updateWeddingDate } = await import('@/actions/profile')
+                await updateWeddingDate(newWeddingDate)
+            }
+        } catch (err) {
+            console.error('Profile update error:', err)
+        }
         setIsUpdating(false)
         setIsProfileOpen(false)
         router.refresh()
+    }
+
+    const copyInviteCode = async () => {
+        if (inviteCode && inviteCode !== '코드 없음') {
+            await navigator.clipboard.writeText(inviteCode)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        }
     }
 
     return (
@@ -40,47 +98,56 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 
                     <div className="flex items-center justify-center gap-6 px-8 py-2">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white shadow-sm shadow-primary/30">
+                        <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105 shrink-0">
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#FF8E8E] to-[#ff7a7a] flex items-center justify-center text-white shadow-sm shadow-pink-300/30 shrink-0">
                                 <Heart size={16} fill="white" />
                             </div>
-                            <span className="font-serif font-bold text-lg text-gray-800 tracking-wide hidden sm:block">Wepln</span>
+                            <span className="font-serif font-bold text-lg text-gray-800 tracking-wide shrink-0">Wepln</span>
                         </Link>
 
-                        {/* Center Navigation */}
-                        <div className="hidden md:flex items-center gap-1 p-1 bg-gray-100/50 rounded-full border border-gray-100/50">
-                            {[
-                                { name: 'Schedule', href: '/schedule', icon: Calendar },
-                                { name: 'Checklist', href: '/checklist', icon: CheckSquare },
-                                { name: 'Vendors', href: '/vendors', icon: Store },
-                                { name: 'Community', href: '/community', icon: Users },
-                            ].map((item) => {
-                                const Icon = item.icon
-                                const isActive = pathname.startsWith(item.href)
-                                return (
-                                    <Link
-                                        key={item.name}
-                                        href={item.href}
-                                        className={cn(
-                                            "px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5",
-                                            isActive
-                                                ? "bg-white text-primary shadow-sm"
-                                                : "text-gray-500 hover:text-gray-900 hover:bg-white/50"
-                                        )}
-                                    >
-                                        <Icon size={12} />
-                                        {item.name}
-                                    </Link>
-                                )
-                            })}
+                        {/* Center: Navigation (Dashboard) or Phrase (Landing) */}
+                        <div className="hidden md:flex items-center justify-center">
+                            {['/dashboard', '/schedule', '/checklist', '/vendors', '/community'].some(path => pathname.startsWith(path)) ? (
+                                <div className="flex items-center gap-1 p-1 bg-gray-100/50 rounded-full border border-gray-100/50">
+                                    {[
+                                        { name: 'Schedule', href: '/schedule', icon: Calendar },
+                                        { name: 'Checklist', href: '/checklist', icon: CheckSquare },
+                                        { name: 'Vendors', href: '/vendors', icon: Store },
+                                        { name: 'Community', href: '/community', icon: Users },
+                                    ].map((item) => {
+                                        const Icon = item.icon
+                                        const isActive = pathname.startsWith(item.href)
+                                        return (
+                                            <Link
+                                                key={item.name}
+                                                href={item.href}
+                                                className={cn(
+                                                    "px-3 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5",
+                                                    isActive
+                                                        ? "bg-white text-primary shadow-sm"
+                                                        : "text-gray-500 hover:text-gray-900 hover:bg-white/50"
+                                                )}
+                                            >
+                                                <Icon size={12} />
+                                                {item.name}
+                                            </Link>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <span className="text-gray-400 text-xs font-medium flex items-center gap-2 tracking-widest uppercase">
+                                    <Flower size={12} className="text-primary/60" />
+                                    당신의 아름다운 웨딩
+                                    <Flower size={12} className="text-primary/60" />
+                                </span>
+                            )}
                         </div>
 
-                        {/* Mobile 'Phrase' Fallback for center (optional, or just hide on mobile) */}
+                        {/* Mobile Fallback */}
                         <div className="md:hidden text-xs text-gray-400 font-medium flex items-center gap-1">
                             <Flower size={10} className="text-primary-light" />
                             <span>Wepln</span>
                         </div>
-
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-2">
@@ -101,27 +168,23 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                 <LogOut size={14} />
                                 <span className="hidden lg:inline">Log Out</span>
                             </button>
-
-                            {userEmail && (
-                                <div className="hidden xl:flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-xs text-gray-500 font-medium border border-gray-200">
-                                    {userEmail[0].toUpperCase()}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </nav>
             </div>
 
-            {/* Profile Modal Placeholder - To be implemented fully */}
+            {/* ─── Profile Modal (Django Style) ─── */}
             {isProfileOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsProfileOpen(false)}></div>
                     <div className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-8 text-center relative overflow-hidden">
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.05)_1px,transparent_0)] [background-size:24px_24px]"></div>
-                            <div className="relative z-10">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary-light flex items-center justify-center mx-auto mb-3 text-white text-xl shadow-lg shadow-primary/30">
-                                    <User />
+
+                        {/* Modal Header - Django Gradient Style */}
+                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', padding: '2rem 2rem 1.8rem' }}>
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.04)_1px,transparent_0)] [background-size:24px_24px]"></div>
+                            <div className="relative z-10 text-center">
+                                <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-[#FF8E8E] to-[#FFB5B5] flex items-center justify-center mx-auto mb-3 text-white shadow-lg">
+                                    <User size={22} />
                                 </div>
                                 <h3 className="font-serif font-bold text-xl text-white">내 정보 변경</h3>
                                 <p className="text-white/50 text-xs mt-1">프로필과 결혼일을 수정하세요</p>
@@ -130,27 +193,77 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                 onClick={() => setIsProfileOpen(false)}
                                 className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
                             >
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </div>
+
+                        {/* Modal Body */}
                         <div className="p-8">
-                            <form onSubmit={handleUpdateProfile} className="space-y-4">
+                            <form onSubmit={handleUpdateProfile} className="space-y-6">
+                                {/* Nickname */}
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">결혼식 예정일</label>
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                        <User size={12} className="text-[#FF8E8E]" />
+                                        닉네임
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        placeholder="닉네임을 입력하세요"
+                                        className="w-full bg-gray-50 border-2 border-gray-100 rounded-[14px] px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-[#FF8E8E] focus:bg-white focus:ring-4 focus:ring-[#FF8E8E]/10"
+                                    />
+                                </div>
+
+                                {/* Wedding Date */}
+                                <div>
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                        <Calendar size={12} className="text-[#FF8E8E]" />
+                                        결혼 예정일
+                                    </label>
                                     <input
                                         type="date"
                                         value={newWeddingDate}
                                         onChange={(e) => setNewWeddingDate(e.target.value)}
-                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                                        required
+                                        className="w-full bg-gray-50 border-2 border-gray-100 rounded-[14px] px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-[#FF8E8E] focus:bg-white focus:ring-4 focus:ring-[#FF8E8E]/10"
                                     />
                                 </div>
+
+                                {/* Partner Invite Code */}
+                                <div>
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                        <Users size={12} className="text-[#FF8E8E]" />
+                                        파트너 초대코드
+                                    </label>
+                                    <div className="flex gap-2 items-center">
+                                        <input
+                                            type="text"
+                                            readOnly
+                                            value={inviteCode}
+                                            className="flex-1 bg-gray-50 border-2 border-gray-100 rounded-[14px] px-4 py-3 text-center text-sm font-bold text-gray-700 tracking-[3px] outline-none"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={copyInviteCode}
+                                            className="px-4 py-3 rounded-[14px] border-2 border-gray-100 bg-gray-50 text-gray-400 hover:border-[#FF8E8E] hover:text-[#FF8E8E] transition-all flex items-center gap-1"
+                                        >
+                                            {copied ? <Check size={16} /> : <Copy size={16} />}
+                                        </button>
+                                    </div>
+                                    <p className="text-[11px] text-gray-400 mt-2 ml-1">이 코드를 파트너에게 공유하여 함께 관리하세요</p>
+                                </div>
+
+                                {/* Submit Button */}
                                 <button
                                     type="submit"
                                     disabled={isUpdating}
-                                    className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/30 hover:-translate-y-0.5 transition-all disabled:opacity-70"
+                                    className="w-full py-3.5 rounded-[14px] border-none text-white font-bold text-sm cursor-pointer transition-all hover:-translate-y-0.5 disabled:opacity-70"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #FF8E8E 0%, #ff7a7a 100%)',
+                                        boxShadow: '0 4px 15px rgba(255, 142, 142, 0.3)',
+                                    }}
                                 >
-                                    {isUpdating ? '저장 중...' : '저장하기'}
+                                    {isUpdating ? '저장 중...' : '✓ 저장하기'}
                                 </button>
                             </form>
                         </div>
