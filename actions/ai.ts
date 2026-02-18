@@ -86,8 +86,8 @@ export async function generateWeddingPlan(planData: WeddingPlanData) {
         is_completed: false
     }))]
 
-    // Use 'as any' workaround for bulk insert type inference issues
-    const { error } = await (supabase.from('tasks') as any)
+    // Bulk insert all tasks
+    const { error } = await supabase.from('tasks')
         .insert(allTasks)
 
     if (error) {

@@ -19,16 +19,16 @@ const NumberBlock = ({ value, label }: { value: number; label: string }) => {
                         animate={{ rotateX: 0, opacity: 1 }}
                         exit={{ rotateX: 90, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                        className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-neon"
+                        className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-md rounded-xl border border-pink-100 shadow-petal"
                         style={{ transformStyle: 'preserve-3d' }}
                     >
-                        <span className="text-3xl md:text-5xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-b from-white to-white/70">
+                        <span className="text-3xl md:text-5xl font-bold text-gray-800">
                             {value.toString().padStart(2, '0')}
                         </span>
                     </motion.div>
                 </AnimatePresence>
             </div>
-            <span className="text-xs md:text-sm font-medium text-white/60 mt-2 uppercase tracking-widest">{label}</span>
+            <span className="text-xs md:text-sm font-medium text-pink-400 mt-2 uppercase tracking-widest">{label}</span>
         </div>
     )
 }
@@ -55,9 +55,9 @@ export default function Countdown3D({ targetDate }: Countdown3DProps) {
     if (!targetDate) {
         return (
             <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                <h3 className="text-2xl font-serif font-bold text-white mb-2">Set Your Date</h3>
-                <p className="text-white/60 text-sm mb-4">Start your journey by setting your wedding date.</p>
-                <div className="w-12 h-12 rounded-full border-2 border-white/20 flex items-center justify-center animate-pulse">
+                <h3 className="text-2xl font-serif font-bold text-gray-800 mb-2">날짜를 설정하세요</h3>
+                <p className="text-gray-400 text-sm mb-4">결혼 예정일을 설정하고 여정을 시작하세요.</p>
+                <div className="w-12 h-12 rounded-full border-2 border-pink-200 flex items-center justify-center animate-pulse-soft text-pink-400">
                     <span className="text-2xl">+</span>
                 </div>
             </div>
@@ -66,14 +66,14 @@ export default function Countdown3D({ targetDate }: Countdown3DProps) {
 
     return (
         <div className="flex flex-col items-center justify-center p-6 h-full w-full">
-            <h3 className="text-white/80 font-serif text-lg mb-6 tracking-widest uppercase">Time Remaining</h3>
+            <h3 className="text-pink-400 font-serif text-lg mb-6 tracking-widest uppercase">Time Remaining</h3>
             <div className="flex items-center">
                 <NumberBlock value={timeLeft.days} label="Days" />
-                <span className="text-2xl text-white/40 mb-6">:</span>
+                <span className="text-2xl text-pink-200 mb-6">:</span>
                 <NumberBlock value={timeLeft.hours} label="Hrs" />
-                <span className="text-2xl text-white/40 mb-6">:</span>
+                <span className="text-2xl text-pink-200 mb-6">:</span>
                 <NumberBlock value={timeLeft.minutes} label="Min" />
-                <span className="text-2xl text-white/40 mb-6">:</span>
+                <span className="text-2xl text-pink-200 mb-6">:</span>
                 <NumberBlock value={timeLeft.seconds} label="Sec" />
             </div>
         </div>

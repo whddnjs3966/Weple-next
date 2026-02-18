@@ -1,19 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, PenTool, MessageSquare, ThumbsUp, Eye, Flame, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, PenTool, Flame, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { getPosts, type Post as DBPost } from '@/actions/community'
+import { format } from 'date-fns'
 
-interface Post {
-    id: number
-    category: 'NOTICE' | 'FREE' | 'QUESTION' | 'REVIEW' | 'TIP'
-    title: string
-    author: string
-    date: string
-    views: number
-    recommendations: number
-    commentCount: number
-    isHot?: boolean
+// UI용 Post 타입 확장
+interface PostWithAuthor extends DBPost {
+    author: { username: string | null } | null
 }
 
 const CATEGORIES = [
@@ -25,34 +21,31 @@ const CATEGORIES = [
     { code: 'TIP', name: '꿀팁' },
 ]
 
-export default function CommunityClient() {
+interface CommunityClientProps {
+    initialPosts: PostWithAuthor[]
+    initialCount: number
+}
+
+export default function CommunityClient({ initialPosts, initialCount }: CommunityClientProps) {
+    const [posts, setPosts] = useState<PostWithAuthor[]>(initialPosts)
     const [currentCategory, setCurrentCategory] = useState('ALL')
     const [searchQuery, setSearchQuery] = useState('')
+    const [isPending, startTransition] = useTransition()
+    const [totalCount, setTotalCount] = useState(initialCount)
 
-    const posts: Post[] = [
-        { id: 1, category: 'NOTICE', title: 'Wepln 커뮤니티 이용 가이드', author: '관리자', date: '2024.05.01', views: 1200, recommendations: 50, commentCount: 5 },
-        { id: 101, category: 'REVIEW', title: '강남 예식장 투어 후기 (3곳 비교)', author: 'LovelyBride', date: '2024.05.20', views: 150, recommendations: 12, commentCount: 3, isHot: true },
-        { id: 102, category: 'QUESTION', title: '예산 3000만원으로 가능한 범위가요?', author: '예비신랑', date: '2024.05.19', views: 80, recommendations: 2, commentCount: 8 },
-        { id: 103, category: 'TIP', title: '신혼여행 TOP 5 추천 장소', author: 'TravelLover', date: '2024.05.18', views: 300, recommendations: 45, commentCount: 15, isHot: true },
-        { id: 104, category: 'FREE', title: '예물 사진 자랑합니다 💍', author: 'HappyDays', date: '2024.05.18', views: 200, recommendations: 25, commentCount: 10 },
-        { id: 105, category: 'QUESTION', title: '드레스 피팅 체크리스트 있나요?', author: '초보신부', date: '2024.05.17', views: 60, recommendations: 1, commentCount: 2 },
-        { id: 106, category: 'FREE', title: '결혼 준비하면서 가장 힘들었던 것', author: '넘바쁜신부', date: '2024.05.16', views: 180, recommendations: 30, commentCount: 22, isHot: true },
-        { id: 107, category: 'REVIEW', title: '메이크업 샵 비교 후기', author: '뷰티러버', date: '2024.05.15', views: 95, recommendations: 8, commentCount: 4 },
-    ]
+    // 카테고리 변경 핸들러
+    const handleCategoryChange = (categoryCode: string) => {
+        setCurrentCategory(categoryCode)
+        startTransition(async () => {
+            const { posts: newPosts, count } = await getPosts(categoryCode.toLowerCase())
+            setPosts(newPosts as PostWithAuthor[])
+            setTotalCount(count)
+        })
+    }
 
-    const filteredPosts = currentCategory === 'ALL'
-        ? posts
-        : posts.filter(p => p.category === currentCategory)
-
-    // Sort: HOT posts first
-    const sortedPosts = [...filteredPosts].sort((a, b) => {
-        if (a.isHot && !b.isHot) return -1
-        if (!a.isHot && b.isHot) return 1
-        return 0
-    })
-
-    const getCategoryBadge = (cat: string) => {
-        switch (cat) {
+    const getCategoryBadge = (cat: string | null | undefined) => {
+        const upperCat = cat?.toUpperCase() || 'FREE'
+        switch (upperCat) {
             case 'NOTICE': return 'bg-red-50 text-red-500 border-red-100'
             case 'REVIEW': return 'bg-emerald-50 text-emerald-600 border-emerald-100'
             case 'QUESTION': return 'bg-blue-50 text-blue-500 border-blue-100'
@@ -62,28 +55,29 @@ export default function CommunityClient() {
         }
     }
 
-    const getCategoryName = (cat: string) => {
-        switch (cat) {
-            case 'NOTICE': return '공지'
-            case 'REVIEW': return '후기'
-            case 'QUESTION': return 'Q&A'
-            case 'TIP': return '꿀팁'
-            case 'FREE': return '자유'
-            default: return cat
-        }
+    const getCategoryName = (cat: string | null | undefined) => {
+        const upperCat = cat?.toUpperCase() || 'FREE'
+        const found = CATEGORIES.find(c => c.code === upperCat)
+        return found ? found.name : cat
+    }
+
+    // 날짜 포맷팅
+    const formatDate = (dateString: string | null | undefined) => {
+        if (!dateString) return ''
+        return format(new Date(dateString), 'yyyy.MM.dd')
     }
 
     return (
         <div className="max-w-5xl mx-auto px-4 pb-20">
             {/* Header */}
             <div className="text-center mb-10">
-                <h2 className="font-serif italic text-4xl md:text-5xl font-bold text-gray-800 tracking-tight mb-2">
+                <h2 className="font-serif italic text-3xl md:text-4xl font-bold text-gray-800 tracking-tight mb-2">
                     Community
                 </h2>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                    <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-[#FF8E8E]"></div>
-                    <div className="w-2 h-2 rounded-full bg-[#FF8E8E]"></div>
-                    <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-[#FF8E8E]"></div>
+                    <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-pink-400"></div>
+                    <div className="w-2 h-2 rounded-full bg-pink-400"></div>
+                    <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-pink-400"></div>
                 </div>
                 <p className="text-gray-400 text-sm mt-4">결혼 준비 이야기를 나눠보세요</p>
             </div>
@@ -94,11 +88,12 @@ export default function CommunityClient() {
                     {CATEGORIES.map(cat => (
                         <button
                             key={cat.code}
-                            onClick={() => setCurrentCategory(cat.code)}
+                            onClick={() => handleCategoryChange(cat.code)}
+                            disabled={isPending}
                             className={`
                                 px-5 py-3 text-sm font-medium whitespace-nowrap transition-all relative
                                 ${currentCategory === cat.code
-                                    ? 'text-[#FF8E8E] font-bold'
+                                    ? 'text-pink-300 font-bold'
                                     : 'text-gray-400 hover:text-gray-600'
                                 }
                             `}
@@ -107,7 +102,7 @@ export default function CommunityClient() {
                             {currentCategory === cat.code && (
                                 <motion.div
                                     layoutId="categoryUnderline"
-                                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#FF8E8E]"
+                                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-pink-400"
                                 />
                             )}
                         </button>
@@ -116,85 +111,84 @@ export default function CommunityClient() {
             </div>
 
             {/* Table */}
-            <div className="bg-white/70 backdrop-blur-xl rounded-[20px] shadow-xl border border-white/50 overflow-hidden mb-8">
+            <div className={`bg-white/70 backdrop-blur-xl rounded-[20px] shadow-xl border border-white/50 overflow-hidden mb-8 transition-opacity ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+                {/* Loading Indicator */}
+                {isPending && (
+                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                        <Loader2 className="animate-spin text-pink-400 w-8 h-8" />
+                    </div>
+                )}
+
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-100">
                             <th className="py-3.5 px-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-16">No</th>
-                            <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-20">카테고리</th>
+                            <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-24">카테고리</th>
                             <th className="py-3.5 px-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">제목</th>
-                            <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-24">글쓴이</th>
+                            <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-32">글쓴이</th>
                             <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-24 hidden md:table-cell">작성시간</th>
                             <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-16 hidden md:table-cell">조회</th>
-                            <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-16 hidden md:table-cell">추천</th>
                         </tr>
                     </thead>
                     <tbody>
                         <AnimatePresence mode='popLayout'>
-                            {sortedPosts.map((post) => (
-                                <motion.tr
-                                    key={post.id}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className={`border-b border-gray-50 transition-colors cursor-pointer group
-                                        ${post.isHot ? 'bg-pink-50/40' : 'hover:bg-pink-50/20'}
-                                        ${post.category === 'NOTICE' ? 'bg-amber-50/30' : ''}
-                                    `}
-                                >
-                                    {/* No */}
-                                    <td className="py-3.5 px-4 text-center">
-                                        {post.isHot ? (
-                                            <span className="inline-flex items-center justify-center">
-                                                <Flame size={16} className="text-[#FF8E8E] fill-[#FF8E8E]" />
+                            {posts.length > 0 ? (
+                                posts.map((post, index) => (
+                                    <motion.tr
+                                        key={post.id}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="border-b border-gray-50 transition-colors cursor-pointer hover:bg-pink-50/20"
+                                    >
+                                        {/* No: 단순히 역순 번호 표시 (페이지네이션 고려 필요하지만 일단 간단히) */}
+                                        <td className="py-3.5 px-4 text-center">
+                                            <span className="text-sm text-gray-400">{totalCount - index}</span>
+                                        </td>
+
+                                        {/* Category */}
+                                        <td className="py-3.5 px-3 text-center">
+                                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(post.category)}`}>
+                                                {getCategoryName(post.category)}
                                             </span>
-                                        ) : (
-                                            <span className="text-sm text-gray-400">{post.id}</span>
-                                        )}
-                                    </td>
+                                        </td>
 
-                                    {/* Category */}
-                                    <td className="py-3.5 px-3 text-center">
-                                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(post.category)}`}>
-                                            {getCategoryName(post.category)}
-                                        </span>
-                                    </td>
+                                        {/* Title */}
+                                        <td className="py-3.5 px-4">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium text-sm text-gray-700 hover:text-pink-300 transition-colors">
+                                                    {post.title}
+                                                </span>
+                                                {/* 댓글 수 표시 (임시) */}
+                                                {/* {post._count?.comments > 0 && (
+                                                    <span className="text-[10px] text-pink-300 font-bold">[{post._count.comments}]</span>
+                                                )} */}
+                                            </div>
+                                        </td>
 
-                                    {/* Title */}
-                                    <td className="py-3.5 px-4">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`font-medium text-sm group-hover:text-[#FF8E8E] transition-colors ${post.isHot ? 'font-bold text-gray-800' : 'text-gray-700'}`}>
-                                                {post.title}
-                                            </span>
-                                            {post.commentCount > 0 && (
-                                                <span className="text-[10px] text-[#FF8E8E] font-bold">[{post.commentCount}]</span>
-                                            )}
-                                        </div>
-                                    </td>
+                                        {/* Author */}
+                                        <td className="py-3.5 px-3 text-center">
+                                            <span className="text-xs text-gray-500">{post.author?.username || '익명'}</span>
+                                        </td>
 
-                                    {/* Author */}
-                                    <td className="py-3.5 px-3 text-center">
-                                        <span className="text-xs text-gray-500">{post.author}</span>
-                                    </td>
+                                        {/* Date */}
+                                        <td className="py-3.5 px-3 text-center hidden md:table-cell">
+                                            <span className="text-xs text-gray-400">{formatDate(post.created_at)}</span>
+                                        </td>
 
-                                    {/* Date */}
-                                    <td className="py-3.5 px-3 text-center hidden md:table-cell">
-                                        <span className="text-xs text-gray-400">{post.date}</span>
+                                        {/* Views */}
+                                        <td className="py-3.5 px-3 text-center hidden md:table-cell">
+                                            <span className="text-xs text-gray-400">{post.view_count || 0}</span>
+                                        </td>
+                                    </motion.tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="py-10 text-center text-gray-400 text-sm">
+                                        등록된 게시글이 없습니다.
                                     </td>
-
-                                    {/* Views */}
-                                    <td className="py-3.5 px-3 text-center hidden md:table-cell">
-                                        <span className="text-xs text-gray-400">{post.views}</span>
-                                    </td>
-
-                                    {/* Recommendations */}
-                                    <td className="py-3.5 px-3 text-center hidden md:table-cell">
-                                        <span className={`text-xs font-medium ${post.recommendations >= 10 ? 'text-[#FF8E8E] font-bold' : 'text-gray-400'}`}>
-                                            {post.recommendations}
-                                        </span>
-                                    </td>
-                                </motion.tr>
-                            ))}
+                                </tr>
+                            )}
                         </AnimatePresence>
                     </tbody>
                 </table>
@@ -217,17 +211,20 @@ export default function CommunityClient() {
                 </div>
 
                 {/* Write Button */}
-                <button className="flex items-center gap-2 px-5 py-2.5 bg-[#FF8E8E] hover:bg-[#ff7a7a] rounded-xl text-white text-sm font-bold shadow-lg shadow-[#FF8E8E]/20 hover:-translate-y-0.5 transition-all">
+                <Link
+                    href="/community/write"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-pink-400 hover:bg-pink-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-pink-300/20 hover:-translate-y-0.5 transition-all"
+                >
                     <PenTool size={14} /> 글쓰기
-                </button>
+                </Link>
             </div>
 
-            {/* Pagination */}
+            {/* Pagination (Visual Only for now) */}
             <div className="flex justify-center gap-1.5">
                 <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-200 transition-all">
                     <ChevronLeft size={14} />
                 </button>
-                <button className="w-9 h-9 rounded-lg bg-[#FF8E8E] text-white font-bold text-sm flex items-center justify-center shadow-sm">1</button>
+                <button className="w-9 h-9 rounded-lg bg-pink-400 text-white font-bold text-sm flex items-center justify-center shadow-sm">1</button>
                 <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-200 transition-all text-sm">2</button>
                 <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-200 transition-all text-sm">3</button>
                 <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-200 transition-all">

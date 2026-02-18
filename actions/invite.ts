@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -22,8 +21,8 @@ export async function generateInviteCode() {
     if (!user) return { error: 'Unauthorized' }
 
     // 기존 초대 코드가 있는지 확인
-    const { data: profile } = await (supabase
-        .from('profiles') as any)
+    const { data: profile } = await supabase
+        .from('profiles')
         .select('invite_code')
         .eq('id', user.id)
         .single()
@@ -35,8 +34,8 @@ export async function generateInviteCode() {
     // 새로운 초대 코드 생성 (8자리)
     const inviteCode = generateCode(8)
 
-    const { error } = await (supabase
-        .from('profiles') as any)
+    const { error } = await supabase
+        .from('profiles')
         .update({ invite_code: inviteCode })
         .eq('id', user.id)
 
@@ -62,8 +61,8 @@ export async function joinByInviteCode(inviteCode: string) {
     const code = inviteCode.trim().toUpperCase()
 
     // 1. 초대 코드 소유자 찾기
-    const { data: inviter, error: findError } = await (supabase
-        .from('profiles') as any)
+    const { data: inviter, error: findError } = await supabase
+        .from('profiles')
         .select('id, wedding_group_id')
         .eq('invite_code', code)
         .single()
@@ -79,8 +78,8 @@ export async function joinByInviteCode(inviteCode: string) {
 
     // 2. 초대자의 wedding_group_id가 있으면 같은 그룹으로 연결
     if (inviter.wedding_group_id) {
-        const { error: updateError } = await (supabase
-            .from('profiles') as any)
+        const { error: updateError } = await supabase
+            .from('profiles')
             .update({ wedding_group_id: inviter.wedding_group_id })
             .eq('id', user.id)
 
@@ -91,9 +90,8 @@ export async function joinByInviteCode(inviteCode: string) {
     }
 
     // 3. 초대자에게 그룹이 없으면 새 그룹 생성 후 양쪽 연결
-    //    (wedding_groups 테이블이 있다고 가정)
-    const { data: newGroup, error: groupError } = await (supabase
-        .from('wedding_groups') as any)
+    const { data: newGroup, error: groupError } = await supabase
+        .from('wedding_groups')
         .insert({})
         .select('id')
         .single()
@@ -103,8 +101,8 @@ export async function joinByInviteCode(inviteCode: string) {
     }
 
     // 양쪽 모두 같은 그룹으로 설정
-    const { error: linkError } = await (supabase
-        .from('profiles') as any)
+    const { error: linkError } = await supabase
+        .from('profiles')
         .update({ wedding_group_id: newGroup.id })
         .in('id', [user.id, inviter.id])
 
@@ -126,8 +124,8 @@ export async function validateInviteCode(inviteCode: string) {
 
     const code = inviteCode.trim().toUpperCase()
 
-    const { data: inviter } = await (supabase
-        .from('profiles') as any)
+    const { data: inviter } = await supabase
+        .from('profiles')
         .select('id, full_name')
         .eq('invite_code', code)
         .single()

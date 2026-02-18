@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -10,13 +9,13 @@ export async function updateWeddingDate(date: string) {
 
     if (!user) return { error: 'Unauthorized' }
 
-    const { error } = await (supabase
-        .from('profiles') as any)
+    const { error } = await supabase
+        .from('profiles')
         .update({ wedding_date: date })
         .eq('id', user.id)
 
     if (error) return { error: error.message }
 
-    revalidatePath('/', 'layout') // Revalidate everything as D-Day affects all pages
+    revalidatePath('/', 'layout')
     return { success: true }
 }

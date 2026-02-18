@@ -26,8 +26,8 @@ export async function updateProfile(formData: FormData) {
         // 2. Update Profile & Wedding Date
         // Based on Onboarding, 'wedding_date' is in 'profiles' table
         // We also update 'first_name' in profiles if it exists there to keep sync
-        const { error: profileError } = await (supabase
-            .from('profiles') as any)
+        const { error: profileError } = await supabase
+            .from('profiles')
             .update({
                 wedding_date: weddingDate,
                 // If profiles table has name or nickname column, update it too.
@@ -62,19 +62,20 @@ export async function getInviteCode() {
         // Based on base.html: user.wedding_profile.group.invite_code
         // This implies profiles (join) wedding_groups.
 
-        const { data: profile } = await (supabase
-            .from('profiles') as any)
+        const { data: profile } = await supabase
+            .from('profiles')
             .select(`
-                group_id,
-                wedding_groups:group_id (
+                wedding_group_id,
+                wedding_groups:wedding_group_id (
                     invite_code
                 )
             `)
             .eq('id', user.id)
             .single()
 
-        if (profile?.wedding_groups?.invite_code) {
-            return { inviteCode: profile.wedding_groups.invite_code }
+        const weddingGroup = profile?.wedding_groups as unknown as { invite_code: string | null } | null
+        if (weddingGroup?.invite_code) {
+            return { inviteCode: weddingGroup.invite_code }
         }
 
         return { inviteCode: 'CODE-NOT-FOUND' }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -6,28 +5,33 @@ import { Database } from '@/lib/types/database.types'
 import { revalidatePath } from 'next/cache'
 
 export type Post = Database['public']['Tables']['posts']['Row'] & {
-    author: { username: string | null } | null // Joined profile
-    _count?: { comments: number } // helper
+    author: { username: string | null } | null
+    _count?: { comments: number }
 }
 
 export type Comment = Database['public']['Tables']['comments']['Row'] & {
     author: { username: string | null } | null
 }
 
-export async function getPosts(category: 'notice' | 'free' = 'free', page = 1, limit = 10) {
+export async function getPosts(category: string = 'free', page = 1, limit = 10) {
     const supabase = await createClient()
     const from = (page - 1) * limit
     const to = from + limit - 1
 
-    const { data, error, count } = await supabase
+    let query = supabase
         .from('posts')
         .select(`
       *,
       author:profiles(username)
     `, { count: 'exact' })
-        .eq('category', category)
         .order('created_at', { ascending: false })
         .range(from, to)
+
+    if (category !== 'all') {
+        query = query.eq('category', category.toLowerCase())
+    }
+
+    const { data, error, count } = await query
 
     if (error) {
         console.error('Error fetching posts:', error)
@@ -50,11 +54,11 @@ export async function getPost(id: string) {
 
     if (error) return null
 
-    // Increment view count (fire and forget)
-    // supabase.rpc('increment_view_count', { post_id: id }) - if RPC exists
-    // Or simple update:
-    // @ts-ignore
-    await (supabase.from('posts') as any).update({ view_count: (data.view_count || 0) + 1 }).eq('id', id)
+    // view_count 증가 (race condition 방지를 위해 직접 SQL 사용이 best이지만, 일단 단순 증가로 처리)
+    await supabase
+        .from('posts')
+        .update({ view_count: ((data.view_count ?? 0) + 1) })
+        .eq('id', id)
 
     return data as Post
 }
@@ -81,10 +85,15 @@ export async function createPost(formData: FormData) {
 
     const title = formData.get('title') as string
     const content = formData.get('content') as string
-    const category = formData.get('category') as 'free' | 'notice' || 'free'
+    // 클라이언트에서 대문자로 보내더라도 소문자로 저장
+    const category = (formData.get('category') as string)?.toLowerCase() || 'free'
 
-    const { error } = await (supabase
-        .from('posts') as any)
+    if (!title || !content) {
+        return { error: '제목과 내용을 입력해주세요.' }
+    }
+
+    const { error } = await supabase
+        .from('posts')
         .insert({
             user_id: user.id,
             title,
@@ -106,11 +115,11 @@ export async function createComment(formData: FormData) {
     const postId = formData.get('post_id') as string
     const content = formData.get('content') as string
 
-    const { error } = await (supabase
-        .from('comments') as any)
+    const { error } = await supabase
+        .from('comments')
         .insert({
             user_id: user.id,
-            post_id: parseInt(postId),
+            post_id: postId,
             content
         })
 
@@ -121,7 +130,6 @@ export async function createComment(formData: FormData) {
 }
 
 export async function deletePost(id: string) {
-    // Check auth/ownership logic needed in real app
     const supabase = await createClient()
     const { error } = await supabase.from('posts').delete().eq('id', id)
     if (error) return { error: error.message }

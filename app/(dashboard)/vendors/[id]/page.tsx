@@ -9,7 +9,7 @@ export default async function VendorDetailPage({
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
-    const vendor = (await getVendorById(Number(id))) as unknown as any
+    const vendor = await getVendorById(Number(id))
 
     if (!vendor) {
         notFound()
@@ -59,13 +59,13 @@ export default async function VendorDetailPage({
                             <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-full border border-yellow-100">
                                 <Star className="text-yellow-400 fill-yellow-400" size={20} />
                                 <span className="font-bold text-gray-900 text-lg">{vendor.rating?.toFixed(1) || '0.0'}</span>
-                                <span className="text-gray-400 text-sm">({vendor.review_count || 0} reviews)</span>
+                                <span className="text-gray-400 text-sm">({(vendor as Record<string, unknown>).review_count as number || 0} reviews)</span>
                             </div>
                         </div>
 
                         <div className="flex items-start gap-2 text-gray-500 mb-6">
                             <MapPin size={18} className="mt-0.5 text-primary shrink-0" />
-                            <span className="leading-relaxed">{vendor.address || `${vendor.region_sido} ${vendor.region_sigungu}`}</span>
+                            <span className="leading-relaxed">{(vendor as Record<string, unknown>).address as string || `${vendor.region_sido} ${vendor.region_sigungu}`}</span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,7 +88,7 @@ export default async function VendorDetailPage({
                                 장점 요약
                             </h3>
                             <p className="text-sm text-blue-800/80 leading-relaxed">
-                                {vendor.summary_positive || "등록된 장점 리뷰가 아직 없습니다."}
+                                {(vendor as Record<string, unknown>).summary_positive as string || "등록된 장점 리뷰가 아직 없습니다."}
                             </p>
                         </div>
                         <div className="bg-red-50/50 rounded-3xl p-6 border border-red-100">
@@ -97,7 +97,7 @@ export default async function VendorDetailPage({
                                 단점 요약
                             </h3>
                             <p className="text-sm text-red-800/80 leading-relaxed">
-                                {vendor.summary_negative || "등록된 단점 리뷰가 아직 없습니다."}
+                                {(vendor as Record<string, unknown>).summary_negative as string || "등록된 단점 리뷰가 아직 없습니다."}
                             </p>
                         </div>
                     </div>

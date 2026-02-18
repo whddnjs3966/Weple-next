@@ -22,7 +22,7 @@ const StarNode = ({ type, isHovered }: { type: string, isHovered: boolean }) => 
             {/* Glow */}
             <motion.div
                 animate={{ scale: isHovered ? 1.5 : 1, opacity: isHovered ? 0.8 : 0.4 }}
-                className={`absolute inset-0 rounded-full blur-md ${type === 'end' ? 'bg-[#FF8E8E]' : 'bg-starlight'}`}
+                className={`absolute inset-0 rounded-full blur-md ${type === 'end' ? 'bg-rose-400' : 'bg-starlight'}`}
             />
 
             {/* Star Shape */}
@@ -32,8 +32,8 @@ const StarNode = ({ type, isHovered }: { type: string, isHovered: boolean }) => 
             >
                 <Star
                     size={type === 'end' ? 32 : 16}
-                    fill={type === 'end' ? "#FF8E8E" : "#FFF"}
-                    stroke={type === 'end' ? "#FF8E8E" : "#FFF"}
+                    fill={type === 'end' ? "#FB7185" : "#FFF"}
+                    stroke={type === 'end' ? "#FB7185" : "#FFF"}
                     className="drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"
                 />
             </motion.div>

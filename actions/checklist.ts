@@ -38,7 +38,6 @@ export async function addTask(formData: FormData) {
     const budget = parseInt(formData.get('budget') as string) || 0
     const memo = formData.get('memo') as string
 
-    // Strictly typed payload
     const newTask: TaskInsert = {
         user_id: user.id,
         title,
@@ -48,9 +47,8 @@ export async function addTask(formData: FormData) {
         is_completed: false
     }
 
-    // Supabase inference bug workaround: Cast chain to any, but keep strict payload type
-    const { error } = await (supabase
-        .from('tasks') as any)
+    const { error } = await supabase
+        .from('tasks')
         .insert(newTask)
 
     if (error) {
@@ -66,12 +64,11 @@ export async function addTask(formData: FormData) {
 export async function updateTask(id: string, updates: TaskUpdate) {
     const supabase = await createClient()
 
-    // Check auth for security
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    const { error } = await (supabase
-        .from('tasks') as any)
+    const { error } = await supabase
+        .from('tasks')
         .update(updates)
         .eq('id', id)
         .eq('user_id', user.id)
@@ -89,8 +86,8 @@ export async function deleteTasks(ids: string[]) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    const { error } = await (supabase
-        .from('tasks') as any)
+    const { error } = await supabase
+        .from('tasks')
         .delete()
         .in('id', ids)
         .eq('user_id', user.id)

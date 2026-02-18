@@ -71,7 +71,7 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-rose-900/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                         onClick={onClose}
                     >
                         {/* Modal Content */}
@@ -83,12 +83,12 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Header */}
-                            <div className="relative bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-8 text-center overflow-hidden">
+                            <div className="relative bg-gradient-to-br from-rose-400 to-rose-500 p-8 text-center overflow-hidden">
                                 {/* Pattern Overlay */}
                                 <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
 
                                 <div className="relative z-10">
-                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF8E8E] to-[#FFB5B5] flex items-center justify-center mx-auto mb-3 text-white shadow-lg shadow-pink-500/30">
+                                    <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3 text-white shadow-lg">
                                         <User className="w-6 h-6" />
                                     </div>
                                     <h2 className="text-2xl font-serif text-white font-bold mb-1">내 정보 변경</h2>
@@ -105,14 +105,14 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
                                 {/* Name Input */}
                                 <div>
                                     <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                        <User className="w-4 h-4 text-[#FF8E8E]" />
+                                        <User className="w-4 h-4 text-rose-400" />
                                         닉네임
                                     </label>
                                     <input
                                         type="text"
                                         value={firstName}
                                         onChange={(e) => setFirstName(e.target.value)}
-                                        className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-gray-700 outline-none focus:bg-white focus:border-[#FF8E8E] transition-all"
+                                        className="w-full bg-rose-50/30 border-2 border-rose-100 rounded-xl px-4 py-3 text-rose-900 outline-none focus:bg-white focus:border-rose-400 transition-all"
                                         placeholder="닉네임을 입력하세요"
                                     />
                                 </div>
@@ -120,21 +120,21 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
                                 {/* Date Input */}
                                 <div>
                                     <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                        <Calendar className="w-4 h-4 text-[#FF8E8E]" />
+                                        <Calendar className="w-4 h-4 text-rose-400" />
                                         결혼 예정일
                                     </label>
                                     <input
                                         type="date"
                                         value={date}
                                         onChange={(e) => setDate(e.target.value)}
-                                        className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-gray-700 outline-none focus:bg-white focus:border-[#FF8E8E] transition-all"
+                                        className="w-full bg-rose-50/30 border-2 border-rose-100 rounded-xl px-4 py-3 text-rose-900 outline-none focus:bg-white focus:border-rose-400 transition-all"
                                     />
                                 </div>
 
                                 {/* Invite Code */}
                                 <div>
                                     <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                        <Users className="w-4 h-4 text-[#FF8E8E]" />
+                                        <Users className="w-4 h-4 text-rose-400" />
                                         파트너 초대코드
                                     </label>
                                     <div className="flex gap-2">
@@ -145,8 +145,8 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
                                             type="button"
                                             onClick={copyCode}
                                             className={`px-4 rounded-xl border-2 transition-all flex items-center justify-center ${copied
-                                                    ? 'bg-green-500 border-green-500 text-white'
-                                                    : 'bg-gray-50 border-gray-100 text-gray-400 hover:border-[#FF8E8E] hover:text-[#FF8E8E]'
+                                                ? 'bg-green-500 border-green-500 text-white'
+                                                : 'bg-gray-50 border-gray-100 text-gray-400 hover:border-rose-400 hover:text-rose-400'
                                                 }`}
                                         >
                                             {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
@@ -159,7 +159,7 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full py-4 rounded-xl bg-gradient-to-r from-[#FF8E8E] to-[#ff7a7a] text-white font-bold shadow-lg shadow-pink-500/30 hover:shadow-pink-500/50 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:hover:translate-y-0"
+                                    className="w-full py-4 rounded-xl bg-gradient-to-r from-rose-400 to-rose-500 text-white font-bold shadow-lg shadow-rose-300/30 hover:shadow-rose-300/50 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:hover:translate-y-0"
                                 >
                                     {loading ? '저장 중...' : '저장하기'}
                                 </button>

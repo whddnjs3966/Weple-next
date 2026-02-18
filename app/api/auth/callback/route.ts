@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
             if (user) {
                 // 2. profiles 테이블에서 유저 존재 여부 확인
-                const { data: profile } = await (supabase as any)
+                const { data: profile } = await supabase
                     .from('profiles')
                     .select('id, wedding_date')
                     .eq('id', user.id)
@@ -31,12 +31,11 @@ export async function GET(request: Request) {
                 }
 
                 // 5. 프로필 없음 → 신규 유저 → 프로필 자동 생성 후 /onboarding
-                await (supabase as any)
+                await supabase
                     .from('profiles')
                     .upsert({
                         id: user.id,
-                        email: user.email,
-                        nickname: user.user_metadata?.name || user.user_metadata?.full_name || null,
+                        full_name: user.user_metadata?.name || user.user_metadata?.full_name || null,
                     }, { onConflict: 'id' })
 
                 return NextResponse.redirect(new URL('/onboarding', origin).toString())

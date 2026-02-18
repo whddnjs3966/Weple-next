@@ -10,7 +10,7 @@ export default function CompletionEffect() {
         x: Math.random() * 100 - 50, // -50% to 50%
         y: Math.random() * 100 - 50, // -50% to 50%
         scale: Math.random() * 0.5 + 0.5,
-        color: ['#FF8E8E', '#A855F7', '#3B82F6', '#10B981'][Math.floor(Math.random() * 4)]
+        color: ['#FB7185', '#A855F7', '#3B82F6', '#10B981'][Math.floor(Math.random() * 4)]
     }))
 
     return (

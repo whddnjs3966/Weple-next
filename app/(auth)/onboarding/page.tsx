@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Calendar, Users, Sparkles } from 'lucide-react'
+import { Calendar, Users, Sparkles, Flower2 } from 'lucide-react'
 
 // Steps
 // 0. Choose Path (신규 입력 vs 초대 코드)
@@ -69,17 +69,17 @@ export default function OnboardingPage() {
 
             if (!user) throw new Error('No user found')
 
-            // 1. Update Profile with Wedding Date
+            // 1. Update Profile with Wedding Date, Budget, and Style
             const { error: profileError } = await supabase
                 .from('profiles')
-                // @ts-ignore
-                .update({ wedding_date: formData.weddingDate })
+                .update({
+                    wedding_date: formData.weddingDate,
+                    budget_max: formData.budgetRange,
+                    style: formData.styles.join(',') || null,
+                })
                 .eq('id', user.id)
 
             if (profileError) throw profileError
-
-            // 2. Call AI Server Action (To be implemented)
-            // await generateWeddingPlan(formData)
 
             router.push('/dashboard')
         } catch (error) {
@@ -91,31 +91,42 @@ export default function OnboardingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0a0a15] text-white flex items-center justify-center relative overflow-hidden">
-            {/* Background */}
-            <div className="absolute inset-0 bg-[url('/images/cosmos-bg.jpg')] bg-cover opacity-20" />
-            <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-[120px] animate-pulse" />
-            <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] animate-pulse delay-1000" />
+        <div className="min-h-screen bg-gradient-to-br from-blush via-rose-50 to-cream text-rose-900 flex items-center justify-center relative overflow-hidden">
+            {/* Background decorations */}
+            <div className="absolute -top-20 -left-20 w-96 h-96 bg-rose-200/20 rounded-full blur-[120px]" />
+            <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-rose-100/30 rounded-full blur-[100px]" />
+            <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-gold/5 rounded-full blur-[80px]" />
+
+            {/* Floating petal decorations */}
+            <svg className="absolute top-20 right-32 w-8 h-8 opacity-15 animate-float" viewBox="0 0 50 50" fill="none">
+                <ellipse cx="25" cy="25" rx="10" ry="20" fill="#FB7185" transform="rotate(25 25 25)" />
+            </svg>
+            <svg className="absolute bottom-40 left-20 w-6 h-6 opacity-10 animate-float [animation-delay:3s]" viewBox="0 0 50 50" fill="none">
+                <ellipse cx="25" cy="25" rx="8" ry="16" fill="#FDA4AF" transform="rotate(-35 25 25)" />
+            </svg>
 
             <div className="relative z-10 w-full max-w-2xl px-6">
                 <div className="mb-8 text-center">
-                    <h1 className="text-4xl font-serif mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-300 to-purple-300">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-100 text-rose-400 mb-3">
+                        <Flower2 size={24} />
+                    </div>
+                    <h1 className="text-4xl font-serif mb-2 text-gradient-rose">
                         Wepln AI Concierge
                     </h1>
-                    <p className="text-white/60">당신만의 우주를 설계하기 위한 몇 가지 질문입니다.</p>
+                    <p className="text-rose-400/70">아름다운 웨딩을 위한 몇 가지 질문입니다.</p>
                 </div>
 
                 {/* Progress Bar (Step 0 이후부터 표시) */}
                 {step > 0 && (
-                    <div className="w-full h-1 bg-white/10 rounded-full mb-12">
+                    <div className="w-full h-1.5 bg-rose-100 rounded-full mb-12">
                         <div
-                            className="h-full bg-pink-400 rounded-full transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-rose-400 to-rose-300 rounded-full transition-all duration-500"
                             style={{ width: `${(step / (totalSteps - 1)) * 100}%` }}
                         />
                     </div>
                 )}
 
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 min-h-[400px]">
+                <div className="bg-white/70 backdrop-blur-xl border border-rose-100 rounded-3xl p-8 min-h-[400px] shadow-petal">
                     <AnimatePresence mode="wait">
 
                         {/* Step 0: 경로 선택 */}
@@ -127,31 +138,31 @@ export default function OnboardingPage() {
                                 exit={{ opacity: 0, y: -20 }}
                                 className="space-y-6"
                             >
-                                <h2 className="text-2xl font-medium text-center mb-8">어떻게 시작하시겠어요?</h2>
+                                <h2 className="text-2xl font-serif font-medium text-center mb-8 text-rose-900">어떻게 시작하시겠어요?</h2>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* 새로 시작하기 */}
                                     <button
                                         onClick={handleNext}
-                                        className="group p-6 rounded-2xl border border-white/10 bg-white/5 hover:bg-pink-500/10 hover:border-pink-400/30 transition-all text-left"
+                                        className="group p-6 rounded-2xl border border-rose-100 bg-white/50 hover:bg-rose-50 hover:border-rose-200 transition-all text-left"
                                     >
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-pink-500 to-purple-500 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-rose-400 to-rose-300 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-white shadow-lg shadow-rose-300/30">
                                             <Sparkles size={24} />
                                         </div>
-                                        <div className="font-bold text-lg mb-1">새로 시작하기</div>
-                                        <div className="text-sm text-white/50 leading-relaxed">
+                                        <div className="font-bold text-lg mb-1 text-rose-900">새로 시작하기</div>
+                                        <div className="text-sm text-rose-400/70 leading-relaxed">
                                             결혼 준비 정보를 직접 입력하고<br />
                                             나만의 웨딩 플랜을 만들어요.
                                         </div>
                                     </button>
 
                                     {/* 초대 코드로 참여 */}
-                                    <div className="p-6 rounded-2xl border border-white/10 bg-white/5 space-y-4">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-500 to-cyan-400 flex items-center justify-center">
+                                    <div className="p-6 rounded-2xl border border-rose-100 bg-white/50 space-y-4">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-gold to-amber-400 flex items-center justify-center text-white shadow-lg shadow-gold/20">
                                             <Users size={24} />
                                         </div>
-                                        <div className="font-bold text-lg mb-1">초대 코드로 참여</div>
-                                        <div className="text-sm text-white/50 mb-3">
+                                        <div className="font-bold text-lg mb-1 text-rose-900">초대 코드로 참여</div>
+                                        <div className="text-sm text-rose-400/70 mb-3">
                                             파트너에게 받은 코드를 입력하면<br />
                                             데이터가 자동으로 공유돼요.
                                         </div>
@@ -165,21 +176,21 @@ export default function OnboardingPage() {
                                                 setInviteError('')
                                                 setInviteSuccess('')
                                             }}
-                                            className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 text-center text-lg tracking-[0.3em] font-mono uppercase focus:border-cyan-400 outline-none transition-colors placeholder:text-white/20 placeholder:tracking-normal placeholder:font-sans"
+                                            className="w-full bg-rose-50/50 border border-rose-200 rounded-xl px-4 py-3 text-center text-lg tracking-[0.3em] font-mono uppercase focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none transition-all placeholder:text-rose-200 placeholder:tracking-normal placeholder:font-sans text-rose-900"
                                             maxLength={8}
                                         />
 
                                         {inviteError && (
-                                            <p className="text-red-400 text-sm">{inviteError}</p>
+                                            <p className="text-red-500 text-sm">{inviteError}</p>
                                         )}
                                         {inviteSuccess && (
-                                            <p className="text-green-400 text-sm">{inviteSuccess}</p>
+                                            <p className="text-sage text-sm font-medium">{inviteSuccess}</p>
                                         )}
 
                                         <button
                                             onClick={handleJoinWithCode}
                                             disabled={loading || !inviteCode.trim()}
-                                            className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-400 hover:to-cyan-300 text-white rounded-xl font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                            className="w-full py-3 bg-gradient-to-r from-gold to-amber-400 hover:from-amber-400 hover:to-gold text-white rounded-xl font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-gold/20"
                                         >
                                             {loading ? '연결 중...' : '참여하기'}
                                         </button>
@@ -197,10 +208,15 @@ export default function OnboardingPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 className="space-y-6"
                             >
-                                <h2 className="text-2xl font-medium">결혼 예정일이 언제인가요?</h2>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-400">
+                                        <Calendar size={20} />
+                                    </div>
+                                    <h2 className="text-2xl font-serif font-medium text-rose-900">결혼 예정일이 언제인가요?</h2>
+                                </div>
                                 <input
                                     type="date"
-                                    className="w-full bg-white/5 border border-white/20 rounded-xl p-4 text-xl focus:border-pink-400 outline-none transition-colors"
+                                    className="w-full bg-rose-50/30 border border-rose-200 rounded-xl p-4 text-xl focus:border-rose-400 focus:ring-2 focus:ring-rose-200 outline-none transition-all text-rose-900"
                                     value={formData.weddingDate}
                                     onChange={(e) => setFormData(prev => ({ ...prev, weddingDate: e.target.value }))}
                                 />
@@ -216,8 +232,8 @@ export default function OnboardingPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 className="space-y-6"
                             >
-                                <h2 className="text-2xl font-medium">생각하시는 총 예산 범위는요?</h2>
-                                <div className="text-4xl font-bold text-pink-300 mb-4">
+                                <h2 className="text-2xl font-serif font-medium text-rose-900">생각하시는 총 예산 범위는요?</h2>
+                                <div className="text-4xl font-bold text-gradient-rose mb-4">
                                     {formData.budgetRange >= 10000
                                         ? '1억 원 이상'
                                         : `${formData.budgetRange.toLocaleString()}만 원`}
@@ -227,11 +243,11 @@ export default function OnboardingPage() {
                                     min="1000"
                                     max="10000"
                                     step="500"
-                                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-pink-400"
+                                    className="w-full h-2 bg-rose-100 rounded-lg appearance-none cursor-pointer accent-rose-400"
                                     value={formData.budgetRange}
                                     onChange={(e) => setFormData(prev => ({ ...prev, budgetRange: Number(e.target.value) }))}
                                 />
-                                <div className="flex justify-between text-sm text-white/40">
+                                <div className="flex justify-between text-sm text-rose-300">
                                     <span>1,000만 원</span>
                                     <span>1억 원+</span>
                                 </div>
@@ -247,10 +263,10 @@ export default function OnboardingPage() {
                                 exit={{ opacity: 0, x: -20 }}
                                 className="space-y-6"
                             >
-                                <h2 className="text-2xl font-medium">선호하는 웨딩 스타일을 골라주세요.</h2>
+                                <h2 className="text-2xl font-serif font-medium text-rose-900">선호하는 웨딩 스타일을 골라주세요.</h2>
                                 <div className="grid grid-cols-2 gap-4">
                                     {[
-                                        { id: 'Dark', label: 'Dark & Moody', desc: '어두운 홀, 캔들, 웅장함' },
+                                        { id: 'Classic', label: 'Classic & Elegant', desc: '클래식, 고급스러운, 격식' },
                                         { id: 'Garden', label: 'Garden & Nature', desc: '야외, 그리너리, 자연광' },
                                         { id: 'Modern', label: 'Bright & Modern', desc: '화이트, 미니멀, 깔끔함' },
                                         { id: 'Small', label: 'Small & Intimate', desc: '소규모, 가족 중심, 파티' },
@@ -269,12 +285,12 @@ export default function OnboardingPage() {
                                                 })
                                             }}
                                             className={`p-4 rounded-xl text-left transition-all border ${formData.styles.includes(style.id)
-                                                ? 'bg-pink-500/20 border-pink-400'
-                                                : 'bg-white/5 border-white/10 hover:bg-white/10'
+                                                ? 'bg-rose-50 border-rose-300 shadow-petal'
+                                                : 'bg-white/50 border-rose-100 hover:bg-rose-50/50'
                                                 }`}
                                         >
-                                            <div className="font-bold text-lg">{style.label}</div>
-                                            <div className="text-sm text-white/60">{style.desc}</div>
+                                            <div className="font-bold text-lg text-rose-900">{style.label}</div>
+                                            <div className="text-sm text-rose-400/70">{style.desc}</div>
                                         </button>
                                     ))}
                                 </div>
@@ -288,7 +304,7 @@ export default function OnboardingPage() {
                     <div className="mt-8 flex justify-between">
                         <button
                             onClick={handleBack}
-                            className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 transition-colors"
+                            className="px-6 py-3 rounded-xl border border-rose-200 hover:bg-rose-50 transition-colors text-rose-700 font-medium"
                         >
                             이전
                         </button>
@@ -296,7 +312,7 @@ export default function OnboardingPage() {
                         {step < 3 ? (
                             <button
                                 onClick={handleNext}
-                                className="px-8 py-3 bg-pink-500 hover:bg-pink-400 text-white rounded-xl font-medium transition-colors"
+                                className="px-8 py-3 bg-gradient-to-r from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-rose-300/25"
                             >
                                 다음
                             </button>
@@ -304,7 +320,7 @@ export default function OnboardingPage() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white rounded-xl font-medium transition-all shadow-lg shadow-pink-500/25"
+                                className="px-8 py-3 bg-gradient-to-r from-rose-400 to-rose-500 hover:from-rose-500 hover:to-rose-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-rose-300/25"
                             >
                                 {loading ? 'AI 분석 중...' : 'Wepln 시작하기'}
                             </button>

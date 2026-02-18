@@ -145,7 +145,7 @@ export default function ChecklistClient() {
 
     const getDDayColor = (offset: number) => {
         const abs = Math.abs(offset)
-        if (offset === 0) return 'bg-[#FF8E8E] text-white'
+        if (offset === 0) return 'bg-pink-400 text-white'
         if (abs <= 7) return 'bg-red-500 text-white'
         if (abs <= 14) return 'bg-red-400 text-white'
         if (abs <= 30) return 'bg-orange-400 text-white'
@@ -162,20 +162,20 @@ export default function ChecklistClient() {
         <div className="max-w-6xl mx-auto px-6 pb-20">
             {/* Header */}
             <div className="text-center mb-6">
-                <h2 className="font-serif italic text-2xl md:text-3xl font-bold text-gray-800 tracking-tight mb-2">
+                <h2 className="font-serif italic text-3xl md:text-4xl font-bold text-gray-800 tracking-tight mb-2">
                     Checklist
                 </h2>
-                <div className="flex items-center justify-center gap-2 mt-1">
-                    <div className="w-10 h-[2px] bg-gradient-to-r from-transparent to-[#FF8E8E]"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#FF8E8E]"></div>
-                    <div className="w-10 h-[2px] bg-gradient-to-l from-transparent to-[#FF8E8E]"></div>
+                <div className="flex items-center justify-center gap-2 mt-2">
+                    <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-pink-400"></div>
+                    <div className="w-2 h-2 rounded-full bg-pink-400"></div>
+                    <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-pink-400"></div>
                 </div>
             </div>
 
             {/* Title Row */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
                 <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <span className="text-[#FF8E8E]">📋</span> 웨딩 체크리스트 (Timeline)
+                    <span className="text-pink-300">📋</span> 웨딩 체크리스트 (Timeline)
                 </h3>
                 <div className="flex items-center gap-1.5 text-[11px] text-gray-400 bg-gray-50 rounded-lg px-3 py-1.5">
                     <AlertCircle size={12} className="text-gray-300" />
@@ -187,7 +187,7 @@ export default function ChecklistClient() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-2">
                     <div className="bg-white rounded-xl px-3 py-2 border border-gray-100 shadow-sm flex items-center gap-2">
-                        <ClipboardCheck className="text-[#FF8E8E] w-4 h-4" />
+                        <ClipboardCheck className="text-pink-300 w-4 h-4" />
                         <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">예산 합계</span>
                         <span className="text-gray-800 font-bold text-sm">{totalBudget.toLocaleString()}₩</span>
                     </div>
@@ -206,7 +206,7 @@ export default function ChecklistClient() {
                         <Trash2 size={13} />
                         {selectedIds.size > 0 && <span className="font-bold">{selectedIds.size}개 삭제</span>}
                     </button>
-                    <button className="h-8 flex items-center gap-1.5 px-4 rounded-lg bg-[#FF8E8E] hover:bg-[#ff7a7a] text-white font-bold text-xs shadow-md shadow-[#FF8E8E]/20 hover:-translate-y-0.5 transition-all">
+                    <button className="h-8 flex items-center gap-1.5 px-4 rounded-lg bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs shadow-md shadow-pink-300/20 hover:-translate-y-0.5 transition-all">
                         <Plus size={13} /> 추가
                     </button>
                 </div>
@@ -239,7 +239,7 @@ export default function ChecklistClient() {
                                         type="checkbox"
                                         checked={selectAll}
                                         onChange={toggleSelectAll}
-                                        className="w-3.5 h-3.5 rounded border-gray-300 text-[#FF8E8E] focus:ring-[#FF8E8E] cursor-pointer"
+                                        className="w-3.5 h-3.5 rounded border-gray-300 text-pink-300 focus:ring-pink-400 cursor-pointer"
                                     />
                                 </th>
                                 <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '120px' }}>시기 (D-Day)</th>
@@ -267,7 +267,7 @@ export default function ChecklistClient() {
                                                 type="checkbox"
                                                 checked={selectedIds.has(task.id)}
                                                 onChange={() => toggleSelect(task.id)}
-                                                className="w-3.5 h-3.5 rounded border-gray-300 text-[#FF8E8E] focus:ring-[#FF8E8E] cursor-pointer"
+                                                className="w-3.5 h-3.5 rounded border-gray-300 text-pink-300 focus:ring-pink-400 cursor-pointer"
                                             />
                                         </td>
 
@@ -296,7 +296,7 @@ export default function ChecklistClient() {
                                                     value={task.estimatedBudget > 0 ? task.estimatedBudget.toLocaleString() : ''}
                                                     onChange={(e) => updateBudget(task.id, e.target.value)}
                                                     placeholder="0"
-                                                    className="w-28 text-right text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg px-2 py-1.5 outline-none transition-all focus:border-[#FF8E8E] focus:ring-2 focus:ring-[#FF8E8E]/10 placeholder-gray-300"
+                                                    className="w-28 text-right text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg px-2 py-1.5 outline-none transition-all focus:border-pink-400 focus:ring-2 focus:ring-pink-100 placeholder-gray-300"
                                                 />
                                                 <button
                                                     onClick={() => saveBudget(task.id)}
@@ -321,7 +321,7 @@ export default function ChecklistClient() {
                                             ) : (
                                                 <button
                                                     onClick={() => openDateModal(task.id)}
-                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-pink-50 text-[#FF8E8E] border border-pink-100 hover:bg-pink-100 transition-colors"
+                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-pink-50 text-pink-300 border border-pink-100 hover:bg-pink-100 transition-colors"
                                                 >
                                                     <Calendar size={10} />
                                                     등록
@@ -338,7 +338,7 @@ export default function ChecklistClient() {
                                                 {task.isDone ? (
                                                     <CheckCircle size={20} className="text-emerald-500" />
                                                 ) : (
-                                                    <Circle size={20} className="text-gray-200 hover:text-[#FF8E8E]" />
+                                                    <Circle size={20} className="text-gray-200 hover:text-pink-300" />
                                                 )}
                                             </button>
                                         </td>
@@ -361,10 +361,10 @@ export default function ChecklistClient() {
             {/* Date Registration Modal */}
             {isDateModalOpen && dateModalTask && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsDateModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-pink-900/20 backdrop-blur-sm" onClick={() => setIsDateModalOpen(false)}></div>
                     <div className="relative w-full max-w-sm bg-white rounded-[20px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         {/* Modal Header */}
-                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FF8E8E 0%, #FFB5B5 100%)', padding: '1.25rem 1.5rem' }}>
+                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FB7185 0%, #FDA4AF 100%)', padding: '1.25rem 1.5rem' }}>
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:20px_20px]"></div>
                             <div className="relative z-10">
                                 <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mb-0.5">일정 등록</p>
@@ -388,7 +388,7 @@ export default function ChecklistClient() {
                                     type="date"
                                     value={dateInput}
                                     onChange={(e) => setDateInput(e.target.value)}
-                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-2.5 text-sm text-gray-700 outline-none transition-all focus:border-[#FF8E8E] focus:bg-white focus:ring-4 focus:ring-[#FF8E8E]/10"
+                                    className="w-full bg-pink-50/30 border-2 border-pink-100 rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:border-pink-400 focus:bg-white focus:ring-4 focus:ring-pink-100"
                                 />
                             </div>
                             <div className="text-[11px] text-gray-400 bg-blue-50 rounded-lg px-3 py-2 flex items-start gap-1.5">
@@ -400,8 +400,8 @@ export default function ChecklistClient() {
                                 disabled={!dateInput}
                                 className="w-full py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                 style={{
-                                    background: 'linear-gradient(135deg, #FF8E8E 0%, #ff7a7a 100%)',
-                                    boxShadow: '0 4px 15px rgba(255, 142, 142, 0.3)',
+                                    background: 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)',
+                                    boxShadow: '0 4px 15px rgba(251, 113, 133, 0.3)',
                                 }}
                             >
                                 <Calendar size={15} />

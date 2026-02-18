@@ -1,16 +1,27 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Playfair_Display, Dancing_Script } from 'next/font/google'
 
-const inter = Inter({
+const cormorant = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-serif',
   display: 'swap'
 })
 
-const playfair = Playfair_Display({
+const dancingScript = Dancing_Script({
   subsets: ['latin'],
-  variable: '--font-playfair',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-cursive',
+  display: 'swap'
+})
+
+import { Cinzel } from 'next/font/google'
+
+const cinzel = Cinzel({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800', '900'],
+  variable: '--font-cinzel',
   display: 'swap'
 })
 
@@ -27,10 +38,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ko" className={`${inter.variable} ${playfair.variable} antialiased`}>
-      <head>
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-      </head>
+    <html lang="ko" className={`${cormorant.variable} ${dancingScript.variable} ${cinzel.variable} antialiased`}>
       <body className="font-sans">
         <SessionGuard />
         {children}

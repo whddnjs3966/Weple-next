@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Heart } from 'lucide-react'
+import { Flower2 } from 'lucide-react'
 
 export default function SignupPage() {
     const [email, setEmail] = useState('')
@@ -53,8 +53,8 @@ export default function SignupPage() {
 
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-[#FF8E8E]/10 text-[#FF8E8E] mb-4 shadow-sm">
-                            <Heart size={24} className="fill-current" />
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-rose-400/10 text-rose-400 mb-4 shadow-sm">
+                            <Flower2 size={24} />
                         </div>
                         <h2 className="font-serif text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
                         <p className="text-gray-500 text-sm font-medium">Start your journey with Wepln</p>
@@ -67,7 +67,7 @@ export default function SignupPage() {
                             <input
                                 type="email"
                                 required
-                                className="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF8E8E]/50 focus:border-[#FF8E8E] transition-all shadow-sm"
+                                className="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-300/50 focus:border-rose-400 transition-all shadow-sm"
                                 placeholder="이메일 주소"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -79,7 +79,7 @@ export default function SignupPage() {
                             <input
                                 type="password"
                                 required
-                                className="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FF8E8E]/50 focus:border-[#FF8E8E] transition-all shadow-sm"
+                                className="w-full bg-white/50 border border-gray-200 rounded-xl px-4 py-3.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-300/50 focus:border-rose-400 transition-all shadow-sm"
                                 placeholder="비밀번호"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -89,7 +89,7 @@ export default function SignupPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 rounded-xl bg-[#FF8E8E] text-white font-bold shadow-lg shadow-[#FF8E8E]/30 hover:bg-[#ff7a7a] hover:shadow-[#FF8E8E]/50 hover:-translate-y-0.5 transition-all mt-2 disabled:opacity-50"
+                            className="w-full py-4 rounded-xl bg-rose-400 text-white font-bold shadow-lg shadow-rose-300/30 hover:bg-rose-500 hover:shadow-rose-300/50 hover:-translate-y-0.5 transition-all mt-2 disabled:opacity-50"
                         >
                             {loading ? '가입하기' : '무료로 시작하기'}
                         </button>
@@ -99,7 +99,7 @@ export default function SignupPage() {
                     <div className="mt-8 pt-6 border-t border-gray-200/60 text-center">
                         <p className="text-gray-500 text-xs">
                             이미 계정이 있으신가요?
-                            <Link href="/login" className="font-bold text-[#FF8E8E] hover:text-[#ff7a7a] ml-1 no-underline transition-colors">
+                            <Link href="/login" className="font-bold text-rose-400 hover:text-rose-500 ml-1 no-underline transition-colors">
                                 로그인
                             </Link>
                         </p>

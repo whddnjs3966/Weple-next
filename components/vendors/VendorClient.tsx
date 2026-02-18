@@ -50,7 +50,7 @@ export default function VendorClient() {
     const getPriceColor = (price?: string) => {
         switch (price) {
             case '최상': return 'text-purple-600 bg-purple-50'
-            case '상': return 'text-rose-600 bg-rose-50'
+            case '상': return 'text-pink-500 bg-pink-50'
             case '중': return 'text-blue-600 bg-blue-50'
             default: return 'text-gray-600 bg-gray-50'
         }
@@ -60,13 +60,13 @@ export default function VendorClient() {
         <div className="max-w-6xl mx-auto pb-20 px-4">
             {/* Header */}
             <div className="text-center mb-12">
-                <h2 className="font-serif italic text-4xl md:text-5xl font-bold text-gray-800 tracking-tight mb-2">
+                <h2 className="font-serif italic text-3xl md:text-4xl font-bold text-gray-800 tracking-tight mb-2">
                     Vendors
                 </h2>
                 <div className="flex items-center justify-center gap-2 mt-2">
-                    <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-[#FF8E8E]"></div>
-                    <div className="w-2 h-2 rounded-full bg-[#FF8E8E]"></div>
-                    <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-[#FF8E8E]"></div>
+                    <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-pink-400"></div>
+                    <div className="w-2 h-2 rounded-full bg-pink-400"></div>
+                    <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-pink-400"></div>
                 </div>
                 <p className="text-gray-400 text-sm mt-4">결혼 준비에 필요한 업체를 찾아보세요</p>
             </div>
@@ -80,7 +80,7 @@ export default function VendorClient() {
                         placeholder="업체명, 지역, 카테고리 검색..."
                         className="bg-transparent border-none outline-none text-gray-700 placeholder-gray-300 w-full text-sm"
                     />
-                    <button className="p-2 bg-[#FF8E8E] text-white rounded-xl hover:bg-[#ff7a7a] transition-colors">
+                    <button className="p-2 bg-pink-400 text-white rounded-xl hover:bg-pink-500 transition-colors">
                         <Filter size={16} />
                     </button>
                 </div>
@@ -96,7 +96,7 @@ export default function VendorClient() {
                     className="mb-14"
                 >
                     <div className="flex items-center gap-2 mb-6 px-2">
-                        <Heart className="text-[#FF8E8E] w-4 h-4 fill-current" />
+                        <Heart className="text-pink-300 w-4 h-4 fill-current" />
                         <h3 className="text-lg font-bold text-gray-700">내가 선택한 업체</h3>
                     </div>
 
@@ -104,7 +104,7 @@ export default function VendorClient() {
                         {selectedVendors.map(vendor => (
                             <div key={vendor.id} className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 border border-white/50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center text-2xl shrink-0">
+                                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-100 to-pink-100 flex items-center justify-center text-2xl shrink-0">
                                         💒
                                     </div>
                                     <div className="flex-1 min-w-0">
@@ -129,7 +129,7 @@ export default function VendorClient() {
             {/* Divider */}
             <div className="flex items-center gap-4 my-10">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-                <div className="w-2 h-2 rotate-45 bg-[#FF8E8E]/40"></div>
+                <div className="w-2 h-2 rotate-45 bg-pink-400/40"></div>
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
             </div>
 
@@ -142,7 +142,7 @@ export default function VendorClient() {
                 className="mb-14"
             >
                 <div className="flex items-center gap-2 mb-6 px-2">
-                    <span className="text-[#FF8E8E]">📂</span>
+                    <span className="text-pink-300">📂</span>
                     <h3 className="text-lg font-bold text-gray-700">카테고리</h3>
                 </div>
 
@@ -153,7 +153,7 @@ export default function VendorClient() {
                             whileHover={{ y: -3, scale: 1.02 }}
                             className="group cursor-pointer rounded-2xl bg-white/70 backdrop-blur-xl hover:bg-white border border-white/50 hover:border-pink-100 p-5 text-center transition-all shadow-sm hover:shadow-md"
                         >
-                            <div className="w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 bg-gradient-to-br from-pink-50 to-rose-50 group-hover:from-pink-100 group-hover:to-rose-100 text-2xl transition-all">
+                            <div className="w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-3 bg-gradient-to-br from-pink-50 to-pink-50 group-hover:from-pink-100 group-hover:to-pink-100 text-2xl transition-all">
                                 {cat.emoji}
                             </div>
                             <h4 className="text-xs font-bold text-gray-700 mb-0.5">{cat.name}</h4>
@@ -166,7 +166,7 @@ export default function VendorClient() {
             {/* Divider */}
             <div className="flex items-center gap-4 my-10">
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
-                <div className="w-2 h-2 rotate-45 bg-[#FF8E8E]/40"></div>
+                <div className="w-2 h-2 rotate-45 bg-pink-400/40"></div>
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
             </div>
 
