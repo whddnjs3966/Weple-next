@@ -22,8 +22,7 @@ export async function createClient() {
                         cookiesToSet.forEach(({ name, value, options }) =>
                             cookieStore.set(name, value, {
                                 ...options,
-                                maxAge: undefined,  // 세션 쿠키 (브라우저 종료 시 삭제)
-                                expires: undefined, // expires도 제거
+                                // 영구 쿠키: 브라우저 종료 후에도 30일간 유지
                             })
                         )
                     } catch {

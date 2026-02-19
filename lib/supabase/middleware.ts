@@ -22,8 +22,7 @@ export async function updateSession(request: NextRequest) {
                     cookiesToSet.forEach(({ name, value, options }) =>
                         supabaseResponse.cookies.set(name, value, {
                             ...options,
-                            maxAge: undefined,  // 브라우저 종료 시 삭제 (세션 쿠키)
-                            expires: undefined, // expires도 제거해야 완전한 세션 쿠키
+                            // 영구 쿠키: Supabase SDK 기본 maxAge 유지 (브라우저 종료 후에도 로그인 유지)
                         })
                     )
                 },
@@ -38,24 +37,6 @@ export async function updateSession(request: NextRequest) {
     const {
         data: { user },
     } = await supabase.auth.getUser()
-
-    // 세션 갱신이 없어 setAll이 호출되지 않은 경우에도
-    // 기존 영구 쿠키(maxAge 있는)를 세션 쿠키로 강제 변환
-    // → 브라우저 종료 시 반드시 로그인이 해제됨
-    request.cookies.getAll()
-        .filter(c => c.name.startsWith('sb-'))
-        .forEach(({ name, value }) => {
-            if (!value) return
-            // setAll이 이미 이 쿠키를 처리했으면 건너뜀
-            if (supabaseResponse.cookies.get(name)) return
-            supabaseResponse.cookies.set(name, value, {
-                path: '/',
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production',
-                httpOnly: true,
-                // maxAge, expires 없음 → 브라우저 종료 시 자동 삭제
-            })
-        })
 
     const pathname = request.nextUrl.pathname
 
@@ -107,8 +88,7 @@ export async function updateSession(request: NextRequest) {
             allCookies.forEach(cookie => {
                 redirectResponse.cookies.set(cookie.name, cookie.value, {
                     ...cookie,
-                    maxAge: undefined,  // 세션 쿠키로 변환
-                    expires: undefined, // expires도 제거
+                    // Supabase SDK 기본 maxAge 유지 (영구 쿠키)
                 })
             })
 

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import crypto from 'crypto'
 
 /**
@@ -18,23 +17,6 @@ export async function GET(request: Request) {
     // CSRF 방지용 state 토큰 생성
     const state = crypto.randomBytes(32).toString('hex')
 
-    // state를 쿠키에 저장 (callback에서 검증용)
-    const cookieStore = await cookies()
-    cookieStore.set('naver_oauth_state', state, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 10, // 10분
-        path: '/',
-    })
-    cookieStore.set('naver_oauth_next', next, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 10,
-        path: '/',
-    })
-
     const callbackUrl = `${new URL(request.url).origin}/api/auth/naver/callback`
 
     const naverAuthUrl = new URL('https://nid.naver.com/oauth2.0/authorize')
@@ -43,5 +25,19 @@ export async function GET(request: Request) {
     naverAuthUrl.searchParams.set('redirect_uri', callbackUrl)
     naverAuthUrl.searchParams.set('state', state)
 
-    return NextResponse.redirect(naverAuthUrl.toString())
+    // NextResponse 객체에 직접 쿠키 설정 (모바일 브라우저 호환성)
+    // cookies() API + redirect 조합은 일부 모바일 브라우저에서 쿠키 누락 가능
+    const response = NextResponse.redirect(naverAuthUrl.toString())
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        maxAge: 60 * 10, // 10분
+        path: '/',
+    }
+    response.cookies.set('naver_oauth_state', state, cookieOptions)
+    response.cookies.set('naver_oauth_next', next, cookieOptions)
+
+    return response
 }

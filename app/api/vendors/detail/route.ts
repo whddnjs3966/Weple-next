@@ -53,20 +53,28 @@ function isWeddingRelated(title: string, description: string, categorySlug: stri
     return keywords.some(kw => text.includes(kw.toLowerCase()))
 }
 
-async function getAIModel() {
-    if (process.env.ANTHROPIC_API_KEY) {
-        try {
-            const { anthropic } = await import('@ai-sdk/anthropic')
-            return anthropic('claude-haiku-4-5-20251001')
-        } catch { /* fallback */ }
-    }
+/** Google → Anthropic 순서로 사용 가능한 AI 모델 목록 반환 (크레딧 이슈 fallback 대응) */
+async function getAIModels(): Promise<{ name: string; model: Parameters<typeof generateText>[0]['model'] }[]> {
+    const models: { name: string; model: Parameters<typeof generateText>[0]['model'] }[] = []
+
     if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
         try {
             const { google } = await import('@ai-sdk/google')
-            return google('gemini-2.0-flash')
-        } catch { /* ignore */ }
+            models.push({ name: 'Gemini', model: google('gemini-2.0-flash') })
+        } catch (e) {
+            console.error('[VendorDetail] Google AI SDK 로드 실패:', e)
+        }
     }
-    return null
+    if (process.env.ANTHROPIC_API_KEY) {
+        try {
+            const { anthropic } = await import('@ai-sdk/anthropic')
+            models.push({ name: 'Anthropic', model: anthropic('claude-haiku-4-5-20251001') })
+        } catch (e) {
+            console.error('[VendorDetail] Anthropic SDK 로드 실패:', e)
+        }
+    }
+
+    return models
 }
 
 export async function GET(request: NextRequest) {
@@ -135,26 +143,35 @@ export async function GET(request: NextRequest) {
     // 최대 6개만 반환
     reviews = reviews.slice(0, 6)
 
-    // AI 리뷰 한줄 요약
+    // AI 리뷰 한줄 요약 (여러 모델 순서대로 시도, 크레딧 부족 등 fallback 대응)
     let summary: string | null = null
     if (reviews.length > 0) {
-        try {
-            const model = await getAIModel()
-            if (model) {
-                const reviewTexts = reviews
-                    .slice(0, 4)
-                    .map((r: { title: string; description: string }) => `- ${r.title}: ${r.description}`)
-                    .join('\n')
+        const models = await getAIModels()
+        if (models.length === 0) {
+            console.warn('[VendorDetail] 사용 가능한 AI 모델 없음')
+        }
 
+        const reviewTexts = reviews
+            .slice(0, 4)
+            .map((r: { title: string; description: string }) => `- ${r.title}: ${r.description}`)
+            .join('\n')
+        const prompt = `다음은 "${name}"에 대한 블로그 후기입니다:\n${reviewTexts}\n\n이 업체의 전반적인 특징과 분위기를 한국어로 1~2문장으로 요약해주세요. 주요 장단점과 특색을 포함하세요.`
+
+        for (const { name: modelName, model } of models) {
+            try {
+                console.log(`[VendorDetail] AI 요약 시도 (${modelName}):`, name)
                 const { text } = await generateText({
                     model,
-                    prompt: `다음은 "${name}"에 대한 블로그 후기입니다:\n${reviewTexts}\n\n이 업체의 전반적인 특징과 분위기를 한국어로 1~2문장으로 요약해주세요. 주요 장단점과 특색을 포함하세요.`,
+                    prompt,
                     maxOutputTokens: 150,
                 })
                 summary = text.trim()
+                console.log(`[VendorDetail] AI 요약 성공 (${modelName}):`, summary?.slice(0, 50))
+                break // 성공하면 루프 종료
+            } catch (error) {
+                console.error(`[VendorDetail] AI 요약 실패 (${modelName}):`, error)
+                // 다음 모델로 fallback
             }
-        } catch {
-            // 요약 실패는 무시 (선택적 기능)
         }
     }
 
