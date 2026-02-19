@@ -67,28 +67,32 @@ export default async function Dashboard() {
     }
 
     return (
-        <div className="fixed inset-0 overflow-hidden flex items-center justify-center">
-            {/* Dashboard-only: Wedding Photo Background with Dark Overlay */}
-            <div className="absolute inset-0 z-0">
+        <>
+            {/* Dashboard-only: Deep Dark Background */}
+            <div className="fixed inset-0 bg-black">
+                {/* 웨딩 사진 - 매우 어둡게 */}
                 <img
                     src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
                     alt="Wedding Background"
-                    className="w-full h-full object-cover opacity-40"
+                    className="absolute inset-0 w-full h-full object-cover opacity-55"
                     style={{ animation: 'slow-zoom 20s infinite alternate ease-in-out' }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60" />
+                {/* 짙은 그라디언트 오버레이 */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/60" />
+                {/* 별빛 파티클 */}
+                <Particles quantity={160} />
             </div>
 
             <style>{`
                 @keyframes slow-zoom {
                     0% { transform: scale(1); }
-                    100% { transform: scale(1.1); }
+                    100% { transform: scale(1.08); }
                 }
             `}</style>
 
-            {/* Content */}
-            <div className="relative z-20 flex items-center justify-center w-full h-full">
-                <div className="w-full max-w-7xl">
+            {/* Content — layout의 pt-24 pb-16 안에서 정상 흐름으로 렌더링 */}
+            <div className="relative flex items-center" style={{ minHeight: 'calc(100vh - 10rem)' }}>
+                <div className="w-full max-w-7xl mx-auto px-4">
                     {weddingDate ? (
                         <DashboardGrid
                             user={user}
@@ -114,6 +118,6 @@ export default async function Dashboard() {
                     )}
                 </div>
             </div>
-        </div>
+        </>
     )
 }

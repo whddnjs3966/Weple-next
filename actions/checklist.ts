@@ -14,10 +14,26 @@ export async function getTasks() {
 
     if (!user) return []
 
+    // 그룹이 있으면 파트너 데이터 포함 조회
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('wedding_group_id')
+        .eq('id', user.id)
+        .single()
+
+    let userIds = [user.id]
+    if (profile?.wedding_group_id) {
+        const { data: members } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('wedding_group_id', profile.wedding_group_id)
+        if (members) userIds = members.map(m => m.id)
+    }
+
     const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user.id)
+        .in('user_id', userIds)
         .order('d_day', { ascending: true })
 
     if (error) {

@@ -269,6 +269,59 @@ export type Database = {
                     },
                 ]
             }
+            user_vendors: {
+                Row: {
+                    id: string
+                    group_id: string | null
+                    user_id: string
+                    category: string
+                    vendor_name: string
+                    vendor_address: string | null
+                    vendor_phone: string | null
+                    vendor_link: string | null
+                    price_range: string | null
+                    memo: string | null
+                    is_confirmed: boolean
+                    created_at: string
+                }
+                Insert: {
+                    id?: string
+                    group_id?: string | null
+                    user_id: string
+                    category: string
+                    vendor_name: string
+                    vendor_address?: string | null
+                    vendor_phone?: string | null
+                    vendor_link?: string | null
+                    price_range?: string | null
+                    memo?: string | null
+                    is_confirmed?: boolean
+                    created_at?: string
+                }
+                Update: {
+                    id?: string
+                    group_id?: string | null
+                    user_id?: string
+                    category?: string
+                    vendor_name?: string
+                    vendor_address?: string | null
+                    vendor_phone?: string | null
+                    vendor_link?: string | null
+                    price_range?: string | null
+                    memo?: string | null
+                    is_confirmed?: boolean
+                    created_at?: string
+                }
+                Relationships: [
+                    {
+                        foreignKeyName: "user_vendors_group_id_fkey"
+                        columns: ["group_id"]
+                        isOneToOne: false
+                        referencedRelation: "wedding_groups"
+                        referencedColumns: ["id"]
+                    },
+                ]
+            }
             wedding_groups: {
                 Row: {
                     bride_name: string | null

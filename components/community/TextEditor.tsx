@@ -93,7 +93,7 @@ export default function TextEditor({ value, onChange, placeholder }: TextEditorP
         'header', 'size',
         'bold', 'italic', 'underline', 'strike', 'blockquote',
         'color', 'background',
-        'list', 'bullet', 'align',
+        'list', 'align',
         'link', 'image'
     ]
 

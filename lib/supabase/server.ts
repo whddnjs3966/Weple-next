@@ -20,7 +20,11 @@ export async function createClient() {
                 setAll(cookiesToSet) {
                     try {
                         cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
+                            cookieStore.set(name, value, {
+                                ...options,
+                                maxAge: undefined,  // 세션 쿠키 (브라우저 종료 시 삭제)
+                                expires: undefined, // expires도 제거
+                            })
                         )
                     } catch {
                         // The `setAll` method was called from a Server Component.

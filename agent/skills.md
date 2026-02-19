@@ -8,8 +8,7 @@
 - 유저를 존중하며 협력적인 태도를 유지하십시오.
 - 기술적 설명이 필요한 경우 핵심을 먼저 말하고, 세부 사항을 이어서 설명하십시오.
 - 코드 변경 시 변경 이유(Why)를 반드시 함께 설명하십시오.
-
----
+- 한국어로 답변하되, 코드 내 변수명·함수명·파일명은 영어를 유지하십시오.
 
 ---
 
@@ -38,39 +37,76 @@
 
 ---
 
-## 3. Project Context
+## 4. Project Context
 
 ### 프로젝트 개요
-- **서비스명**: 웨플(Wepln) — Next.js 기반 웨딩 플래너 서비스 (마이그레이션 프로젝트)
-- **기술 스택**: Next.js 14 (App Router) / TypeScript / Supabase / Tailwind CSS
-- **배포**: Vercel (Frontend/Edge), Supabase (DB/Auth)
+- **서비스명**: 웨플(Wepln) — Next.js 기반 웨딩 플래너 서비스 (Django → Next.js 마이그레이션)
+- **기술 스택**: Next.js 14 (App Router) / TypeScript / Supabase / Tailwind CSS / Framer Motion
+- **배포**: Vercel (Frontend/Edge), Supabase (DB/Auth/Realtime)
+- **패키지**: `lucide-react`, `framer-motion`, `clsx`, `tailwind-merge`
 
 ### 디렉토리 구조
 ```
 02-next-weple/
-├── app/                 # 라우트 및 페이지 (Pages Router 아님)
-├── components/          # 재사용 가능한 UI 컴포넌트
-├── lib/                 # 유틸리티 및 클라이언트 설정
+├── app/
+│   ├── (auth)/          # 로그인, 회원가입 라우트 그룹
+│   ├── (dashboard)/     # 메인 대시보드 라우트 그룹
+│   │   ├── dashboard/   # 메인 대시보드
+│   │   ├── schedule/    # 일정 관리
+│   │   ├── checklist/   # 체크리스트
+│   │   ├── vendors/     # 업체 분석
+│   │   └── community/   # 커뮤니티
+│   ├── api/             # Route Handlers
+│   └── globals.css      # 전역 스타일
+├── components/
+│   ├── dashboard/       # 대시보드 전용 컴포넌트
+│   ├── schedule/        # 일정 관련 컴포넌트
+│   ├── checklist/       # 체크리스트 컴포넌트
+│   ├── vendors/         # 업체 컴포넌트
+│   ├── community/       # 커뮤니티 컴포넌트
+│   ├── settings/        # 설정 컴포넌트
+│   ├── Navbar.tsx       # 공통 네비게이션
+│   ├── Particles.tsx    # 파티클 배경 효과
+│   └── SessionGuard.tsx # 세션 보호 래퍼
 ├── actions/             # Server Actions (백엔드 로직)
-├── types/               # TypeScript 타입 정의
-├── public/              # 정적 에셋 (이미지 등)
+│   ├── ai.ts            # AI 웨딩 플랜 생성
+│   ├── budget.ts        # 예산 관리
+│   ├── checklist.ts     # 체크리스트 CRUD
+│   ├── community.ts     # 커뮤니티 게시글
+│   ├── invite.ts        # 커플 초대 시스템
+│   ├── profile.ts       # 프로필 업데이트
+│   ├── settings.ts      # 설정 관리
+│   └── vendors.ts       # 업체 관리
+├── lib/
+│   ├── supabase/        # Supabase 클라이언트 (server/client)
+│   ├── logic/           # 비즈니스 로직 유틸
+│   └── utils.ts         # cn() 유틸리티
+├── supabase/            # DB 마이그레이션 파일
 └── agent/               # 에이전트 정의 (본 문서 포함)
 ```
 
 ### 핵심 데이터 모델 (Supabase)
-- **Profiles**: 사용자 프로필 (User 1:1)
-- **WeddingGroups**: 커플 단위 그룹
-- **Schedules**: 일정 및 타임라인
-- **Checklists**: 결혼 준비 체크리스트 항목
+- **profiles**: 사용자 프로필 (User 1:1, role: 'Admin'|'User'|null)
+- **wedding_groups**: 커플 단위 그룹 (groom/bride name, wedding_date)
+- **tasks**: 체크리스트 항목 (d_day, estimated_budget, is_completed)
+- **schedules**: 일정 및 타임라인 이벤트
+- **vendors**: 업체 정보 (category, name, review_count)
+- **community_posts**: 커뮤니티 게시글 (title, content, author)
+- **budget_items**: 예산 항목 (category, amount)
 
-### 디자인 시스템
-- **Framework**: Tailwind CSS
-- **Concept**: "Cosmos" (Glassmorphism, Particles, Floating Cards)
-- **Colors**: Soft Coral (`#FF8E8E`), Warm White (`#fdfbf7`), Dark Gradient (`#1a1a2e`)
+### 디자인 시스템 (실제 tailwind.config.ts 기준)
+- **Concept**: "Romantic Spring" — 벚꽃, 봄날, 웨딩의 감성
+- **Dashboard**: "Cosmos" 스타일 (Glassmorphism, Particles, Dark Gradient)
+- **Colors**:
+  - Primary: `#F9A8D4` (pink-300), Hover: `#F472B6` (pink-400)
+  - Background: `#FDF2F8` (blush), Card: `#FFFBF0` (cream)
+  - Gold Accent: `#D4A373`, Sage (완료): `#A7C4A0`
+- **Fonts**: `Pretendard` (본문), `Cormorant Garamond` (serif 제목), `Dancing Script` (cursive 장식)
+- **Animations**: `petal-fall`, `bloom`, `fade-in-up`, `float`, `sway`, `shimmer`, `pulse-soft`
 
 ---
 
-## 4. Response Format
+## 5. Response Format
 
 ### 코드 변경 시 필수 규칙
 1. **Next.js 14 패턴 준수**: Server Component와 Client Component를 명확히 구분하십시오.
@@ -80,7 +116,9 @@
    - [ ] 빌드 에러(`npm run build`)가 발생하지 않는가?
    - [ ] 모바일/데스크톱 반응형이 고려되었는가?
    - [ ] Supabase RLS 정책에 위배되지 않는가?
+   - [ ] Hydration 에러가 발생하지 않는가? (Math.random() 등 비결정적 로직 주의)
 
 ### 협업 포인트
 - **개발 ↔ 디자인**: 데이터 흐름(Props)과 Server Action 연결이 매끄러운지 확인.
-- **기획 ↔ 개발**: DB 스키마 변경 시 마이그레이션 계획 수립.
+- **기획 ↔ 개발**: DB 스키마 변경 시 `supabase/` 마이그레이션 파일 수립.
+- **기획 ↔ 디자인**: 와이어프레임 또는 레퍼런스 이미지 공유 후 작업 시작.

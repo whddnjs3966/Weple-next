@@ -2,6 +2,71 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { anthropic } from '@ai-sdk/anthropic'
+import { generateText } from 'ai'
+
+const CATEGORY_NAMES: Record<string, string> = {
+    'wedding-hall': '웨딩홀',
+    'studio': '웨딩스튜디오',
+    'dress': '웨딩드레스 샵',
+    'makeup': '웨딩 메이크업 샵',
+    'meeting-place': '상견례 레스토랑',
+    'hanbok': '한복 대여점',
+    'wedding-band': '웨딩밴드',
+    'honeymoon': '신혼여행 패키지',
+}
+
+export type AiVendorRec = {
+    name: string
+    reason: string
+    priceRange: string
+}
+
+export async function recommendVendors(category: string): Promise<{ recommendations: AiVendorRec[], error?: string }> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { recommendations: [], error: 'Unauthorized' }
+
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('region_sido, region_sigungu, budget_max, style')
+        .eq('id', user.id)
+        .single()
+
+    const sido = profile?.region_sido || '서울'
+    const sigungu = profile?.region_sigungu || ''
+    const budget = profile?.budget_max || 3000
+    const style = profile?.style || '클래식'
+    const location = sigungu ? `${sido} ${sigungu}` : sido
+    const categoryName = CATEGORY_NAMES[category] || category
+
+    const prompt = `당신은 한국 웨딩 전문가입니다.
+다음 조건의 커플에게 ${categoryName} 업체 3곳을 추천해주세요:
+- 위치: ${location}
+- 총 예산: ${budget.toLocaleString()}만원
+- 웨딩 스타일: ${style}
+
+실제 존재하는 유명한 업체를 추천하고 특징을 간결하게 설명해주세요.
+반드시 다음 JSON 배열 형식으로만 응답하세요 (다른 텍스트 없이):
+[{"name":"업체명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대 (예: 500~700만원)"}]`
+
+    try {
+        const { text } = await generateText({
+            model: anthropic('claude-haiku-4-5-20251001'),
+            prompt,
+            maxOutputTokens: 600,
+        })
+
+        const jsonMatch = text.match(/\[[\s\S]*\]/)
+        if (!jsonMatch) return { recommendations: [] }
+
+        const recommendations: AiVendorRec[] = JSON.parse(jsonMatch[0])
+        return { recommendations }
+    } catch (error) {
+        console.error('AI vendor recommendation error:', error)
+        return { error: 'AI 추천 생성에 실패했습니다.', recommendations: [] }
+    }
+}
 
 interface WeddingPlanData {
     weddingDate: string
