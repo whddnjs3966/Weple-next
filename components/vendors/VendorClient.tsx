@@ -93,7 +93,7 @@ export default function VendorClient({
     }
 
     return (
-        <div className="max-w-4xl mx-auto px-4 pb-20">
+        <div className="max-w-4xl mx-auto px-4 pb-20 space-y-6">
 
                 {/* ── 헤더 — 다른 탭과 동일한 스타일 ────────── */}
                 <motion.div

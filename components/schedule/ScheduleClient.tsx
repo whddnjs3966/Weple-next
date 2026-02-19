@@ -1,12 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isBefore, addDays } from 'date-fns'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, differenceInDays } from 'date-fns'
 import { ChevronLeft, ChevronRight, CalendarDays, Clock, MapPin, CheckCircle, Plus, Sparkles, Gift, Shirt, X, Calendar, FileText } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useSchedule } from '@/contexts/ScheduleContext'
 
 export default function ScheduleClient() {
+    const router = useRouter()
     const [currentDate, setCurrentDate] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -63,36 +65,31 @@ export default function ScheduleClient() {
         setIsModalOpen(false)
     }
 
-    // Dummy upcoming events
-    const upcomingEvents = [
-        {
-            id: 1,
-            title: '드레스 피팅 2차',
-            date: addDays(new Date(), 3),
-            location: '강남 드레스샵',
-            dDay: 'D-3',
-            color: 'from-pink-500 to-pink-400',
-            emoji: '👗',
-        },
-        {
-            id: 2,
-            title: '스튜디오 촬영',
-            date: addDays(new Date(), 12),
-            location: '청담 럭스 스튜디오',
-            dDay: 'D-12',
-            color: 'from-violet-500 to-purple-400',
-            emoji: '📸',
-        },
-        {
-            id: 3,
-            title: '예식장 최종 미팅',
-            date: addDays(new Date(), 25),
-            location: '논현 더채플',
-            dDay: 'D-25',
-            color: 'from-amber-500 to-orange-400',
-            emoji: '💒',
-        },
-    ]
+    // 실제 다가오는 일정 (context에서 계산)
+    const today = new Date()
+    const todayStr = format(today, 'yyyy-MM-dd')
+
+    const upcomingEvents = sharedEvents
+        .filter(e => e.type === 'schedule' && e.date >= todayStr)
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(0, 3)
+
+    const getDDay = (dateStr: string): string => {
+        const eventDate = new Date(dateStr + 'T00:00:00')
+        const diff = differenceInDays(eventDate, today)
+        if (diff === 0) return 'D-Day'
+        if (diff > 0) return `D-${diff}`
+        return `D+${Math.abs(diff)}`
+    }
+
+    const openAddModal = () => {
+        setSelectedDate(new Date())
+        setIsModalOpen(true)
+        setModalTab('schedule')
+        setScheduleTitle('')
+        setScheduleLocation('')
+        setScheduleTime('')
+    }
 
     // Event indicators from shared context
     const hasEvent = (day: Date) => {
@@ -266,40 +263,75 @@ export default function ScheduleClient() {
                         Upcoming
                     </span>
                     <h3 className="text-2xl font-extrabold text-gray-800">다가오는 일정</h3>
-                    <p className="text-sm text-gray-400 mt-1">가장 가까운 예정 일정 3건</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                        {upcomingEvents.length > 0
+                            ? `달력에 등록된 일정 중 가장 가까운 ${upcomingEvents.length}건`
+                            : '달력에서 날짜를 클릭해 일정을 추가하세요'}
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* 실제 일정 카드 */}
                     {upcomingEvents.map((event) => (
                         <div
                             key={event.id}
-                            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group"
+                            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all"
                         >
+                            {/* 상단 골드 액센트 라인 */}
+                            <div className="h-px bg-gradient-to-r from-transparent via-amber-300/60 to-transparent" />
                             <div className="p-5">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${event.color} flex items-center justify-center text-xl shadow-sm`}>
-                                        {event.emoji}
-                                    </div>
-                                    <span className="text-[11px] font-extrabold text-pink-400 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-100">
-                                        {event.dDay}
-                                    </span>
-                                </div>
-                                <h4 className="font-bold text-gray-800 text-[15px] mb-3 leading-tight group-hover:text-pink-400 transition-colors">
+                                {/* D-Day — 골드 그라디언트 (대시보드 스타일) */}
+                                <p
+                                    className="font-cinzel text-4xl font-bold leading-none mb-3"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #EDD5A3, #D4A373, #B8845A)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text',
+                                    }}
+                                >
+                                    {getDDay(event.date)}
+                                </p>
+                                <h4 className="font-bold text-gray-800 text-[15px] mb-4 leading-snug">
                                     {event.title}
                                 </h4>
                                 <div className="space-y-1.5">
                                     <div className="flex items-center gap-2 text-xs text-gray-400">
-                                        <CalendarDays size={12} className="text-gray-300 shrink-0" />
-                                        {format(event.date, 'M월 d일')}
+                                        <CalendarDays size={11} className="text-gray-300 shrink-0" />
+                                        {format(new Date(event.date + 'T00:00:00'), 'yyyy년 M월 d일')}
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                                        <MapPin size={12} className="text-gray-300 shrink-0" />
-                                        {event.location}
-                                    </div>
+                                    {event.time && (
+                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                            <Clock size={11} className="text-gray-300 shrink-0" />
+                                            {event.time}
+                                        </div>
+                                    )}
+                                    {event.location && (
+                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                            <MapPin size={11} className="text-gray-300 shrink-0" />
+                                            {event.location}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                            <div className={`h-0.5 bg-gradient-to-r ${event.color}`} />
                         </div>
+                    ))}
+
+                    {/* 빈 슬롯 → 직접 추가하기 카드 */}
+                    {Array.from({ length: Math.max(0, 3 - upcomingEvents.length) }).map((_, i) => (
+                        <button
+                            key={`add-${i}`}
+                            onClick={openAddModal}
+                            className="bg-white rounded-2xl border-2 border-dashed border-gray-200 shadow-sm overflow-hidden hover:border-pink-200 hover:shadow-md transition-all flex flex-col items-center justify-center py-10 gap-3 group"
+                        >
+                            <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:border-pink-200 group-hover:bg-pink-50/40 transition-all">
+                                <Plus size={20} className="text-gray-300 group-hover:text-pink-400 transition-colors" />
+                            </div>
+                            <div className="text-center">
+                                <p className="text-sm font-semibold text-gray-300 group-hover:text-gray-400 transition-colors">일정 추가하기</p>
+                                <p className="text-xs text-gray-200 mt-0.5 group-hover:text-gray-300 transition-colors">달력에서 날짜 선택</p>
+                            </div>
+                        </button>
                     ))}
                 </div>
             </section>
@@ -356,13 +388,19 @@ export default function ScheduleClient() {
                         )
                     })}
 
-                    {/* 직접 추가하기 */}
-                    <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 shadow-sm overflow-hidden hover:border-pink-200 hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center py-10 gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center">
-                            <Plus size={18} className="text-gray-300" />
+                    {/* 직접 추가하기 → 체크리스트 탭으로 이동 */}
+                    <button
+                        onClick={() => router.push('/checklist')}
+                        className="bg-white rounded-2xl border-2 border-dashed border-gray-200 shadow-sm overflow-hidden hover:border-pink-200 hover:shadow-md transition-all flex flex-col items-center justify-center py-8 gap-3 group"
+                    >
+                        <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:border-pink-200 group-hover:bg-pink-50/40 transition-all">
+                            <Plus size={18} className="text-gray-300 group-hover:text-pink-400 transition-colors" />
                         </div>
-                        <span className="text-sm font-semibold text-gray-300">직접 추가하기</span>
-                    </div>
+                        <div className="text-center">
+                            <p className="text-sm font-semibold text-gray-300 group-hover:text-gray-400 transition-colors">직접 추가하기</p>
+                            <p className="text-xs text-gray-200 mt-0.5 group-hover:text-gray-300 transition-colors">체크리스트 탭으로 이동</p>
+                        </div>
+                    </button>
                 </div>
             </section>
 
