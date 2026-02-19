@@ -259,48 +259,46 @@ export default function ScheduleClient() {
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
             </div>
 
-            {/* ① 다가오는 일정 (순서 변경: 먼저) */}
+            {/* ① 다가오는 일정 */}
             <section className="mb-16">
                 <div className="text-center mb-8">
-                    <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-pink-50 text-pink-500 border border-pink-100 mb-3">
+                    <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-pink-50 text-pink-400 border border-pink-100 mb-3">
                         Upcoming
                     </span>
                     <h3 className="text-2xl font-extrabold text-gray-800">다가오는 일정</h3>
                     <p className="text-sm text-gray-400 mt-1">가장 가까운 예정 일정 3건</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {upcomingEvents.map((event) => (
                         <div
                             key={event.id}
-                            className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group"
+                            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer group"
                         >
-                            {/* Color Top Bar */}
-                            <div className={`h-1.5 bg-gradient-to-r ${event.color}`}></div>
-
                             <div className="p-5">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-2xl shrink-0">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${event.color} flex items-center justify-center text-xl shadow-sm`}>
                                         {event.emoji}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between mb-1.5">
-                                            <h4 className="font-bold text-gray-800 text-[15px] group-hover:text-pink-300 transition-colors">{event.title}</h4>
-                                            <span className="text-xs font-bold text-pink-300 bg-pink-50 px-2 py-0.5 rounded-full shrink-0 ml-2">{event.dDay}</span>
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                                                <CalendarDays size={12} className="text-gray-300" />
-                                                {format(event.date, 'yyyy.MM.dd (eee)')}
-                                            </span>
-                                            <span className="flex items-center gap-1.5 text-xs text-gray-400">
-                                                <MapPin size={12} className="text-gray-300" />
-                                                {event.location}
-                                            </span>
-                                        </div>
+                                    <span className="text-[11px] font-extrabold text-pink-400 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-100">
+                                        {event.dDay}
+                                    </span>
+                                </div>
+                                <h4 className="font-bold text-gray-800 text-[15px] mb-3 leading-tight group-hover:text-pink-400 transition-colors">
+                                    {event.title}
+                                </h4>
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                        <CalendarDays size={12} className="text-gray-300 shrink-0" />
+                                        {format(event.date, 'M월 d일')}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                        <MapPin size={12} className="text-gray-300 shrink-0" />
+                                        {event.location}
                                     </div>
                                 </div>
                             </div>
+                            <div className={`h-0.5 bg-gradient-to-r ${event.color}`} />
                         </div>
                     ))}
                 </div>
@@ -313,55 +311,57 @@ export default function ScheduleClient() {
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
             </div>
 
-            {/* ② D-Day 체크리스트 (순서 변경: 나중) */}
+            {/* ② D-Day 체크리스트 */}
             <section className="mb-16">
-                <div className="rounded-[20px] bg-gradient-to-br from-pink-50/80 to-pink-50/50 p-6 md:p-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-900">
-                                <span className="text-pink-300 font-extrabold">D-13</span>{' '}체크리스트
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-1">오늘 꼭 챙겨야 할 중요 항목들</p>
-                        </div>
-                        <Link href="/checklist" className="flex items-center gap-1 text-xs font-bold text-pink-300 border border-pink-200 rounded-full px-4 py-2 hover:bg-pink-50 transition-colors">
+                <div className="text-center mb-8">
+                    <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-pink-50 text-pink-400 border border-pink-100 mb-3">
+                        Checklist
+                    </span>
+                    <h3 className="text-2xl font-extrabold text-gray-800">D-Day 체크리스트</h3>
+                    <p className="text-sm text-gray-400 mt-1">
+                        오늘 꼭 챙겨야 할 중요 항목들&nbsp;&nbsp;
+                        <Link href="/checklist" className="text-pink-400 font-bold hover:text-pink-500 transition-colors">
                             전체보기 →
                         </Link>
-                    </div>
+                    </p>
+                </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                        {[
-                            { icon: Sparkles, title: '본식 드레스 가봉', dday: 'D-7', desc: '최종적으로 상태와 사이즈를 점검하세요. 보정 필요시 여유시간도 확보하세요.', color: 'from-pink-400 to-pink-300' },
-                            { icon: Gift, title: '식권/방명록 준비', dday: 'D-5', desc: '당일 사용할 물품들을 꼼꼼히 챙겨두세요. 수량도 다시 확인하세요.', color: 'from-pink-400 to-fuchsia-300' },
-                            { icon: Shirt, title: '컨디션 조절', dday: 'D-3', desc: '충분한 수면과 휴식, 피부관리로 최상의 컨디션을 만드세요.', color: 'from-pink-400 to-pink-300' },
-                        ].map((item) => {
-                            const Icon = item.icon
-                            return (
-                                <div key={item.title} className="bg-white rounded-2xl p-7 border border-gray-100/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white shadow-sm`}>
-                                            <Icon size={22} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                        { icon: Sparkles, title: '본식 드레스 가봉', dday: 'D-7', desc: '최종 상태와 사이즈를 점검하세요. 보정 필요시 여유시간도 확보하세요.', color: 'from-pink-400 to-pink-300' },
+                        { icon: Gift, title: '식권/방명록 준비', dday: 'D-5', desc: '당일 사용할 물품들을 꼼꼼히 챙겨두세요. 수량도 다시 확인하세요.', color: 'from-fuchsia-400 to-pink-300' },
+                        { icon: Shirt, title: '컨디션 조절', dday: 'D-3', desc: '충분한 수면과 휴식, 피부관리로 최상의 컨디션을 만드세요.', color: 'from-rose-400 to-pink-400' },
+                    ].map((item) => {
+                        const Icon = item.icon
+                        return (
+                            <div key={item.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                                <div className="p-5">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white shadow-sm`}>
+                                            <Icon size={20} />
                                         </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 text-base">{item.title}</h4>
-                                            <span className="text-xs font-bold text-pink-400">{item.dday}</span>
-                                        </div>
+                                        <span className="text-[11px] font-extrabold text-pink-400 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-100">
+                                            {item.dday}
+                                        </span>
                                     </div>
-                                    <p className="text-sm text-gray-500 leading-relaxed mb-5">{item.desc}</p>
-                                    <button className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-300 to-pink-400 text-white text-sm font-bold flex items-center justify-center gap-1.5 hover:shadow-md hover:shadow-pink-200/50 transition-all">
-                                        <CheckCircle size={14} />
+                                    <h4 className="font-bold text-gray-800 text-[15px] mb-2 leading-tight">{item.title}</h4>
+                                    <p className="text-xs text-gray-400 leading-relaxed mb-4">{item.desc}</p>
+                                    <button className="flex items-center gap-1.5 text-xs font-bold text-pink-400 hover:text-pink-500 transition-colors">
+                                        <CheckCircle size={13} />
                                         완료 표시
                                     </button>
                                 </div>
-                            )
-                        })}
-                    </div>
+                                <div className={`h-0.5 bg-gradient-to-r ${item.color}`} />
+                            </div>
+                        )
+                    })}
 
-                    {/* 직접 추가하기 카드 */}
-                    <div className="bg-white/60 rounded-2xl p-5 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:border-pink-300 hover:bg-white/80 transition-all max-w-[220px]">
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 mb-2">
-                            <Plus size={16} />
+                    {/* 직접 추가하기 */}
+                    <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 shadow-sm overflow-hidden hover:border-pink-200 hover:shadow-md transition-all cursor-pointer flex flex-col items-center justify-center py-10 gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center">
+                            <Plus size={18} className="text-gray-300" />
                         </div>
-                        <span className="text-sm font-medium text-gray-400">직접 추가하기</span>
+                        <span className="text-sm font-semibold text-gray-300">직접 추가하기</span>
                     </div>
                 </div>
             </section>

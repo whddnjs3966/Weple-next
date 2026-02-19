@@ -22,6 +22,45 @@ export type AiVendorRec = {
     priceRange: string
 }
 
+export async function recommendVendorsWithFilters(
+    category: string,
+    filters: Record<string, string>,
+    sido: string = '서울',
+): Promise<{ recommendations: AiVendorRec[], error?: string }> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { recommendations: [], error: 'Unauthorized' }
+
+    const categoryName = CATEGORY_NAMES[category] || category
+
+    const filterLines = Object.entries(filters)
+        .filter(([, v]) => v)
+        .map(([k, v]) => `- ${k}: ${v}`)
+        .join('\n')
+
+    const prompt = `당신은 한국 웨딩 전문가입니다.
+다음 조건에 맞는 ${sido} 지역의 ${categoryName} 업체 3곳을 추천해주세요:
+${filterLines || '- 조건 미선택 (일반 추천)'}
+
+실제 존재하는 유명한 업체를 추천하고 특징을 간결하게 설명해주세요.
+반드시 다음 JSON 배열 형식으로만 응답하세요 (다른 텍스트 없이):
+[{"name":"업체명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대"}]`
+
+    try {
+        const { text } = await generateText({
+            model: anthropic('claude-haiku-4-5-20251001'),
+            prompt,
+            maxOutputTokens: 600,
+        })
+        const jsonMatch = text.match(/\[[\s\S]*\]/)
+        if (!jsonMatch) return { recommendations: [] }
+        return { recommendations: JSON.parse(jsonMatch[0]) }
+    } catch (error) {
+        console.error('AI vendor recommendation error:', error)
+        return { error: 'AI 추천 생성에 실패했습니다.', recommendations: [] }
+    }
+}
+
 export async function recommendVendors(category: string): Promise<{ recommendations: AiVendorRec[], error?: string }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const sido = searchParams.get('sido') || '서울'
     const sigungu = searchParams.get('sigungu') || ''
 
-    const clientId = process.env.NAVER_CLIENT_ID
+    const clientId = process.env.NAVER_CLIENT_ID || process.env.NEXT_PUBLIC_NAVER_CLIENT_ID
     const clientSecret = process.env.NAVER_CLIENT_SECRET
 
     if (!clientId || !clientSecret) {
