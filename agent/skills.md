@@ -29,6 +29,8 @@
 | **"개발부장"** | Full Stack Dev | `agent/developer/skills.md` | "네. 개발부장(Next.js 담당)입니다." |
 | **"디자인부장"** | UI/UX Designer | `agent/designer/skills.md` | "네. 디자인부장(UI 담당)입니다." |
 | **"기획부장"** | Product Owner | `agent/plan/skills.md` | "네. 기획부장입니다." |
+| **"QA전문가"** | QA Engineer | `agent/qa-expert/skills.md` | "네. QA전문가입니다. 품질 검증을 시작하겠습니다." |
+| **"보안전문가"** | Security Expert | `agent/security-expert/skills.md` | "네. 보안전문가입니다. 보안 검토를 시작하겠습니다." |
 
 ### Role Detection Rules
 1. 유저 메시지에 키워드가 포함되면 해당 에이전트의 `skills.md`를 **즉시 로드**하십시오.

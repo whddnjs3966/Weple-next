@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { anthropic } from '@ai-sdk/anthropic'
 import { generateText } from 'ai'
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -12,8 +11,36 @@ const CATEGORY_NAMES: Record<string, string> = {
     'makeup': '웨딩 메이크업 샵',
     'meeting-place': '상견례 레스토랑',
     'hanbok': '한복 대여점',
-    'wedding-band': '웨딩밴드',
+    'wedding-ring': '웨딩반지 전문점',
     'honeymoon': '신혼여행 패키지',
+}
+
+/**
+ * AI 모델을 가져오는 헬퍼.
+ * Anthropic을 우선 시도하고, 실패하면 Google Gemini로 fallback.
+ */
+async function getAIModel() {
+    // Try Anthropic first
+    if (process.env.ANTHROPIC_API_KEY) {
+        try {
+            const { anthropic } = await import('@ai-sdk/anthropic')
+            return anthropic('claude-haiku-4-5-20251001')
+        } catch (e) {
+            console.warn('Anthropic SDK load failed, trying Google:', e)
+        }
+    }
+
+    // Fallback to Google Gemini
+    if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+        try {
+            const { google } = await import('@ai-sdk/google')
+            return google('gemini-2.0-flash')
+        } catch (e) {
+            console.warn('Google AI SDK load failed:', e)
+        }
+    }
+
+    return null
 }
 
 export type AiVendorRec = {
@@ -47,17 +74,23 @@ ${filterLines || '- 조건 미선택 (일반 추천)'}
 [{"name":"업체명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대"}]`
 
     try {
+        const model = await getAIModel()
+        if (!model) {
+            return { error: 'AI API 키가 설정되지 않았습니다. ANTHROPIC_API_KEY 또는 GOOGLE_GENERATIVE_AI_API_KEY를 설정해주세요.', recommendations: [] }
+        }
+
         const { text } = await generateText({
-            model: anthropic('claude-haiku-4-5-20251001'),
+            model,
             prompt,
             maxOutputTokens: 600,
         })
         const jsonMatch = text.match(/\[[\s\S]*\]/)
         if (!jsonMatch) return { recommendations: [] }
         return { recommendations: JSON.parse(jsonMatch[0]) }
-    } catch (error) {
-        console.error('AI vendor recommendation error:', error)
-        return { error: 'AI 추천 생성에 실패했습니다.', recommendations: [] }
+    } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error)
+        console.error('AI vendor recommendation error:', msg)
+        return { error: `AI 추천 생성에 실패했습니다: ${msg}`, recommendations: [] }
     }
 }
 
@@ -90,8 +123,13 @@ export async function recommendVendors(category: string): Promise<{ recommendati
 [{"name":"업체명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대 (예: 500~700만원)"}]`
 
     try {
+        const model = await getAIModel()
+        if (!model) {
+            return { error: 'AI API 키가 설정되지 않았습니다.', recommendations: [] }
+        }
+
         const { text } = await generateText({
-            model: anthropic('claude-haiku-4-5-20251001'),
+            model,
             prompt,
             maxOutputTokens: 600,
         })
@@ -101,9 +139,10 @@ export async function recommendVendors(category: string): Promise<{ recommendati
 
         const recommendations: AiVendorRec[] = JSON.parse(jsonMatch[0])
         return { recommendations }
-    } catch (error) {
-        console.error('AI vendor recommendation error:', error)
-        return { error: 'AI 추천 생성에 실패했습니다.', recommendations: [] }
+    } catch (error: unknown) {
+        const msg = error instanceof Error ? error.message : String(error)
+        console.error('AI vendor recommendation error:', msg)
+        return { error: `AI 추천 생성에 실패했습니다: ${msg}`, recommendations: [] }
     }
 }
 
@@ -121,11 +160,8 @@ export async function generateWeddingPlan(planData: WeddingPlanData) {
         return { error: 'Unauthorized' }
     }
 
-    // 1. Calculate Budget Breakdown (Korea 2025 Avg)
-    // Budget is in unit of 10,000 KRW (Man-won)
     const totalBudget = planData.budgetRange
 
-    // Ratios: Venue 50%, SDM 15%, Honeymoon 20%, Gifts/Etc 15%
     const breakdown = [
         { category: 'venue', title: '웨딩홀 & 식대', amount: Math.floor(totalBudget * 0.50) },
         { category: 'sdm', title: '스드메 (스튜디오/드레스/메이크업)', amount: Math.floor(totalBudget * 0.15) },
@@ -133,30 +169,14 @@ export async function generateWeddingPlan(planData: WeddingPlanData) {
         { category: 'gifts', title: '예물/예단 & 기타', amount: Math.floor(totalBudget * 0.15) },
     ]
 
-    // 2. Insert Budget Items
-    const budgetInserts = breakdown.map(item => ({
-        user_id: user.id,
-        category: item.category, // We need to ensure 'category' column exists in tasks or budget table
-        title: item.title,
-        amount: item.amount * 10000, // Convert back to Won for storage if DB uses Won
-        // Note: Check DB schema. If we don't have a separate budget table, we might skip this 
-        // OR add to 'tasks' with Estimated Budget.
-    }))
-
-    // Let's assume we add them as "Key Tasks" with budget
-    // We need to check if 'tasks' table has 'category' column as per PRD. 
-    // The PRD mentioned adding 'category' column. We will handle migration separately.
-    // For now, we fit into existing 'tasks' structure: title, estimated_budget.
-
     const taskInserts = breakdown.map(item => ({
         user_id: user.id,
         title: `[예산] ${item.title}`,
-        d_day: 0, // Placeholder
+        d_day: 0,
         estimated_budget: item.amount * 10000,
         is_completed: false
     }))
 
-    // 3. Generate "Style-based" Checklist Items
     const styleTasks = []
 
     if (planData.styles.includes('Dark')) {
@@ -190,7 +210,6 @@ export async function generateWeddingPlan(planData: WeddingPlanData) {
         is_completed: false
     }))]
 
-    // Bulk insert all tasks
     const { error } = await supabase.from('tasks')
         .insert(allTasks)
 

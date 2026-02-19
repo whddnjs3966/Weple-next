@@ -5,7 +5,7 @@ export const CATEGORIES = [
     { slug: 'makeup', label: '메이크업', emoji: '💄' },
     { slug: 'meeting-place', label: '상견례', emoji: '🍽️' },
     { slug: 'hanbok', label: '한복', emoji: '👘' },
-    { slug: 'wedding-band', label: '웨딩밴드', emoji: '🎵' },
+    { slug: 'wedding-ring', label: '웨딩반지', emoji: '💍' },
     { slug: 'honeymoon', label: '신혼여행', emoji: '✈️' },
 ]
 
@@ -46,10 +46,10 @@ export const CATEGORY_FILTERS: Record<string, CategoryFilter[]> = {
         { key: 'mood', label: '분위기', options: ['화사한', '단아한', '모던'] },
         { key: 'price', label: '가격대', options: ['50만원 이하', '50~150만원', '150만원 이상'] },
     ],
-    'wedding-band': [
-        { key: 'type', label: '구성', options: ['듀오', '트리오', '풀밴드'] },
-        { key: 'genre', label: '음악 장르', options: ['팝', '재즈', '클래식', '혼합'] },
-        { key: 'price', label: '가격대', options: ['100만원 이하', '100~200만원', '200만원 이상'] },
+    'wedding-ring': [
+        { key: 'material', label: '소재', options: ['플래티넘', '18K 골드', '14K 골드', '로즈골드'] },
+        { key: 'style', label: '스타일', options: ['클래식', '모던', '빈티지', '커스텀'] },
+        { key: 'price', label: '가격대', options: ['50만원 이하', '50~100만원', '100~200만원', '200만원 이상'] },
     ],
     'honeymoon': [
         { key: 'destination', label: '여행지', options: ['동남아', '유럽', '일본', '몰디브/하와이'] },
