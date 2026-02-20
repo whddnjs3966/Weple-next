@@ -19,6 +19,8 @@ interface NaverVendor {
     link: string
     category: string
     description: string
+    mapx?: string
+    mapy?: string
 }
 
 const CITIES = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '제주']
@@ -183,17 +185,16 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
 
             {/* ── 슬라이딩 위자드 ── */}
             {!searched && (
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden mb-8">
+                <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden mb-8">
                     {/* 진행 표시 */}
                     <div className="flex items-center justify-center gap-1.5 pt-6 pb-1 px-8">
                         {Array.from({ length: totalSteps + 1 }).map((_, i) => (
                             <div
                                 key={i}
-                                className={`h-1 rounded-full transition-all duration-300 ${
-                                    i === progressStep ? 'w-8 bg-pink-400'
+                                className={`h-1 rounded-full transition-all duration-300 ${i === progressStep ? 'w-8 bg-pink-400'
                                     : i < progressStep ? 'w-3 bg-pink-200'
-                                    : 'w-2 bg-gray-100'
-                                }`}
+                                        : 'w-2 bg-gray-100'
+                                    }`}
                             />
                         ))}
                     </div>
@@ -218,23 +219,26 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
 
                                     {step === 0 ? (
                                         <>
-                                            <h3 className="text-xl font-bold text-gray-800 mb-1">어느 지역에서 찾으시나요?</h3>
-                                            <p className="text-sm text-gray-400 mb-6">원하는 지역을 선택해주세요</p>
-                                            <div className="grid grid-cols-4 gap-2.5">
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-2">어느 지역에서 찾으시나요?</h3>
+                                            <p className="text-sm text-gray-500 mb-8 font-medium">원하는 지역을 선택해주세요</p>
+                                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 md:gap-4">
                                                 {CITIES.map(city => (
                                                     <button
                                                         key={city}
                                                         onClick={() => handleCitySelect(city)}
-                                                        className={`relative py-4 rounded-2xl border-2 text-sm font-bold text-center transition-all duration-200 ${
-                                                            sido === city
-                                                                ? 'border-pink-400 text-pink-500 bg-pink-50 shadow-[0_0_18px_rgba(244,114,182,0.22)]'
-                                                                : 'border-gray-100 text-gray-500 bg-white hover:border-pink-200 hover:bg-pink-50/30'
-                                                        }`}
+                                                        className={`relative py-5 rounded-2xl border-2 text-sm font-bold text-center transition-all duration-300 ${sido === city
+                                                            ? 'border-pink-300 text-pink-600 bg-pink-50/80 shadow-md shadow-pink-100/50 scale-[1.02]'
+                                                            : 'border-transparent text-gray-600 bg-gray-50/80 hover:bg-white hover:border-pink-200 hover:shadow-sm hover:text-pink-500'
+                                                            }`}
                                                     >
                                                         {sido === city && (
-                                                            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-pink-400 rounded-full flex items-center justify-center">
-                                                                <Check size={9} className="text-white" strokeWidth={3} />
-                                                            </span>
+                                                            <motion.span
+                                                                initial={{ scale: 0 }}
+                                                                animate={{ scale: 1 }}
+                                                                className="absolute -top-2 -right-2 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center shadow-sm"
+                                                            >
+                                                                <Check size={14} className="text-white" strokeWidth={3} />
+                                                            </motion.span>
                                                         )}
                                                         {city}
                                                     </button>
@@ -243,33 +247,43 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                         </>
                                     ) : (
                                         <>
-                                            <h3 className="text-xl font-bold text-gray-800 mb-1">
+                                            <h3 className="text-2xl font-bold text-gray-800 mb-2">
                                                 {filters[step - 1].label}을(를) 선택해주세요
                                             </h3>
-                                            <p className="text-sm text-gray-400 mb-6">가장 잘 맞는 옵션을 선택해주세요</p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                {filters[step - 1].options.map(option => {
-                                                    const key = filters[step - 1].key
-                                                    const isSelected = selectedFilters[key] === option
-                                                    return (
-                                                        <button
-                                                            key={option}
-                                                            onClick={() => handleFilterSelect(key, option, step)}
-                                                            className={`relative py-5 px-5 rounded-2xl border-2 text-sm font-semibold text-left transition-all duration-200 ${
-                                                                isSelected
-                                                                    ? 'border-pink-400 text-pink-600 bg-pink-50 shadow-[0_0_20px_rgba(244,114,182,0.18)]'
-                                                                    : 'border-gray-100 text-gray-600 bg-white hover:border-pink-200 hover:bg-pink-50/20 hover:text-pink-500'
-                                                            }`}
-                                                        >
-                                                            {isSelected && (
-                                                                <span className="absolute top-3 right-3 w-5 h-5 bg-pink-400 rounded-full flex items-center justify-center">
-                                                                    <Check size={11} className="text-white" strokeWidth={3} />
-                                                                </span>
-                                                            )}
-                                                            {option}
-                                                        </button>
-                                                    )
-                                                })}
+                                            <p className="text-sm text-gray-500 mb-8 font-medium">가장 잘 맞는 옵션을 선택해주세요</p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                                                {(() => {
+                                                    const currentFilter = filters[step - 1]
+                                                    const options = typeof currentFilter.options === 'function'
+                                                        ? currentFilter.options(selectedFilters)
+                                                        : currentFilter.options
+
+                                                    return options.map(option => {
+                                                        const key = currentFilter.key
+                                                        const isSelected = selectedFilters[key] === option
+                                                        return (
+                                                            <button
+                                                                key={option}
+                                                                onClick={() => handleFilterSelect(key, option, step)}
+                                                                className={`relative py-6 px-6 rounded-2xl border-2 text-base font-bold text-left transition-all duration-300 ${isSelected
+                                                                    ? 'border-pink-300 text-pink-600 bg-pink-50/80 shadow-md shadow-pink-100/50 scale-[1.02]'
+                                                                    : 'border-transparent text-gray-600 bg-gray-50/80 hover:bg-white hover:border-pink-200 hover:shadow-sm hover:text-pink-500'
+                                                                    }`}
+                                                            >
+                                                                {isSelected && (
+                                                                    <motion.span
+                                                                        initial={{ scale: 0 }}
+                                                                        animate={{ scale: 1 }}
+                                                                        className="absolute top-1/2 -translate-y-1/2 right-4 w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center shadow-sm"
+                                                                    >
+                                                                        <Check size={14} className="text-white" strokeWidth={3} />
+                                                                    </motion.span>
+                                                                )}
+                                                                {option}
+                                                            </button>
+                                                        )
+                                                    })
+                                                })()}
                                             </div>
                                         </>
                                     )}
@@ -286,28 +300,30 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                     transition={transition}
                                     className="px-8 pt-6 pb-4"
                                 >
-                                    <p className="text-[11px] font-extrabold text-pink-400 uppercase tracking-widest mb-1">확인</p>
-                                    <h3 className="text-xl font-bold text-gray-800 mb-1">선택한 조건을 확인해주세요</h3>
-                                    <p className="text-sm text-gray-400 mb-6">맞으면 아래 버튼을 눌러 검색을 시작합니다</p>
+                                    <p className="text-[11px] font-extrabold text-pink-500 uppercase tracking-widest mb-2">확인</p>
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">선택한 조건을 확인해주세요</h3>
+                                    <p className="text-sm text-gray-500 mb-8 font-medium">맞으면 아래 버튼을 눌러 검색을 시작합니다</p>
 
-                                    <div className="space-y-2 mb-7">
-                                        <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-2xl">
-                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">지역</span>
-                                            <span className="text-sm font-semibold text-gray-700">{sido || '서울 (기본)'}</span>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-10">
+                                        <div className="flex flex-col gap-1.5 py-5 px-6 bg-white border border-pink-100 rounded-[1.25rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] relative overflow-hidden group hover:border-pink-200 transition-all hover:shadow-[0_8px_30px_rgb(244,114,182,0.15)] hover:-translate-y-0.5">
+                                            <div className="absolute top-0 left-0 w-1.5 h-full bg-pink-400" />
+                                            <span className="text-[11px] font-extrabold text-pink-500 uppercase tracking-widest">지역</span>
+                                            <span className="text-lg font-extrabold text-gray-900 break-words leading-tight">{sido || '서울'}</span>
                                         </div>
                                         {filters.map(f => selectedFilters[f.key] ? (
-                                            <div key={f.key} className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-2xl">
-                                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{f.label}</span>
-                                                <span className="text-sm font-semibold text-gray-700">{selectedFilters[f.key]}</span>
+                                            <div key={f.key} className="flex flex-col gap-1.5 py-5 px-6 bg-white border border-gray-100 rounded-[1.25rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] relative overflow-hidden hover:border-pink-200 hover:shadow-[0_8px_30px_rgb(244,114,182,0.15)] transition-all group hover:-translate-y-0.5">
+                                                <div className="absolute top-0 left-0 w-1.5 h-full bg-gray-200 group-hover:bg-pink-300 transition-colors" />
+                                                <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest group-hover:text-pink-500 transition-colors">{f.label}</span>
+                                                <span className="text-lg font-extrabold text-gray-900 group-hover:text-gray-900 transition-colors break-words leading-tight">{selectedFilters[f.key]}</span>
                                             </div>
                                         ) : null)}
                                     </div>
 
                                     <button
                                         onClick={handleSearch}
-                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-pink-300 to-pink-400 text-white font-bold text-sm flex items-center justify-center gap-2 hover:shadow-xl hover:shadow-pink-200/40 hover:-translate-y-0.5 transition-all"
+                                        className="w-full py-5 rounded-2xl bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold text-base flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-pink-300/50 hover:-translate-y-0.5 transition-all"
                                     >
-                                        <Search size={16} />
+                                        <Search size={18} strokeWidth={2.5} />
                                         업체 검색하기
                                     </button>
                                 </motion.div>
@@ -338,26 +354,24 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
 
             {/* ── 검색 조건 요약 바 ── */}
             {searched && (
-                <div className="bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-2xl px-5 py-4 mb-8">
-                    <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 flex-wrap min-w-0">
-                            <span className="text-xs font-extrabold text-pink-500 uppercase tracking-wider shrink-0">검색 조건</span>
-                            <span className="text-sm text-pink-600 font-bold bg-white px-3 py-1 rounded-full border border-pink-200 shadow-sm">
-                                {sido || '서울'}
+                <div className="bg-white/80 backdrop-blur-md border border-pink-100 rounded-2xl p-5 mb-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                        <span className="text-[11px] font-extrabold text-pink-500 uppercase tracking-widest shrink-0 mr-2 bg-pink-50 px-2 py-1 rounded-md">검색 조건</span>
+                        <span className="text-sm text-pink-600 font-bold bg-white px-4 py-1.5 rounded-full border border-pink-200 shadow-sm">
+                            {sido || '서울'}
+                        </span>
+                        {Object.entries(selectedFilters).filter(([, v]) => v).map(([k, v]) => (
+                            <span key={k} className="text-sm text-gray-700 font-bold bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200 shadow-sm">
+                                {v}
                             </span>
-                            {Object.entries(selectedFilters).filter(([, v]) => v).map(([k, v]) => (
-                                <span key={k} className="text-sm text-gray-700 font-semibold bg-white px-3 py-1 rounded-full border border-gray-200 shadow-sm">
-                                    {v}
-                                </span>
-                            ))}
-                        </div>
-                        <button
-                            onClick={resetWizard}
-                            className="text-xs font-bold text-pink-500 hover:text-pink-700 bg-white border border-pink-200 px-3 py-1.5 rounded-full shrink-0 transition-all hover:shadow-sm"
-                        >
-                            다시 설정
-                        </button>
+                        ))}
                     </div>
+                    <button
+                        onClick={resetWizard}
+                        className="text-xs font-bold text-gray-500 hover:text-pink-600 bg-white border border-gray-200 hover:border-pink-200 px-4 py-2 rounded-full shrink-0 transition-all hover:shadow-sm"
+                    >
+                        다시 설정
+                    </button>
                 </div>
             )}
 
@@ -392,6 +406,8 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                     address: vendor.roadAddress || vendor.address || '',
                                     phone: vendor.telephone || '',
                                     link: vendor.link || '',
+                                    mapx: vendor.mapx || '',
+                                    mapy: vendor.mapy || '',
                                 }).toString()
 
                                 return (
@@ -400,77 +416,68 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.04 }}
-                                        className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all group cursor-pointer"
+                                        className="bg-white rounded-[1.5rem] border border-gray-100 p-5 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(244,114,182,0.12)] hover:border-pink-200 transition-all group flex flex-col h-full cursor-pointer"
                                         onClick={() => router.push(`/vendors/category/${slug}/detail?${detailParams}`)}
                                     >
-                                        {/* 헤더 이미지 영역 */}
-                                        <div className={`relative h-40 bg-gradient-to-br ${gradient.bg} flex items-end overflow-hidden`}>
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <span className={`text-6xl opacity-20 group-hover:opacity-30 group-hover:scale-110 transition-all select-none`}>
-                                                    {category.emoji}
-                                                </span>
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gradient.bg} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-300`}>
+                                                <span className="text-2xl drop-shadow-sm">{category.emoji}</span>
                                             </div>
                                             {vendor.category && (
-                                                <span className="absolute top-3 left-3 text-[10px] font-semibold text-white bg-black/25 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                                                    {vendor.category}
+                                                <span className="text-[10px] font-bold text-gray-400 bg-gray-50/80 px-2.5 py-1 rounded-full border border-gray-100">
+                                                    {vendor.category.split('>').pop()}
                                                 </span>
                                             )}
-                                            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />
                                         </div>
 
-                                        {/* 콘텐츠 */}
-                                        <div className="px-5 pb-5 -mt-2 relative">
-                                            <h4 className="font-bold text-gray-800 text-[15px] leading-tight mb-1.5 line-clamp-1 group-hover:text-pink-600 transition-colors">
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-gray-800 text-base leading-snug mb-2 group-hover:text-pink-600 transition-colors line-clamp-2">
                                                 {vendor.title}
                                             </h4>
 
                                             {(vendor.roadAddress || vendor.address) && (
-                                                <p className="flex items-start gap-1.5 text-xs text-gray-400 mb-3">
-                                                    <MapPin size={11} className="shrink-0 mt-0.5 text-gray-300" />
-                                                    <span className="line-clamp-1">{vendor.roadAddress || vendor.address}</span>
+                                                <p className="flex items-start gap-1.5 text-xs text-gray-500 mb-3 font-medium">
+                                                    <MapPin size={12} className="shrink-0 mt-0.5 text-gray-300 group-hover:text-pink-300 transition-colors" />
+                                                    <span className="line-clamp-2 leading-relaxed">{vendor.roadAddress || vendor.address}</span>
                                                 </p>
                                             )}
 
                                             {keywords.length > 0 && (
-                                                <div className="flex items-center gap-1.5 mb-4">
-                                                    <Star size={11} className="text-yellow-400 fill-yellow-400 shrink-0" />
-                                                    <div className="flex flex-wrap gap-1">
-                                                        {keywords.map((kw, ki) => (
-                                                            <span key={ki} className="text-[10px] bg-pink-50 border border-pink-100 text-pink-500 px-2 py-0.5 rounded-full font-medium">
-                                                                {kw}
-                                                            </span>
-                                                        ))}
-                                                    </div>
+                                                <div className="flex flex-wrap gap-1.5 mb-4">
+                                                    {keywords.map((kw, ki) => (
+                                                        <span key={ki} className="text-[10px] bg-pink-50 border border-pink-100 text-pink-500 px-2.5 py-1 rounded-md font-bold">
+                                                            #{kw}
+                                                        </span>
+                                                    ))}
                                                 </div>
                                             )}
+                                        </div>
 
-                                            <div className="flex gap-2 border-t border-gray-50 pt-3">
-                                                <button
-                                                    onClick={e => {
-                                                        e.stopPropagation()
-                                                        router.push(`/vendors/category/${slug}/detail?${detailParams}`)
-                                                    }}
-                                                    className="flex-1 py-2.5 rounded-xl border border-gray-100 bg-white text-gray-600 text-xs font-bold flex items-center justify-center gap-1 hover:border-pink-200 hover:text-pink-500 hover:bg-pink-50/30 transition-all"
-                                                >
-                                                    상세보기
-                                                </button>
-                                                <button
-                                                    onClick={e => {
-                                                        e.stopPropagation()
-                                                        handleAdd(vendor.title, vendor.roadAddress || vendor.address, vendor.telephone, vendor.link)
-                                                    }}
-                                                    disabled={isAdding || isAdded}
-                                                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${
-                                                        isAdded
-                                                            ? 'bg-green-50 text-green-500 border border-green-100 cursor-default'
-                                                            : 'bg-gradient-to-r from-pink-300 to-pink-400 text-white hover:shadow-md hover:shadow-pink-200/50'
+                                        <div className="flex gap-2 mt-auto pt-4 border-t border-gray-50/80">
+                                            <button
+                                                onClick={e => {
+                                                    e.stopPropagation()
+                                                    router.push(`/vendors/category/${slug}/detail?${detailParams}`)
+                                                }}
+                                                className="flex-1 py-2.5 rounded-xl border border-gray-100 bg-gray-50/50 text-gray-500 hover:text-pink-600 font-bold text-xs flex items-center justify-center gap-1 hover:bg-white hover:border-pink-200 hover:shadow-sm transition-all"
+                                            >
+                                                상세보기
+                                            </button>
+                                            <button
+                                                onClick={e => {
+                                                    e.stopPropagation()
+                                                    handleAdd(vendor.title, vendor.roadAddress || vendor.address, vendor.telephone, vendor.link)
+                                                }}
+                                                disabled={isAdding || isAdded}
+                                                className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${isAdded
+                                                    ? 'bg-emerald-50 text-emerald-500 border border-emerald-100 cursor-default'
+                                                    : 'bg-gradient-to-r from-pink-400 to-rose-400 text-white shadow-sm hover:shadow-md hover:shadow-pink-300/40 hover:-translate-y-0.5'
                                                     }`}
-                                                >
-                                                    {isAdding ? <Loader2 size={12} className="animate-spin" />
-                                                        : isAdded ? '✓ 추가됨'
+                                            >
+                                                {isAdding ? <Loader2 size={12} className="animate-spin" />
+                                                    : isAdded ? '✓ 추가됨'
                                                         : <><Plus size={12} />내 리스트</>}
-                                                </button>
-                                            </div>
+                                            </button>
                                         </div>
                                     </motion.div>
                                 )

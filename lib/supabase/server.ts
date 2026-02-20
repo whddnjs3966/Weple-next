@@ -22,7 +22,7 @@ export async function createClient() {
                         cookiesToSet.forEach(({ name, value, options }) =>
                             cookieStore.set(name, value, {
                                 ...options,
-                                // 영구 쿠키: 브라우저 종료 후에도 30일간 유지
+                                // SDK 기본 maxAge 유지 → 브라우저 종료 후에도 로그인 유지
                             })
                         )
                     } catch {

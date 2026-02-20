@@ -6,7 +6,7 @@ import {
     ArrowLeft, MapPin, Phone, ExternalLink,
     Loader2, Check, BookOpen, Sparkles,
     ChevronDown, Search, Heart, Navigation,
-    Quote, Calendar, User, ArrowUpRight,
+    Quote, Calendar, User, ArrowUpRight, Info,
 } from 'lucide-react'
 import Link from 'next/link'
 import { addUserVendor } from '@/actions/user-vendors'
@@ -19,24 +19,34 @@ interface BlogReview {
     postdate: string
 }
 
+interface AiData {
+    summary: string
+    keywords: string[]
+    pros: string[]
+    cons: string[]
+    rating: number
+}
+
 interface VendorPlaceDetailProps {
     slug: string
     name: string
     address: string
     phone: string
     link: string
+    mapx?: string
+    mapy?: string
 }
 
 /* ── 카테고리별 테마 (세련된 톤) ── */
 const CATEGORY_THEMES: Record<string, { gradient: string; accent: string; icon: string }> = {
     'wedding-hall': { gradient: 'from-stone-800 via-stone-700 to-rose-900/80', accent: 'text-rose-300', icon: '🏛' },
-    'studio':      { gradient: 'from-slate-800 via-slate-700 to-violet-900/80', accent: 'text-violet-300', icon: '📸' },
-    'dress':       { gradient: 'from-stone-800 via-stone-700 to-pink-900/60', accent: 'text-pink-300', icon: '👗' },
-    'makeup':      { gradient: 'from-stone-800 via-warm-gray-700 to-rose-900/60', accent: 'text-rose-300', icon: '💄' },
+    'studio': { gradient: 'from-slate-800 via-slate-700 to-violet-900/80', accent: 'text-violet-300', icon: '📸' },
+    'dress': { gradient: 'from-stone-800 via-stone-700 to-pink-900/60', accent: 'text-pink-300', icon: '👗' },
+    'makeup': { gradient: 'from-stone-800 via-warm-gray-700 to-rose-900/60', accent: 'text-rose-300', icon: '💄' },
     'meeting-place': { gradient: 'from-stone-800 via-amber-900/40 to-stone-700', accent: 'text-amber-300', icon: '🍽' },
-    'hanbok':      { gradient: 'from-stone-800 via-red-900/30 to-stone-700', accent: 'text-red-300', icon: '👘' },
+    'hanbok': { gradient: 'from-stone-800 via-red-900/30 to-stone-700', accent: 'text-red-300', icon: '👘' },
     'wedding-ring': { gradient: 'from-stone-800 via-amber-900/50 to-stone-700', accent: 'text-amber-300', icon: '💍' },
-    'honeymoon':   { gradient: 'from-slate-800 via-sky-900/40 to-slate-700', accent: 'text-sky-300', icon: '✈️' },
+    'honeymoon': { gradient: 'from-slate-800 via-sky-900/40 to-slate-700', accent: 'text-sky-300', icon: '✈️' },
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -93,9 +103,11 @@ export default function VendorPlaceDetail({
     address,
     phone,
     link,
+    mapx,
+    mapy,
 }: VendorPlaceDetailProps) {
     const [reviews, setReviews] = useState<BlogReview[]>([])
-    const [summary, setSummary] = useState<string | null>(null)
+    const [summary, setSummary] = useState<AiData | null>(null)
     const [summaryLoading, setSummaryLoading] = useState(true)
     const [reviewLoading, setReviewLoading] = useState(true)
     const [mapCoords, setMapCoords] = useState<{ lat: number; lon: number } | null>(null)
@@ -112,7 +124,7 @@ export default function VendorPlaceDetail({
             const res = await fetch(`/api/vendors/detail?${params}`)
             const data = await res.json()
             setReviews(data.reviews || [])
-            setSummary(data.summary || null)
+            setSummary(data.aiData || null)
         } catch {
             // silent
         } finally {
@@ -121,30 +133,37 @@ export default function VendorPlaceDetail({
         }
     }, [name, slug])
 
-    /* ── 지도 좌표 로드 (Nominatim geocode) ── */
-    const fetchMapCoords = useCallback(async () => {
+    /* ── 지도 좌표 세팅 ── */
+    const initMapCoords = useCallback(() => {
+        // 이미 검색 API에서 정확한 좌표(mapx, mapy)를 가져온 경우 직접 사용
+        // 네이버 Local Search API의 mapx/y는 wgs84 * 10,000,000 형태로 내려옴
+        if (mapx && mapy) {
+            const lat = parseFloat(mapy) / 10000000
+            const lon = parseFloat(mapx) / 10000000
+            if (!isNaN(lat) && !isNaN(lon)) {
+                setMapCoords({ lat, lon })
+                return
+            }
+        }
+
+        // fallback: Nominatim Geocoding (주소 기반)
         if (!address) { setMapFallback(true); return }
-        try {
-            const res = await fetch(`/api/vendors/geocode?address=${encodeURIComponent(address)}`)
-            if (res.ok) {
-                const data = await res.json()
-                if (data.lat && data.lon) {
+        fetch(`/api/vendors/geocode?address=${encodeURIComponent(address)}`)
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data?.lat && data?.lon) {
                     setMapCoords({ lat: data.lat, lon: data.lon })
                 } else {
                     setMapFallback(true)
                 }
-            } else {
-                setMapFallback(true)
-            }
-        } catch {
-            setMapFallback(true)
-        }
-    }, [address])
+            })
+            .catch(() => setMapFallback(true))
+    }, [address, mapx, mapy])
 
     useEffect(() => {
         fetchReviews()
-        fetchMapCoords()
-    }, [fetchReviews, fetchMapCoords])
+        initMapCoords()
+    }, [fetchReviews, initMapCoords])
 
     const handleAdd = async () => {
         setIsAdding(true)
@@ -203,12 +222,12 @@ export default function VendorPlaceDetail({
             {/* ═══════════════════════════════════════════════ */}
             {/* SECTION 1: 히어로 + 업체 상세                    */}
             {/* ═══════════════════════════════════════════════ */}
-            <TiltCard className="mb-5">
+            <TiltCard className="mb-6">
                 <motion.div
-                    initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 180, damping: 22 }}
-                    className="rounded-[2rem] overflow-hidden shadow-xl shadow-stone-200/60"
+                    transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+                    className="rounded-[2.5rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/50"
                 >
                     {/* ── 히어로 ── */}
                     <div className={`relative bg-gradient-to-br ${theme.gradient} px-6 sm:px-10 pt-10 pb-12 overflow-hidden`}>
@@ -294,11 +313,10 @@ export default function VendorPlaceDetail({
                                 disabled={isAdding || isAdded}
                                 whileHover={!isAdded ? { scale: 1.04, y: -1 } : {}}
                                 whileTap={!isAdded ? { scale: 0.97 } : {}}
-                                className={`shrink-0 ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-6 py-2.5 rounded-full transition-all ${
-                                    isAdded
-                                        ? 'bg-emerald-50 text-emerald-500 border border-emerald-200'
-                                        : 'bg-stone-800 text-white hover:bg-stone-900 shadow-lg shadow-stone-300/40'
-                                }`}
+                                className={`shrink-0 ml-auto inline-flex items-center gap-1.5 text-xs font-bold px-6 py-2.5 rounded-full transition-all ${isAdded
+                                    ? 'bg-emerald-50 text-emerald-500 border border-emerald-200'
+                                    : 'bg-stone-800 text-white hover:bg-stone-900 shadow-lg shadow-stone-300/40'
+                                    }`}
                             >
                                 {isAdding ? (
                                     <Loader2 size={13} className="animate-spin" />
@@ -314,167 +332,286 @@ export default function VendorPlaceDetail({
             </TiltCard>
 
             {/* ═══════════════════════════════════════════════ */}
-            {/* SECTION 2: AI 요약 + 빠른 정보 + 지도           */}
+            {/* SECTION 2: AI 요약 + 구조화된 데이터 (Bento Grid)  */}
             {/* ═══════════════════════════════════════════════ */}
             <motion.div
                 variants={stagger}
                 initial="hidden"
                 animate="show"
-                className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-5"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6 mb-8"
             >
-                {/* ── AI 요약 (넓은 영역) ── */}
-                <motion.div variants={fadeUp} className="lg:col-span-3">
-                    <div className="h-full bg-white rounded-[1.5rem] border border-stone-100 shadow-sm p-6 sm:p-7">
-                        <div className="flex items-center gap-2.5 mb-4">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-                                <Sparkles size={15} className="text-amber-500" />
+                {/* ── AI 종합 요약 (넓고 시각적으로 돋보이는 영역) ── */}
+                <motion.div variants={fadeUp} className="md:col-span-2 lg:col-span-3 h-full flex flex-col gap-4 lg:gap-6">
+                    <div className="relative flex-1 bg-white/40 backdrop-blur-xl rounded-[2.5rem] border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden group">
+                        {/* Glassmorphism 빛 반사 장식 */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-pink-100/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-100/40 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+                        <div className="relative p-6 sm:p-8 z-10 flex flex-col h-full">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-[14px] bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center shadow-lg shadow-pink-200">
+                                        <Sparkles size={18} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-base font-bold text-gray-800 tracking-tight">AI 분석 요약</h3>
+                                        <p className="text-xs text-gray-500 font-medium">실제 고객들의 생생한 리뷰를 바탕으로 분석했어요</p>
+                                    </div>
+                                </div>
+                                {summary?.rating && (
+                                    <div className="flex items-center gap-1.5 bg-white/60 px-3 py-1.5 rounded-full border border-pink-100 shadow-sm">
+                                        <span className="text-yellow-400">★</span>
+                                        <span className="font-extrabold text-sm text-gray-800">{summary.rating.toFixed(1)}</span>
+                                        <span className="text-[10px] text-gray-400 font-bold">/ 5.0</span>
+                                    </div>
+                                )}
                             </div>
-                            <div>
-                                <h3 className="text-sm font-bold text-stone-800">AI 분석 요약</h3>
-                                <p className="text-[10px] text-stone-400 font-medium">블로그 후기 기반 분석</p>
+
+                            <div className="flex-1 flex flex-col justify-center">
+                                {summaryLoading ? (
+                                    <div className="space-y-4 animate-pulse pt-2">
+                                        <div className="h-4 bg-gray-200/50 rounded-full w-full" />
+                                        <div className="h-4 bg-gray-200/50 rounded-full w-11/12" />
+                                        <div className="h-4 bg-gray-200/50 rounded-full w-4/5" />
+                                        <div className="h-4 bg-gray-200/50 rounded-full w-2/3" />
+                                    </div>
+                                ) : summary ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ duration: 0.6, delay: 0.1 }}
+                                        className="relative"
+                                    >
+                                        <Quote size={24} className="absolute -top-1 -left-1 text-pink-200/40 rotate-180" />
+                                        <p className="text-base sm:text-lg text-gray-700 font-medium leading-[1.8] pl-6 relative z-10">
+                                            {summary.summary}
+                                        </p>
+
+                                        {/* 키워드 칩스 */}
+                                        {summary.keywords && summary.keywords.length > 0 && (
+                                            <div className="mt-6 flex flex-wrap gap-2 pl-6">
+                                                {summary.keywords.map((kw, i) => (
+                                                    <span key={i} className="px-3 py-1 bg-white/80 border border-pink-100 text-pink-600 font-bold text-[11px] rounded-full shadow-sm">
+                                                        #{kw}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {reviews.length > 0 && (
+                                            <div className="mt-8 flex items-center gap-2">
+                                                <div className="flex -space-x-2">
+                                                    {reviews.slice(0, 3).map((_, i) => (
+                                                        <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-white flex items-center justify-center">
+                                                            <User size={10} className="text-gray-400" />
+                                                        </div>
+                                                    ))}
+                                                    {reviews.length > 3 && (
+                                                        <div className="w-6 h-6 rounded-full bg-gray-50 border-2 border-white flex items-center justify-center text-[8px] font-bold text-gray-500">
+                                                            +{reviews.length - 3}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-[11px] font-bold text-pink-500 bg-pink-50/80 px-2 py-1 rounded-md">
+                                                    블로그 후기 {reviews.length}개 분석 완료
+                                                </p>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                                        <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 border border-gray-100">
+                                            <Sparkles size={20} className="text-gray-300" />
+                                        </div>
+                                        <p className="text-sm font-medium text-gray-400">
+                                            {reviews.length > 0
+                                                ? 'AI 분석 데이터를 가져오지 못했습니다'
+                                                : '분석할 블로그 후기가 아직 없습니다'}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
-
-                        {summaryLoading ? (
-                            <div className="space-y-3 animate-pulse">
-                                <div className="h-4 bg-stone-100 rounded-lg w-full" />
-                                <div className="h-4 bg-stone-100 rounded-lg w-5/6" />
-                                <div className="h-4 bg-stone-50 rounded-lg w-3/5" />
-                            </div>
-                        ) : summary ? (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                <div className="relative bg-gradient-to-br from-stone-50 to-amber-50/30 rounded-2xl p-5 border border-stone-100/60">
-                                    <Quote size={20} className="absolute top-3 left-3 text-amber-200/60" />
-                                    <p className="text-sm text-stone-700 leading-[1.8] pl-4">
-                                        {summary}
-                                    </p>
-                                </div>
-                                {reviews.length > 0 && (
-                                    <p className="text-[11px] text-stone-400 mt-3 ml-1">
-                                        블로그 후기 {reviews.length}개를 분석한 결과입니다
-                                    </p>
-                                )}
-                            </motion.div>
-                        ) : (
-                            <div className="flex flex-col items-center justify-center py-6 text-center">
-                                <Sparkles size={20} className="text-stone-200 mb-2" />
-                                <p className="text-xs text-stone-400">
-                                    {reviews.length > 0
-                                        ? 'AI 요약을 생성하지 못했습니다'
-                                        : '분석할 후기가 아직 없습니다'}
-                                </p>
-                            </div>
-                        )}
                     </div>
                 </motion.div>
 
-                {/* ── 빠른 정보 카드들 (좁은 영역) ── */}
-                <motion.div variants={fadeUp} className="lg:col-span-2 flex flex-col gap-4">
-                    {/* 정보 카드 */}
-                    <div className="bg-white rounded-[1.5rem] border border-stone-100 shadow-sm p-5 flex-1">
-                        <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wider mb-4">빠른 정보</h3>
-                        <div className="space-y-3">
-                            {address && (
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-stone-50 flex items-center justify-center shrink-0">
-                                        <MapPin size={14} className="text-stone-400" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-xs text-stone-400">위치</p>
-                                        <p className="text-sm text-stone-700 font-medium truncate">{address.split(' ').slice(0, 3).join(' ')}</p>
-                                    </div>
-                                </div>
-                            )}
-                            {phone && (
-                                <a href={`tel:${phone}`} className="flex items-center gap-3 group">
-                                    <div className="w-8 h-8 rounded-lg bg-stone-50 flex items-center justify-center shrink-0 group-hover:bg-stone-100 transition-colors">
-                                        <Phone size={14} className="text-stone-400" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-xs text-stone-400">연락처</p>
-                                        <p className="text-sm text-stone-700 font-medium truncate group-hover:text-stone-900 transition-colors">{phone}</p>
-                                    </div>
-                                </a>
-                            )}
-                            {link && (
-                                <a href={link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
-                                    <div className="w-8 h-8 rounded-lg bg-stone-50 flex items-center justify-center shrink-0 group-hover:bg-stone-100 transition-colors">
-                                        <ExternalLink size={14} className="text-stone-400" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-xs text-stone-400">웹사이트</p>
-                                        <p className="text-sm text-stone-700 font-medium truncate group-hover:text-stone-900 transition-colors">바로가기</p>
-                                    </div>
-                                </a>
-                            )}
+                {/* ── AI 장단점 분석 (Bento Grid) ── */}
+                <motion.div variants={fadeUp} className="md:col-span-2 lg:col-span-2 flex flex-col gap-4 lg:gap-6">
+                    {/* 장점 카드 */}
+                    <div className="flex-1 bg-white rounded-[2rem] border border-emerald-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6 group hover:shadow-[0_8px_30px_rgb(16,185,129,0.1)] transition-shadow">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                                <Check size={14} className="text-emerald-500" />
+                            </div>
+                            <h3 className="text-sm font-bold text-gray-800">이런 점이 좋아요</h3>
                         </div>
+                        <ul className="space-y-3">
+                            {summaryLoading ? (
+                                <div className="space-y-3 animate-pulse">
+                                    <div className="h-3 bg-gray-100 rounded-full w-full" />
+                                    <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+                                </div>
+                            ) : summary?.pros && summary.pros.length > 0 ? (
+                                summary.pros.map((pro, i) => (
+                                    <li key={i} className="text-sm text-gray-600 font-medium flex items-start gap-2 leading-snug">
+                                        <span className="text-emerald-400 mt-0.5">•</span> {pro}
+                                    </li>
+                                ))
+                            ) : (
+                                <li className="text-sm text-gray-400">분석된 장점 데이터가 없습니다.</li>
+                            )}
+                        </ul>
+                    </div>
+
+                    {/* 단점 카드 */}
+                    <div className="flex-1 bg-white rounded-[2rem] border border-rose-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6 group hover:shadow-[0_8px_30px_rgb(244,63,94,0.1)] transition-shadow">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center border border-rose-100">
+                                <Info size={14} className="text-rose-500" />
+                            </div>
+                            <h3 className="text-sm font-bold text-gray-800">이런 점은 아쉬워요</h3>
+                        </div>
+                        <ul className="space-y-3">
+                            {summaryLoading ? (
+                                <div className="space-y-3 animate-pulse">
+                                    <div className="h-3 bg-gray-100 rounded-full w-full" />
+                                    <div className="h-3 bg-gray-100 rounded-full w-3/4" />
+                                </div>
+                            ) : summary?.cons && summary.cons.length > 0 ? (
+                                summary.cons.map((con, i) => (
+                                    <li key={i} className="text-sm text-gray-600 font-medium flex items-start gap-2 leading-snug">
+                                        <span className="text-rose-400 mt-0.5">•</span> {con}
+                                    </li>
+                                ))
+                            ) : (
+                                <li className="text-sm text-gray-400">크게 아쉬운 점이 포착되지 않았습니다.</li>
+                            )}
+                        </ul>
                     </div>
                 </motion.div>
             </motion.div>
 
             {/* ═══════════════════════════════════════════════ */}
-            {/* SECTION 3: 지도                                 */}
+            {/* SECTION 3: 위치 및 상세 안내 (Split Layout)           */}
             {/* ═══════════════════════════════════════════════ */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.25, type: 'spring', stiffness: 180, damping: 24 }}
-                className="bg-white rounded-[1.5rem] border border-stone-100 shadow-sm overflow-hidden mb-5"
+                className="bg-white rounded-[2rem] border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] overflow-hidden mb-8 grid grid-cols-1 lg:grid-cols-3 group"
             >
-                <div className="flex items-center justify-between px-6 pt-5 pb-3">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center">
-                            <MapPin size={13} className="text-emerald-500" />
+                {/* 1. 지도 영역 (2/3) */}
+                <div className="col-span-1 lg:col-span-2 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-100 relative">
+                    <div className="flex items-center justify-between px-6 sm:px-8 py-5 border-b border-gray-50 bg-white z-10 relative shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-[10px] bg-emerald-50 flex items-center justify-center border border-emerald-100">
+                                <Navigation size={14} className="text-emerald-500" />
+                            </div>
+                            <h3 className="font-bold text-gray-800 text-sm tracking-tight">위치 안내</h3>
                         </div>
-                        <h3 className="font-bold text-stone-800 text-sm">위치 안내</h3>
+                        {/* Status indicators like Loading can go here if needed */}
                     </div>
-                    <a
-                        href={`https://map.naver.com/v5/search/${encodeURIComponent(address || name)}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#03C75A] hover:underline"
-                    >
-                        네이버 지도에서 열기
-                        <ArrowUpRight size={11} />
-                    </a>
+
+                    <div className="flex-1 relative min-h-[300px] sm:min-h-[400px] bg-gray-50">
+                        {mapCoords ? (
+                            <>
+                                <div className="absolute inset-0 bg-emerald-50/20 mix-blend-overlay pointer-events-none" />
+                                <iframe
+                                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCoords.lon - 0.004},${mapCoords.lat - 0.002},${mapCoords.lon + 0.004},${mapCoords.lat + 0.002}&layer=mapnik&marker=${mapCoords.lat},${mapCoords.lon}`}
+                                    width="100%"
+                                    height="100%"
+                                    className="absolute inset-0"
+                                    style={{ border: 0, filter: 'grayscale(0.2) contrast(1.1) opacity(0.95)' }}
+                                    title={`${name} 지도`}
+                                    loading="lazy"
+                                />
+                            </>
+                        ) : mapFallback ? (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-gray-50/80">
+                                <div className="w-14 h-14 rounded-[16px] bg-white shadow-sm flex items-center justify-center mb-4 border border-gray-100">
+                                    <MapPin size={24} className="text-gray-300" />
+                                </div>
+                                <p className="text-sm font-medium text-gray-400 mb-5">정확한 지도를 표시할 수 없습니다</p>
+                                <a
+                                    href={`https://map.naver.com/v5/search/${encodeURIComponent(address || name)}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-emerald-400 to-teal-500 px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-emerald-200/50 hover:-translate-y-0.5 transition-all"
+                                >
+                                    <Navigation size={14} />
+                                    네이버 지도에서 보기
+                                </a>
+                            </div>
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-center bg-gray-50/80">
+                                <Loader2 size={24} className="animate-spin text-gray-300" />
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {mapCoords ? (
-                    <div className="aspect-[2.2/1] sm:aspect-[2.8/1]">
-                        <iframe
-                            src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCoords.lon - 0.004},${mapCoords.lat - 0.002},${mapCoords.lon + 0.004},${mapCoords.lat + 0.002}&layer=mapnik&marker=${mapCoords.lat},${mapCoords.lon}`}
-                            width="100%"
-                            height="100%"
-                            style={{ border: 0 }}
-                            title={`${name} 지도`}
-                            loading="lazy"
-                        />
-                    </div>
-                ) : mapFallback ? (
-                    <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
-                        <div className="w-12 h-12 rounded-2xl bg-stone-50 flex items-center justify-center mb-3">
-                            <MapPin size={20} className="text-stone-300" />
+                {/* 2. 상세 정보 영역 (1/3) */}
+                <div className="col-span-1 flex flex-col p-6 sm:p-8 bg-gradient-to-br from-gray-50/80 to-gray-100/30">
+                    <h3 className="font-bold text-gray-800 text-lg mb-6 tracking-tight">오시는 길 & 문의</h3>
+
+                    <div className="space-y-6 flex-1">
+                        {/* 주소 */}
+                        <div className="flex gap-3">
+                            <MapPin size={18} className="text-gray-400 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wider">주소</p>
+                                <p className="text-sm font-medium text-gray-700 leading-relaxed max-w-[90%] break-keep">{address || '주소 정보가 없습니다.'}</p>
+                            </div>
                         </div>
-                        <p className="text-sm text-stone-400 mb-4">정확한 지도를 표시할 수 없습니다</p>
+
+                        {/* 연락처 */}
+                        {phone && (
+                            <div className="flex gap-3">
+                                <Phone size={18} className="text-gray-400 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wider">연락처</p>
+                                    <p className="text-sm font-medium text-gray-700">{phone}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 부가 안내 */}
+                        <div className="flex gap-3">
+                            <Info size={18} className="text-gray-400 shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wider">이용 안내</p>
+                                <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
+                                    주차장 여부 및 대중교통 노선, 세부 영업시간 등은 앱이나 공식 웹사이트에서 상세 확인을 권장합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 하단 액션 버튼 */}
+                    <div className="mt-8 pt-6 border-t border-gray-200/60 flex flex-col gap-3">
                         <a
                             href={`https://map.naver.com/v5/search/${encodeURIComponent(address || name)}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#03C75A] px-5 py-2.5 rounded-xl hover:bg-[#02b351] transition-all shadow-md shadow-green-500/20"
+                            className="flex items-center justify-center gap-2 w-full text-sm font-bold text-white bg-[#03C75A] hover:bg-[#02b351] py-3.5 rounded-xl transition-all shadow-sm hover:shadow-[#03C75A]/20 hover:-translate-y-0.5"
                         >
-                            <Navigation size={12} />
-                            네이버 지도에서 보기
+                            네이버 지도 크게 보기
+                            <ArrowUpRight size={16} />
                         </a>
+
+                        {link && (
+                            <a
+                                href={link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center justify-center gap-2 w-full text-[13px] font-bold text-gray-600 bg-white border border-gray-200 hover:border-gray-300 py-3.5 rounded-xl transition-all shadow-sm hover:-translate-y-0.5"
+                            >
+                                <ExternalLink size={14} className="text-gray-400" />
+                                공식 웹사이트 방문
+                            </a>
+                        )}
                     </div>
-                ) : (
-                    <div className="flex items-center justify-center py-14">
-                        <Loader2 size={22} className="animate-spin text-stone-200" />
-                    </div>
-                )}
+                </div>
             </motion.div>
 
             {/* ═══════════════════════════════════════════════ */}
@@ -484,19 +621,22 @@ export default function VendorPlaceDetail({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, type: 'spring', stiffness: 180, damping: 24 }}
-                className="bg-white rounded-[1.5rem] border border-stone-100 shadow-sm p-6 sm:p-8"
+                className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8 relative overflow-hidden"
             >
+                {/* 배경 꾸밈 장식 */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-pink-50/50 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
                 {/* 헤더 */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-stone-100 to-stone-50 flex items-center justify-center">
-                            <BookOpen size={15} className="text-stone-500" />
+                <div className="flex items-center justify-between mb-8 relative z-10">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-[14px] bg-gradient-to-br from-gray-100 to-gray-50 border border-white flex items-center justify-center shadow-sm">
+                            <BookOpen size={18} className="text-gray-600" />
                         </div>
                         <div>
-                            <h2 className="font-bold text-stone-800">블로그 후기</h2>
+                            <h2 className="text-lg font-bold text-gray-800 tracking-tight">블로그 후기</h2>
                             {!reviewLoading && reviews.length > 0 && (
-                                <p className="text-[10px] text-stone-400 font-medium mt-0.5">
-                                    실제 방문자 후기 {reviews.length}개
+                                <p className="text-xs font-bold text-gray-400 mt-0.5">
+                                    총 {reviews.length}개의 리얼 리뷰
                                 </p>
                             )}
                         </div>
@@ -506,25 +646,26 @@ export default function VendorPlaceDetail({
                             href={`https://search.naver.com/search.naver?query=${encodeURIComponent(name + ' 웨딩 후기')}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs font-semibold text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-1"
+                            className="text-xs font-bold text-gray-500 hover:text-gray-800 bg-white border border-gray-100 hover:border-gray-200 px-4 py-2 rounded-full transition-all shadow-sm hover:shadow-md flex items-center gap-1.5"
                         >
-                            더 검색하기
-                            <ArrowUpRight size={12} />
+                            더보기
+                            <ArrowUpRight size={14} />
                         </a>
                     )}
                 </div>
 
                 {/* 로딩 스켈레톤 */}
                 {reviewLoading && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="bg-stone-50 rounded-2xl p-5 space-y-3 animate-pulse">
-                                <div className="h-4 bg-stone-200/60 rounded-lg w-4/5" />
-                                <div className="h-3.5 bg-stone-100 rounded-lg w-full" />
-                                <div className="h-3.5 bg-stone-100 rounded-lg w-3/5" />
-                                <div className="flex gap-2 pt-3 border-t border-stone-100">
-                                    <div className="h-3 bg-stone-100 rounded w-14" />
-                                    <div className="h-3 bg-stone-100 rounded w-16" />
+                            <div key={i} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4 animate-pulse">
+                                <div className="h-4 bg-gray-100 rounded-full w-4/5" />
+                                <div className="space-y-2">
+                                    <div className="h-3 bg-gray-50 rounded-full w-full" />
+                                    <div className="h-3 bg-gray-50 rounded-full w-3/5" />
+                                </div>
+                                <div className="flex gap-2 pt-4 border-t border-gray-50">
+                                    <div className="h-4 bg-gray-50 rounded w-16" />
                                 </div>
                             </div>
                         ))}
@@ -533,19 +674,19 @@ export default function VendorPlaceDetail({
 
                 {/* 빈 상태 */}
                 {!reviewLoading && reviews.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-14 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-stone-50 flex items-center justify-center mb-4">
-                            <BookOpen size={24} className="text-stone-200" />
+                    <div className="flex flex-col items-center justify-center py-16 text-center relative z-10 bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
+                        <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-5 border border-gray-100">
+                            <BookOpen size={24} className="text-gray-300" />
                         </div>
-                        <p className="text-sm text-stone-500 font-medium mb-1">아직 관련 후기가 없습니다</p>
-                        <p className="text-xs text-stone-400 mb-5">네이버에서 직접 검색해보세요</p>
+                        <p className="text-base font-bold text-gray-500 mb-1">아직 관련 리뷰를 찾지 못했어요</p>
+                        <p className="text-sm font-medium text-gray-400 mb-6">네이버에서 직접 검색해 보시겠어요?</p>
                         <a
                             href={`https://search.naver.com/search.naver?query=${encodeURIComponent(name + ' 웨딩 후기')}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 bg-stone-100 px-5 py-2.5 rounded-full hover:bg-stone-200 transition-all"
+                            className="inline-flex items-center gap-2 text-sm font-bold text-white bg-gray-800 px-6 py-3 rounded-xl hover:bg-gray-900 transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
                         >
-                            <Search size={12} />
+                            <Search size={14} />
                             네이버에서 검색하기
                         </a>
                     </div>
@@ -572,26 +713,30 @@ export default function VendorPlaceDetail({
                                             stiffness: 260,
                                             damping: 25,
                                         }}
-                                        className="group block bg-stone-50/70 hover:bg-white border border-stone-100 hover:border-stone-200 rounded-2xl p-5 transition-all duration-300 hover:shadow-lg hover:shadow-stone-100/80 hover:-translate-y-0.5"
+                                        className="group block bg-white hover:bg-gray-50/50 border border-gray-100 hover:border-gray-200 rounded-[1.5rem] p-6 transition-all duration-300 shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 relative overflow-hidden"
                                     >
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-pink-300 to-rose-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+
                                         {/* 제목 */}
-                                        <h4 className="text-[15px] font-bold text-stone-800 mb-2.5 line-clamp-2 group-hover:text-stone-900 transition-colors leading-snug tracking-tight">
+                                        <h4 className="text-base font-bold text-gray-800 mb-3 line-clamp-2 group-hover:text-pink-600 transition-colors leading-snug tracking-tight">
                                             {review.title}
                                         </h4>
 
                                         {/* 요약 */}
-                                        <p className="text-[13px] text-stone-500 leading-relaxed line-clamp-3 mb-4">
+                                        <p className="text-[13px] text-gray-500 font-medium leading-[1.7] line-clamp-3 mb-5">
                                             {review.description}
                                         </p>
 
                                         {/* 메타 정보 */}
-                                        <div className="flex items-center gap-3 pt-3 border-t border-stone-100 text-[11px] text-stone-400">
-                                            <span className="flex items-center gap-1 font-medium">
-                                                <User size={10} />
+                                        <div className="flex items-center gap-4 pt-4 border-t border-gray-100 text-[11px] text-gray-400 font-bold uppercase tracking-wider">
+                                            <span className="flex items-center gap-1.5">
+                                                <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
+                                                    <User size={10} className="text-gray-500" />
+                                                </div>
                                                 {review.bloggername}
                                             </span>
-                                            <span className="flex items-center gap-1">
-                                                <Calendar size={10} />
+                                            <span className="flex items-center gap-1.5">
+                                                <Calendar size={12} className="text-gray-300" />
                                                 {formatDate(review.postdate)}
                                             </span>
                                         </div>
@@ -608,9 +753,9 @@ export default function VendorPlaceDetail({
                             >
                                 <motion.button
                                     onClick={() => setShowAllReviews(prev => !prev)}
-                                    whileHover={{ scale: 1.03 }}
-                                    whileTap={{ scale: 0.97 }}
-                                    className="inline-flex items-center gap-2 text-sm font-bold text-stone-500 hover:text-stone-700 bg-stone-100 hover:bg-stone-200 px-6 py-3 rounded-full transition-colors"
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-pink-600 bg-white border border-gray-200 hover:border-pink-200 px-8 py-3.5 rounded-full transition-all shadow-sm hover:shadow-md"
                                 >
                                     {showAllReviews ? (
                                         <>접기</>

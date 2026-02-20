@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateText } from 'ai'
+import { generateObject } from 'ai'
+import { z } from 'zod'
+import { google } from '@ai-sdk/google'
+import { anthropic } from '@ai-sdk/anthropic'
 
 function stripHtml(str: string): string {
     return str
@@ -54,24 +57,14 @@ function isWeddingRelated(title: string, description: string, categorySlug: stri
 }
 
 /** Google → Anthropic 순서로 사용 가능한 AI 모델 목록 반환 (크레딧 이슈 fallback 대응) */
-async function getAIModels(): Promise<{ name: string; model: Parameters<typeof generateText>[0]['model'] }[]> {
-    const models: { name: string; model: Parameters<typeof generateText>[0]['model'] }[] = []
+function getAIModels() {
+    const models: { name: string; model: any }[] = []
 
     if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-        try {
-            const { google } = await import('@ai-sdk/google')
-            models.push({ name: 'Gemini', model: google('gemini-2.0-flash') })
-        } catch (e) {
-            console.error('[VendorDetail] Google AI SDK 로드 실패:', e)
-        }
+        models.push({ name: 'Gemini', model: google('gemini-2.5-flash') })
     }
     if (process.env.ANTHROPIC_API_KEY) {
-        try {
-            const { anthropic } = await import('@ai-sdk/anthropic')
-            models.push({ name: 'Anthropic', model: anthropic('claude-haiku-4-5-20251001') })
-        } catch (e) {
-            console.error('[VendorDetail] Anthropic SDK 로드 실패:', e)
-        }
+        models.push({ name: 'Anthropic', model: anthropic('claude-3-5-haiku-20241022') })
     }
 
     return models
@@ -143,10 +136,10 @@ export async function GET(request: NextRequest) {
     // 최대 6개만 반환
     reviews = reviews.slice(0, 6)
 
-    // AI 리뷰 한줄 요약 (여러 모델 순서대로 시도, 크레딧 부족 등 fallback 대응)
-    let summary: string | null = null
+    // AI 분석 요약 (구조화된 데이터 추출)
+    let aiData: any = null
     if (reviews.length > 0) {
-        const models = await getAIModels()
+        const models = getAIModels()
         if (models.length === 0) {
             console.warn('[VendorDetail] 사용 가능한 AI 모델 없음')
         }
@@ -155,18 +148,25 @@ export async function GET(request: NextRequest) {
             .slice(0, 4)
             .map((r: { title: string; description: string }) => `- ${r.title}: ${r.description}`)
             .join('\n')
-        const prompt = `다음은 "${name}"에 대한 블로그 후기입니다:\n${reviewTexts}\n\n이 업체의 전반적인 특징과 분위기를 한국어로 1~2문장으로 요약해주세요. 주요 장단점과 특색을 포함하세요.`
+
+        const prompt = `다음은 "${name}"에 대한 블로그 후기입니다:\n${reviewTexts}\n\n이 리뷰들을 분석하여 업체를 평가해 주세요.`
 
         for (const { name: modelName, model } of models) {
             try {
                 console.log(`[VendorDetail] AI 요약 시도 (${modelName}):`, name)
-                const { text } = await generateText({
+                const { object } = await generateObject({
                     model,
                     prompt,
-                    maxOutputTokens: 150,
+                    schema: z.object({
+                        summary: z.string().describe("업체의 전반적인 특징과 분위기를 1~2문장으로 한국어로 요약"),
+                        keywords: z.array(z.string()).describe("이 업체를 나타내는 대표적인 특징 키워드 3~5개 (예: 친절함, 뷰맛집, 가성비)"),
+                        pros: z.array(z.string()).describe("리뷰에서 주로 언급되는 장점 2~3개"),
+                        cons: z.array(z.string()).describe("리뷰에서 주로 언급되는 단점이나 아쉬운 점 1~2개"),
+                        rating: z.number().describe("리뷰 분위기를 바탕으로 한 5점 만점의 예상 평점 (소수점 1자리까지)")
+                    }),
                 })
-                summary = text.trim()
-                console.log(`[VendorDetail] AI 요약 성공 (${modelName}):`, summary?.slice(0, 50))
+                aiData = object
+                console.log(`[VendorDetail] AI 요약 성공 (${modelName})`)
                 break // 성공하면 루프 종료
             } catch (error) {
                 console.error(`[VendorDetail] AI 요약 실패 (${modelName}):`, error)
@@ -175,5 +175,5 @@ export async function GET(request: NextRequest) {
         }
     }
 
-    return NextResponse.json({ reviews, summary })
+    return NextResponse.json({ reviews, aiData })
 }

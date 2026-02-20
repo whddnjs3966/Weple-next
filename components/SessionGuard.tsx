@@ -9,16 +9,16 @@ export default function SessionGuard() {
     const supabase = createClient()
 
     useEffect(() => {
-        const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession()
-
-            // 세션이 없으면 Supabase Auth 로그아웃 처리
-            if (!session) {
-                await supabase.auth.signOut()
+        // AUTH_TOKEN_CHANGED 이벤트 감지: 로그아웃 또는 토큰 만료 시 리다이렉트
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_OUT') {
+                router.push('/login')
             }
-        }
+        })
 
-        checkSession()
+        return () => {
+            subscription.unsubscribe()
+        }
     }, [supabase, router])
 
     return null

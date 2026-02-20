@@ -44,6 +44,8 @@ interface NaverLocalItem {
     link: string
     category: string
     description: string
+    mapx: string
+    mapy: string
 }
 
 async function fetchPage(
@@ -147,6 +149,8 @@ export async function GET(request: NextRequest) {
         link: item.link,
         category: item.category,
         description: item.description,
+        mapx: item.mapx,
+        mapy: item.mapy,
     }))
 
     return NextResponse.json({ vendors, query: primaryQuery })

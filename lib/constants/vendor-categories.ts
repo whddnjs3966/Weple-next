@@ -12,48 +12,114 @@ export const CATEGORIES = [
 export type CategoryFilter = {
     key: string
     label: string
-    options: string[]
+    options: string[] | ((selectedFilters: Record<string, string>) => string[])
 }
 
 export const CATEGORY_FILTERS: Record<string, CategoryFilter[]> = {
     'wedding-hall': [
-        { key: 'scale', label: '규모', options: ['소규모 (~100명)', '중규모 (100~300명)', '대규모 (300명~)'] },
-        { key: 'mood', label: '분위기', options: ['모던', '클래식', '가든/야외', '럭셔리'] },
-        { key: 'price', label: '가격대', options: ['2,000만원 이하', '2,000~4,000만원', '4,000만원 이상'] },
+        { key: 'scale', label: '규모', options: ['소규모 (100명 이하)', '중규모 (100~250명)', '대규모 (250명 이상)'] },
+        {
+            key: 'meal', label: '식사 형태', options: (filters) => {
+                if (filters.scale === '소규모 (100명 이하)') return ['코스 요리', '한상차림', '외부 케이터링']
+                return ['뷔페', '동시예식/코스', '한상차림']
+            }
+        },
+        {
+            key: 'mood', label: '분위기', options: (filters) => {
+                if (filters.scale === '소규모 (100명 이하)') return ['야외/가든', '레스토랑/하우스', '스몰 웨딩 전용']
+                return ['밝은 하우스/가든', '어두운 컨벤션/호텔', '채플']
+            }
+        },
+        { key: 'price', label: '식대 (1인)', options: ['5만원 이하', '5~8만원', '8~12만원', '12만원 이상'] },
     ],
     'studio': [
-        { key: 'style', label: '촬영 스타일', options: ['자연광', '실내 스튜디오', '야외', '복합'] },
-        { key: 'mood', label: '분위기', options: ['빈티지', '트렌디', '클래식', '감성적'] },
+        { key: 'focus', label: '촬영 중심', options: ['인물 중심', '배경 중심', '인물+배경 조화'] },
+        {
+            key: 'style', label: '촬영 스타일', options: (filters) => {
+                if (filters.focus === '인물 중심') return ['깔끔한 흑백/무지', '자연광 화보', '트렌디한/개성있는']
+                if (filters.focus === '배경 중심') return ['웅장한 세트장', '야외/정원 씬', '한옥/전통 씬']
+                return ['자연광/그리너리', '모던/시크', '클래식/빈티지']
+            }
+        },
         { key: 'price', label: '가격대', options: ['100만원 이하', '100~200만원', '200만원 이상'] },
     ],
     'dress': [
-        { key: 'silhouette', label: '실루엣', options: ['볼가운', 'A라인', '머메이드', '미니'] },
-        { key: 'style', label: '스타일', options: ['로맨틱', '모던', '빈티지', '심플'] },
+        { key: 'silhouette', label: '선호 실루엣', options: ['풍성한 (A라인/벨라인)', '슬림한 (머메이드)', '유니크/미니'] },
+        {
+            key: 'mood', label: '분위기', options: (filters) => {
+                if (filters.silhouette === '유니크/미니') return ['드레스투어 용', '2부/촬영용', '야외 스냅용']
+                return ['화려한 비즈/레이스', '깔끔한 실크', '로맨틱/러블리']
+            }
+        },
         { key: 'price', label: '가격대', options: ['100만원 이하', '100~300만원', '300만원 이상'] },
     ],
     'makeup': [
-        { key: 'style', label: '메이크업 스타일', options: ['내추럴', '글램', '로맨틱', '유럽풍'] },
-        { key: 'mood', label: '톤', options: ['청순한', '화려한', '우아한'] },
+        { key: 'style', label: '스타일', options: ['과즙상/러블리', '자연스러운/단아한', '음영/또렷한'] },
+        {
+            key: 'focus', label: '강조 포인트', options: (filters) => {
+                if (filters.style === '과즙상/러블리') return ['블러셔 강조', '글리터/아이 메이크업', '촉촉한 립']
+                if (filters.style === '음영/또렷한') return ['윤곽/컨투어링', '스모키 아이', '깨끗한 피부 표현']
+                return ['피부 표현', '눈매 강조', '립 포인트']
+            }
+        },
         { key: 'price', label: '가격대', options: ['50만원 이하', '50~100만원', '100만원 이상'] },
     ],
     'meeting-place': [
-        { key: 'cuisine', label: '음식 종류', options: ['한식', '양식', '일식', '중식'] },
-        { key: 'mood', label: '분위기', options: ['조용한 룸', '모던 캐주얼', '고급 레스토랑'] },
-        { key: 'price', label: '1인 가격대', options: ['5만원 이하', '5~10만원', '10만원 이상'] },
+        { key: 'cuisine', label: '음식 종류', options: ['한식 코스', '양식 코스', '일식 코스', '중식 코스'] },
+        {
+            key: 'mood', label: '분위기', options: (filters) => {
+                if (filters.cuisine === '한식 코스') return ['전통 한옥', '정갈한 한정식', '호텔 다이닝']
+                if (filters.cuisine === '일식 코스') return ['프라이빗 룸 (다다미)', '모던 일식', '호텔 다이닝']
+                return ['프라이빗 룸 (필수)', '격식 있는', '캐주얼 컨템포러리']
+            }
+        },
+        { key: 'price', label: '1인 식대', options: ['5만원 이하', '5~10만원', '10~15만원', '15만원 이상'] },
     ],
     'hanbok': [
-        { key: 'style', label: '스타일', options: ['전통', '개량', '퓨전'] },
-        { key: 'mood', label: '분위기', options: ['화사한', '단아한', '모던'] },
-        { key: 'price', label: '가격대', options: ['50만원 이하', '50~150만원', '150만원 이상'] },
+        { key: 'target', label: '대상', options: ['신랑신부 맞춤', '신랑신부 대여', '혼주 맞춤/대여'] },
+        {
+            key: 'style', label: '스타일', options: (filters) => {
+                if (filters.target === '혼주 맞춤/대여') return ['품격있는 천연염색', '우아한 파스텔톤', '양가 커플 스타일']
+                return ['전통 한복', '현대적인 느낌 (개량)', '프리미엄 갈래치마']
+            }
+        },
+        { key: 'price', label: '가격대', options: ['50만원 이하', '50~100만원', '100만원 이상'] },
     ],
     'wedding-ring': [
-        { key: 'material', label: '소재', options: ['플래티넘', '18K 골드', '14K 골드', '로즈골드'] },
-        { key: 'style', label: '스타일', options: ['클래식', '모던', '빈티지', '커스텀'] },
-        { key: 'price', label: '가격대', options: ['50만원 이하', '50~100만원', '100~200만원', '200만원 이상'] },
+        { key: 'brand', label: '브랜드 선호', options: ['청담/디자이너 샵', '백화점 명품', '종로/가성비'] },
+        {
+            key: 'material', label: '주 소재', options: (filters) => {
+                if (filters.brand === '백화점 명품') return ['18K 골드', '플래티넘 (백금)', '다이아몬드 세팅']
+                return ['14K 가성비', '18K 골드', '플래티넘 (백금)']
+            }
+        },
+        {
+            key: 'price', label: '예산', options: (filters) => {
+                if (filters.brand === '백화점 명품') return ['200~400만원', '400~600만원', '600만원 이상']
+                if (filters.brand === '종로/가성비') return ['100만원 이하', '100~200만원', '200만원 이상']
+                return ['100~300만원', '300~500만원', '500만원 이상']
+            }
+        },
     ],
     'honeymoon': [
-        { key: 'destination', label: '여행지', options: ['동남아', '유럽', '일본', '몰디브/하와이'] },
-        { key: 'duration', label: '기간', options: ['3~5일', '6~7일', '8일 이상'] },
-        { key: 'price', label: '가격대', options: ['200만원 이하', '200~400만원', '400만원 이상'] },
+        { key: 'theme', label: '여행 테마', options: ['프라이빗 휴양/풀빌라', '유럽 낭만 투어', '대자연/액티비티', '가까운 도심/미식'] },
+        {
+            key: 'destination', label: '세부 지역', options: (filters) => {
+                if (filters.theme === '프라이빗 휴양/풀빌라') return ['몰디브/모리셔스', '발리/푸껫', '하와이/칸쿤']
+                if (filters.theme === '유럽 낭만 투어') return ['서유럽 (프/스/이)', '동유럽 (체/오/헝)', '지중해/남부 유럽']
+                if (filters.theme === '대자연/액티비티') return ['스위스', '호주/뉴질랜드', '미서부/캐나다']
+                if (filters.theme === '가까운 도심/미식') return ['일본 (오사카/도쿄/홋카이도)', '대만/홍콩', '싱가포르/방콕']
+                return ['동남아', '유럽', '미주/오세아니아']
+            }
+        },
+        { key: 'duration', label: '여행 기간', options: ['5일 이내', '6~8일', '9일 이상'] },
+        {
+            key: 'price', label: '예산 (1인)', options: (filters) => {
+                if (filters.theme === '유럽 낭만 투어' || filters.theme === '프라이빗 휴양/풀빌라') {
+                    return ['300만원 이하', '300~500만원', '500만원 이상']
+                }
+                return ['150만원 이하', '150~300만원', '300만원 이상']
+            }
+        },
     ],
 }
