@@ -1,17 +1,17 @@
-import { getVendorById } from '@/actions/vendors'
+import { getPlaceById } from '@/actions/places'
 import { ArrowLeft, MapPin, Star, Phone, Globe, Clock, ThumbsUp, ThumbsDown } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-export default async function VendorDetailPage({
+export default async function PlaceDetailPage({
     params,
 }: {
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
-    const vendor = await getVendorById(Number(id))
+    const place = await getPlaceById(Number(id))
 
-    if (!vendor) {
+    if (!place) {
         notFound()
     }
 
@@ -20,7 +20,7 @@ export default async function VendorDetailPage({
 
             {/* Navigation */}
             <Link
-                href="/vendors"
+                href="/places"
                 className="inline-flex items-center gap-2 text-gray-500 hover:text-primary mb-6 transition-colors font-medium text-sm"
             >
                 <ArrowLeft size={16} />
@@ -34,10 +34,10 @@ export default async function VendorDetailPage({
 
                     {/* Hero Image */}
                     <div className="aspect-video w-full rounded-3xl overflow-hidden bg-gray-100 shadow-lg relative group">
-                        {vendor.image_url ? (
+                        {place.image_url ? (
                             <img
-                                src={vendor.image_url}
-                                alt={vendor.name}
+                                src={place.image_url}
+                                alt={place.name}
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
                         ) : (
@@ -47,7 +47,7 @@ export default async function VendorDetailPage({
                         )}
                         <div className="absolute top-4 left-4">
                             <span className="px-4 py-1.5 rounded-full bg-white/90 backdrop-blur-md text-primary font-bold shadow-sm">
-                                {vendor.category?.name}
+                                {place.category?.name}
                             </span>
                         </div>
                     </div>
@@ -55,17 +55,17 @@ export default async function VendorDetailPage({
                     {/* Title & Rating */}
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                            <h1 className="text-3xl font-bold text-gray-900 font-serif leading-tight">{vendor.name}</h1>
+                            <h1 className="text-3xl font-bold text-gray-900 font-serif leading-tight">{place.name}</h1>
                             <div className="flex items-center gap-2 bg-yellow-50 px-4 py-2 rounded-full border border-yellow-100">
                                 <Star className="text-yellow-400 fill-yellow-400" size={20} />
-                                <span className="font-bold text-gray-900 text-lg">{vendor.rating?.toFixed(1) || '0.0'}</span>
-                                <span className="text-gray-400 text-sm">({(vendor as Record<string, unknown>).review_count as number || 0} reviews)</span>
+                                <span className="font-bold text-gray-900 text-lg">{place.rating?.toFixed(1) || '0.0'}</span>
+                                <span className="text-gray-400 text-sm">({(place as Record<string, unknown>).review_count as number || 0} reviews)</span>
                             </div>
                         </div>
 
                         <div className="flex items-start gap-2 text-gray-500 mb-6">
                             <MapPin size={18} className="mt-0.5 text-primary shrink-0" />
-                            <span className="leading-relaxed">{(vendor as Record<string, unknown>).address as string || `${vendor.region_sido} ${vendor.region_sigungu}`}</span>
+                            <span className="leading-relaxed">{(place as Record<string, unknown>).address as string || `${place.region_sido} ${place.region_sigungu}`}</span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,7 +88,7 @@ export default async function VendorDetailPage({
                                 장점 요약
                             </h3>
                             <p className="text-sm text-blue-800/80 leading-relaxed">
-                                {(vendor as Record<string, unknown>).summary_positive as string || "등록된 장점 리뷰가 아직 없습니다."}
+                                {(place as Record<string, unknown>).summary_positive as string || "등록된 장점 리뷰가 아직 없습니다."}
                             </p>
                         </div>
                         <div className="bg-red-50/50 rounded-3xl p-6 border border-red-100">
@@ -97,7 +97,7 @@ export default async function VendorDetailPage({
                                 단점 요약
                             </h3>
                             <p className="text-sm text-red-800/80 leading-relaxed">
-                                {(vendor as Record<string, unknown>).summary_negative as string || "등록된 단점 리뷰가 아직 없습니다."}
+                                {(place as Record<string, unknown>).summary_negative as string || "등록된 단점 리뷰가 아직 없습니다."}
                             </p>
                         </div>
                     </div>
@@ -115,7 +115,7 @@ export default async function VendorDetailPage({
                                 <MapPin size={32} />
                             </div>
                             <a
-                                href={`https://map.naver.com/v5/search/${vendor.name}`}
+                                href={`https://map.naver.com/v5/search/${place.name}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="block w-full py-2.5 rounded-xl bg-[#03C75A] text-white font-bold text-sm text-center hover:bg-[#02b351] transition-all shadow-md shadow-green-500/20"
@@ -127,7 +127,7 @@ export default async function VendorDetailPage({
                         {/* Selection Actions (Future Implementation) */}
                         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
                             <h3 className="font-bold text-gray-900 mb-2">나의 웨딩 리스트</h3>
-                            <p className="text-xs text-text-secondary mb-4">이 업체를 후보로 등록하거나 최종 선택할 수 있습니다.</p>
+                            <p className="text-xs text-text-secondary mb-4">이 장소를 후보로 등록하거나 최종 선택할 수 있습니다.</p>
 
                             <div className="space-y-3">
                                 <button disabled className="w-full py-2.5 rounded-xl border border-primary text-primary font-bold text-sm hover:bg-primary/5 transition-all opacity-50 cursor-not-allowed">

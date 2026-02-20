@@ -97,9 +97,9 @@ function LoginPageContent() {
                     <div className="space-y-3.5">
                         {[
                             { icon: CalendarHeart, label: 'D-Day 기반 일정 & 체크리스트', color: '#A78BFA' },
-                            { icon: PiggyBank,     label: 'AI 예산 자동 배분',            color: '#D4A373' },
-                            { icon: Users,         label: '커플 데이터 실시간 공유',      color: '#F9A8D4' },
-                            { icon: Sparkles,      label: 'AI 업체 맞춤 추천',            color: '#60A5FA' },
+                            { icon: PiggyBank, label: 'AI 예산 자동 배분', color: '#D4A373' },
+                            { icon: Users, label: '커플 데이터 실시간 공유', color: '#F9A8D4' },
+                            { icon: Sparkles, label: 'AI 장소 맞춤 추천', color: '#60A5FA' },
                         ].map(({ icon: Icon, label, color }, i) => (
                             <div key={i} className="flex items-center gap-3">
                                 <div
@@ -143,8 +143,8 @@ function LoginPageContent() {
                             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4A373]/20 to-[#A78BFA]/20 border border-white/10 mb-4">
                                 <Heart size={22} className="text-[#D4A373] fill-[#D4A373]/40" />
                             </div>
-                            <h2 className="text-2xl font-bold text-white mb-1.5 tracking-tight">Welcome Back</h2>
-                            <p className="text-white/32 text-sm">소셜 계정으로 간편하게 시작하세요</p>
+                            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">환영합니다! 🎉</h2>
+                            <p className="text-white/40 text-[13px] leading-relaxed break-keep">WEPLN과 함께 기분 좋은<br />결혼 준비를 시작해볼까요?</p>
                         </div>
 
                         {/* Error */}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Search, MapPin, ExternalLink, Plus, Check, Loader2 } from 'lucide-react'
 import { WEDDING_LOCATIONS, SIDO_LIST } from '@/lib/constants/wedding-locations'
-import { addUserVendor } from '@/actions/user-vendors'
+import { addUserPlace } from '@/actions/user-places'
 
 type SearchResult = {
     title: string
@@ -16,25 +16,25 @@ type SearchResult = {
     description: string
 }
 
-interface VendorSearchModalProps {
+interface PlaceSearchModalProps {
     category: string
     categoryLabel: string
     categoryEmoji: string
     defaultSido: string
     defaultSigungu: string
     onClose: () => void
-    onVendorAdded: () => void
+    onPlaceAdded: () => void
 }
 
-export default function VendorSearchModal({
+export default function PlaceSearchModal({
     category,
     categoryLabel,
     categoryEmoji,
     defaultSido,
     defaultSigungu,
     onClose,
-    onVendorAdded,
-}: VendorSearchModalProps) {
+    onPlaceAdded,
+}: PlaceSearchModalProps) {
     const [sido, setSido] = useState(defaultSido || '서울')
     const [sigungu, setSigungu] = useState(defaultSigungu || '')
     const [results, setResults] = useState<SearchResult[]>([])
@@ -55,14 +55,14 @@ export default function VendorSearchModal({
         setError('')
         try {
             const params = new URLSearchParams({ category, sido, sigungu })
-            const res = await fetch(`/api/vendors/search?${params}`)
+            const res = await fetch(`/api/places/search?${params}`)
             const data = await res.json()
 
             if (data.error) {
                 setError(data.error)
                 setResults([])
             } else {
-                setResults(data.vendors || [])
+                setResults(data.places || [])
             }
         } catch {
             setError('검색 중 오류가 발생했습니다.')
@@ -76,20 +76,20 @@ export default function VendorSearchModal({
         setSigungu('')
     }
 
-    const handleSelect = async (vendor: SearchResult) => {
-        const key = vendor.title
+    const handleSelect = async (place: SearchResult) => {
+        const key = place.title
         setAddingId(key)
         try {
-            const result = await addUserVendor({
+            const result = await addUserPlace({
                 category,
-                vendor_name: vendor.title,
-                vendor_address: vendor.roadAddress || vendor.address,
-                vendor_phone: vendor.telephone,
-                vendor_link: vendor.link,
+                place_name: place.title,
+                place_address: place.roadAddress || place.address,
+                place_phone: place.telephone,
+                place_link: place.link,
             })
             if (!result.error) {
                 setAddedIds(prev => new Set([...prev, key]))
-                onVendorAdded()
+                onPlaceAdded()
             }
         } catch {
             // silent fail
@@ -124,7 +124,7 @@ export default function VendorSearchModal({
                             <span className="text-2xl">{categoryEmoji}</span>
                             <div>
                                 <h3 className="font-bold text-lg text-gray-800">{categoryLabel} 찾기</h3>
-                                <p className="text-xs text-rose-400">마음에 드는 업체를 선정해보세요</p>
+                                <p className="text-xs text-rose-400">마음에 드는 장소를 선정해보세요</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="p-2 rounded-xl hover:bg-rose-50 text-gray-400 hover:text-gray-600 transition-colors">
@@ -193,9 +193,9 @@ export default function VendorSearchModal({
                             </div>
                         )}
 
-                        {!loading && results.map((vendor, i) => {
-                            const isAdded = addedIds.has(vendor.title)
-                            const isAdding = addingId === vendor.title
+                        {!loading && results.map((place, i) => {
+                            const isAdded = addedIds.has(place.title)
+                            const isAdding = addingId === place.title
                             return (
                                 <motion.div
                                     key={i}
@@ -206,26 +206,26 @@ export default function VendorSearchModal({
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-bold text-gray-800 text-sm truncate">{vendor.title}</p>
-                                            {vendor.category && (
+                                            <p className="font-bold text-gray-800 text-sm truncate">{place.title}</p>
+                                            {place.category && (
                                                 <span className="inline-block text-[10px] text-rose-400 bg-rose-50 px-2 py-0.5 rounded-full mt-1">
-                                                    {vendor.category}
+                                                    {place.category}
                                                 </span>
                                             )}
-                                            {(vendor.roadAddress || vendor.address) && (
+                                            {(place.roadAddress || place.address) && (
                                                 <p className="text-xs text-gray-400 mt-1.5 flex items-start gap-1">
                                                     <MapPin size={11} className="shrink-0 mt-0.5 text-rose-300" />
-                                                    <span className="line-clamp-1">{vendor.roadAddress || vendor.address}</span>
+                                                    <span className="line-clamp-1">{place.roadAddress || place.address}</span>
                                                 </p>
                                             )}
-                                            {vendor.telephone && (
-                                                <p className="text-xs text-gray-400 mt-0.5">{vendor.telephone}</p>
+                                            {place.telephone && (
+                                                <p className="text-xs text-gray-400 mt-0.5">{place.telephone}</p>
                                             )}
                                         </div>
                                         <div className="flex flex-col gap-2 shrink-0">
-                                            {vendor.link && (
+                                            {place.link && (
                                                 <a
-                                                    href={vendor.link}
+                                                    href={place.link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="p-2 rounded-xl border border-gray-100 text-gray-400 hover:text-rose-400 hover:border-rose-200 transition-colors"
@@ -234,7 +234,7 @@ export default function VendorSearchModal({
                                                 </a>
                                             )}
                                             <button
-                                                onClick={() => !isAdded && !isAdding && handleSelect(vendor)}
+                                                onClick={() => !isAdded && !isAdding && handleSelect(place)}
                                                 disabled={isAdded || isAdding}
                                                 className={`p-2 rounded-xl border transition-all flex items-center justify-center ${isAdded
                                                     ? 'bg-green-50 border-green-200 text-green-500 cursor-default'

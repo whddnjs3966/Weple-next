@@ -11,10 +11,15 @@ import { cookies } from 'next/headers'
  * 4. 세션 쿠키 설정 후 리다이렉트
  */
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    const state = searchParams.get('state')
-    const error = searchParams.get('error')
+    const requestUrl = new URL(request.url)
+    const xForwardedHost = request.headers.get('x-forwarded-host')
+    const origin = xForwardedHost
+        ? `${request.headers.get('x-forwarded-proto') || 'https'}://${xForwardedHost}`
+        : requestUrl.origin
+
+    const code = requestUrl.searchParams.get('code')
+    const state = requestUrl.searchParams.get('state')
+    const error = requestUrl.searchParams.get('error')
 
     // 에러 처리
     if (error) {

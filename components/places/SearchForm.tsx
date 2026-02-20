@@ -2,10 +2,10 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import { Category } from '@/actions/vendors'
+import { Category } from '@/actions/places'
 import { Search } from 'lucide-react'
 
-export default function VendorSearchForm({ categories }: { categories: Category[] }) {
+export default function PlaceSearchForm({ categories }: { categories: Category[] }) {
     const router = useRouter()
     const searchParams = useSearchParams()
     const [isPending, startTransition] = useTransition()
@@ -19,7 +19,7 @@ export default function VendorSearchForm({ categories }: { categories: Category[
             const params = new URLSearchParams()
             if (category) params.set('category', category)
             if (region) params.set('region', region)
-            router.push(`/vendors?${params.toString()}`)
+            router.push(`/places?${params.toString()}`)
         })
     }
 

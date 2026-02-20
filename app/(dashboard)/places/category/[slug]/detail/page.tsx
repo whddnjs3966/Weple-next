@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import VendorPlaceDetail from '@/components/vendors/VendorPlaceDetail'
+import PlaceDetail from '@/components/places/PlaceDetail'
 
-export default async function VendorDetailPage({
+export default async function PlaceDetailPage({
     params,
     searchParams,
 }: {
@@ -17,7 +17,7 @@ export default async function VendorDetailPage({
     const { name = '', address = '', phone = '', link = '', mapx = '', mapy = '' } = await searchParams
 
     return (
-        <VendorPlaceDetail
+        <PlaceDetail
             slug={slug}
             name={name}
             address={address}

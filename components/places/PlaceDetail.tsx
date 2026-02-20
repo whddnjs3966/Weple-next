@@ -9,7 +9,7 @@ import {
     Quote, Calendar, User, ArrowUpRight, Info,
 } from 'lucide-react'
 import Link from 'next/link'
-import { addUserVendor } from '@/actions/user-vendors'
+import { addUserPlace } from '@/actions/user-places'
 
 interface BlogReview {
     title: string
@@ -27,7 +27,7 @@ interface AiData {
     rating: number
 }
 
-interface VendorPlaceDetailProps {
+interface PlacePlaceDetailProps {
     slug: string
     name: string
     address: string
@@ -97,7 +97,7 @@ function TiltCard({ children, className = '' }: { children: React.ReactNode; cla
 }
 
 /* ── 메인 컴포넌트 ── */
-export default function VendorPlaceDetail({
+export default function PlacePlaceDetail({
     slug,
     name,
     address,
@@ -105,7 +105,7 @@ export default function VendorPlaceDetail({
     link,
     mapx,
     mapy,
-}: VendorPlaceDetailProps) {
+}: PlacePlaceDetailProps) {
     const [reviews, setReviews] = useState<BlogReview[]>([])
     const [summary, setSummary] = useState<AiData | null>(null)
     const [summaryLoading, setSummaryLoading] = useState(true)
@@ -121,7 +121,7 @@ export default function VendorPlaceDetail({
         try {
             const params = new URLSearchParams({ name })
             if (slug) params.set('category', slug)
-            const res = await fetch(`/api/vendors/detail?${params}`)
+            const res = await fetch(`/api/places/detail?${params}`)
             const data = await res.json()
             setReviews(data.reviews || [])
             setSummary(data.aiData || null)
@@ -148,7 +148,7 @@ export default function VendorPlaceDetail({
 
         // fallback: Nominatim Geocoding (주소 기반)
         if (!address) { setMapFallback(true); return }
-        fetch(`/api/vendors/geocode?address=${encodeURIComponent(address)}`)
+        fetch(`/api/places/geocode?address=${encodeURIComponent(address)}`)
             .then(res => res.ok ? res.json() : null)
             .then(data => {
                 if (data?.lat && data?.lon) {
@@ -168,12 +168,12 @@ export default function VendorPlaceDetail({
     const handleAdd = async () => {
         setIsAdding(true)
         try {
-            await addUserVendor({
+            await addUserPlace({
                 category: slug,
-                vendor_name: name,
-                vendor_address: address,
-                vendor_phone: phone,
-                vendor_link: link,
+                place_name: name,
+                place_address: address,
+                place_phone: phone,
+                place_link: link,
             })
             setIsAdded(true)
         } catch {
@@ -211,7 +211,7 @@ export default function VendorPlaceDetail({
                 className="mt-6 mb-5"
             >
                 <Link
-                    href={`/vendors/category/${slug}`}
+                    href={`/places/category/${slug}`}
                     className="inline-flex items-center gap-2 text-stone-400 hover:text-stone-600 transition-colors text-sm font-medium group"
                 >
                     <ArrowLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
@@ -220,7 +220,7 @@ export default function VendorPlaceDetail({
             </motion.div>
 
             {/* ═══════════════════════════════════════════════ */}
-            {/* SECTION 1: 히어로 + 업체 상세                    */}
+            {/* SECTION 1: 히어로 + 장소 상세                    */}
             {/* ═══════════════════════════════════════════════ */}
             <TiltCard className="mb-6">
                 <motion.div
@@ -354,8 +354,8 @@ export default function VendorPlaceDetail({
                                         <Sparkles size={18} className="text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-base font-bold text-gray-800 tracking-tight">AI 분석 요약</h3>
-                                        <p className="text-xs text-gray-500 font-medium">실제 고객들의 생생한 리뷰를 바탕으로 분석했어요</p>
+                                        <h3 className="text-[17px] font-bold text-gray-800 tracking-tight">AI 분석 요약</h3>
+                                        <p className="text-[13px] text-gray-500 font-medium mt-0.5">실제 고객들의 생생한 리뷰를 바탕으로 분석했어요</p>
                                     </div>
                                 </div>
                                 {summary?.rating && (
@@ -367,7 +367,7 @@ export default function VendorPlaceDetail({
                                 )}
                             </div>
 
-                            <div className="flex-1 flex flex-col justify-center">
+                            <div className="flex-1 flex flex-col justify-center mt-2.5">
                                 {summaryLoading ? (
                                     <div className="space-y-4 animate-pulse pt-2">
                                         <div className="h-4 bg-gray-200/50 rounded-full w-full" />
@@ -382,16 +382,16 @@ export default function VendorPlaceDetail({
                                         transition={{ duration: 0.6, delay: 0.1 }}
                                         className="relative"
                                     >
-                                        <Quote size={24} className="absolute -top-1 -left-1 text-pink-200/40 rotate-180" />
-                                        <p className="text-base sm:text-lg text-gray-700 font-medium leading-[1.8] pl-6 relative z-10">
+                                        <Quote size={32} className="absolute -top-3 -left-3 text-pink-300/30 rotate-180" />
+                                        <p className="text-[15px] sm:text-[16px] text-gray-700 font-semibold leading-[1.8] pl-7 relative z-10 break-keep">
                                             {summary.summary}
                                         </p>
 
                                         {/* 키워드 칩스 */}
                                         {summary.keywords && summary.keywords.length > 0 && (
-                                            <div className="mt-6 flex flex-wrap gap-2 pl-6">
+                                            <div className="mt-7 flex flex-wrap gap-2.5 pl-7">
                                                 {summary.keywords.map((kw, i) => (
-                                                    <span key={i} className="px-3 py-1 bg-white/80 border border-pink-100 text-pink-600 font-bold text-[11px] rounded-full shadow-sm">
+                                                    <span key={i} className="px-3.5 py-1.5 bg-white/60 backdrop-blur-md border border-pink-100 text-pink-600 font-semibold text-[12px] tracking-tight rounded-full shadow-sm hover:bg-pink-50 transition-colors">
                                                         #{kw}
                                                     </span>
                                                 ))}
@@ -399,7 +399,7 @@ export default function VendorPlaceDetail({
                                         )}
 
                                         {reviews.length > 0 && (
-                                            <div className="mt-8 flex items-center gap-2">
+                                            <div className="mt-8 flex items-center gap-2 pl-7">
                                                 <div className="flex -space-x-2">
                                                     {reviews.slice(0, 3).map((_, i) => (
                                                         <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-white flex items-center justify-center">
@@ -412,8 +412,8 @@ export default function VendorPlaceDetail({
                                                         </div>
                                                     )}
                                                 </div>
-                                                <p className="text-[11px] font-bold text-pink-500 bg-pink-50/80 px-2 py-1 rounded-md">
-                                                    블로그 후기 {reviews.length}개 분석 완료
+                                                <p className="text-xs font-semibold text-pink-600 bg-pink-50/80 px-2.5 py-1 rounded-md tracking-tight">
+                                                    블로그 후기 <span className="font-bold">{reviews.length}</span>개 분석 완료
                                                 </p>
                                             </div>
                                         )}

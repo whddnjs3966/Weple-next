@@ -133,12 +133,12 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 
                         {/* Center: Navigation (Dashboard) or Phrase (Landing) */}
                         <div className="hidden md:flex items-center justify-center">
-                            {['/dashboard', '/schedule', '/checklist', '/vendors', '/community'].some(path => pathname.startsWith(path)) ? (
+                            {['/dashboard', '/schedule', '/checklist', '/places', '/community'].some(path => pathname.startsWith(path)) ? (
                                 <div className="flex items-center gap-1 p-1 bg-pink-50/50 rounded-full border border-pink-100/50">
                                     {[
                                         { name: 'Schedule', href: '/schedule', icon: Calendar },
                                         { name: 'Checklist', href: '/checklist', icon: CheckSquare },
-                                        { name: 'Vendors', href: '/vendors', icon: Store },
+                                        { name: 'Places', href: '/places', icon: Store },
                                         { name: 'Community', href: '/community', icon: Users },
                                     ].map((item) => {
                                         const Icon = item.icon

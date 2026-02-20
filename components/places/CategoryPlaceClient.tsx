@@ -8,10 +8,10 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { addUserVendor } from '@/actions/user-vendors'
-import { CATEGORIES, CATEGORY_FILTERS } from '@/lib/constants/vendor-categories'
+import { addUserPlace } from '@/actions/user-places'
+import { CATEGORIES, CATEGORY_FILTERS } from '@/lib/constants/place-categories'
 
-interface NaverVendor {
+interface NaverPlace {
     title: string
     address: string
     roadAddress: string
@@ -44,9 +44,9 @@ const CATEGORY_GRADIENTS: Record<string, { bg: string; text: string }> = {
     'honeymoon': { bg: 'from-sky-100 via-blue-50 to-blue-200', text: 'text-sky-400' },
 }
 
-export default function CategoryVendorClient({ slug }: { slug: string }) {
+export default function CategoryPlaceClient({ slug }: { slug: string }) {
     const router = useRouter()
-    const category = CATEGORIES.find(c => c.slug === slug)
+    const category = CATEGORIES.find((c: any) => c.slug === slug)
     const filters = CATEGORY_FILTERS[slug] || []
     const totalSteps = 1 + filters.length
 
@@ -57,11 +57,11 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
     const [sido, setSido] = useState('')
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({})
 
-    const [naverResults, setNaverResults] = useState<NaverVendor[]>([])
+    const [naverResults, setNaverResults] = useState<NaverPlace[]>([])
     const [naverLoading, setNaverLoading] = useState(false)
     const [naverError, setNaverError] = useState<string | null>(null)
-    const [addingVendor, setAddingVendor] = useState<string | null>(null)
-    const [addedVendors, setAddedVendors] = useState<Set<string>>(new Set())
+    const [addingPlace, setAddingPlace] = useState<string | null>(null)
+    const [addedPlaces, setAddedPlaces] = useState<Set<string>>(new Set())
     const [searched, setSearched] = useState(false)
 
     // ── 위자드 네비게이션 ──────────────────────────────
@@ -95,32 +95,32 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
         setNaverResults([])
 
         const searchSido = sido || '서울'
-        fetch(`/api/vendors/search?category=${slug}&sido=${encodeURIComponent(searchSido)}`)
+        fetch(`/api/places/search?category=${slug}&sido=${encodeURIComponent(searchSido)}`)
             .then(r => r.json())
             .then(data => {
                 if (data.error) setNaverError(data.error)
-                else setNaverResults(data.vendors || [])
+                else setNaverResults(data.places || [])
             })
             .catch(() => setNaverError('네이버 검색에 실패했습니다.'))
             .finally(() => setNaverLoading(false))
     }
 
     const handleAdd = async (
-        vendorName: string,
-        vendorAddress?: string,
-        vendorPhone?: string,
-        vendorLink?: string,
+        placeName: string,
+        placeAddress?: string,
+        placePhone?: string,
+        placeLink?: string,
     ) => {
-        setAddingVendor(vendorName)
-        await addUserVendor({
+        setAddingPlace(placeName)
+        await addUserPlace({
             category: slug,
-            vendor_name: vendorName,
-            vendor_address: vendorAddress,
-            vendor_phone: vendorPhone,
-            vendor_link: vendorLink,
+            place_name: placeName,
+            place_address: placeAddress,
+            place_phone: placePhone,
+            place_link: placeLink,
         })
-        setAddedVendors(prev => new Set([...prev, vendorName]))
-        setAddingVendor(null)
+        setAddedPlaces(prev => new Set([...prev, placeName]))
+        setAddingPlace(null)
     }
 
     const extractKeywords = (desc: string): string[] => {
@@ -148,7 +148,7 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
         return (
             <div className="text-center py-20 text-gray-400">
                 <p>카테고리를 찾을 수 없습니다.</p>
-                <Link href="/vendors" className="text-pink-400 hover:underline mt-2 block">돌아가기</Link>
+                <Link href="/places" className="text-pink-400 hover:underline mt-2 block">돌아가기</Link>
             </div>
         )
     }
@@ -162,11 +162,11 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
             {/* ── 상단 네비 ── */}
             <div className="mt-8 mb-8">
                 <Link
-                    href="/vendors"
+                    href="/places"
                     className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-600 transition-colors text-sm font-medium"
                 >
                     <ArrowLeft size={15} />
-                    업체 관리
+                    장소 관리
                 </Link>
             </div>
 
@@ -258,7 +258,7 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                                         ? currentFilter.options(selectedFilters)
                                                         : currentFilter.options
 
-                                                    return options.map(option => {
+                                                    return options.map((option: any) => {
                                                         const key = currentFilter.key
                                                         const isSelected = selectedFilters[key] === option
                                                         return (
@@ -310,7 +310,7 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                             <span className="text-[11px] font-extrabold text-pink-500 uppercase tracking-widest">지역</span>
                                             <span className="text-lg font-extrabold text-gray-900 break-words leading-tight">{sido || '서울'}</span>
                                         </div>
-                                        {filters.map(f => selectedFilters[f.key] ? (
+                                        {filters.map((f: any) => selectedFilters[f.key] ? (
                                             <div key={f.key} className="flex flex-col gap-1.5 py-5 px-6 bg-white border border-gray-100 rounded-[1.25rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] relative overflow-hidden hover:border-pink-200 hover:shadow-[0_8px_30px_rgb(244,114,182,0.15)] transition-all group hover:-translate-y-0.5">
                                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-gray-200 group-hover:bg-pink-300 transition-colors" />
                                                 <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-widest group-hover:text-pink-500 transition-colors">{f.label}</span>
@@ -324,7 +324,7 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                         className="w-full py-5 rounded-2xl bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold text-base flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-pink-300/50 hover:-translate-y-0.5 transition-all"
                                     >
                                         <Search size={18} strokeWidth={2.5} />
-                                        업체 검색하기
+                                        장소 검색하기
                                     </button>
                                 </motion.div>
                             )}
@@ -380,13 +380,13 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                 <section>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm font-extrabold text-[#03C75A] leading-none">N</span>
-                        <h3 className="text-lg font-extrabold text-gray-800">업체 목록</h3>
+                        <h3 className="text-lg font-extrabold text-gray-800">장소 목록</h3>
                         {naverLoading && <Loader2 size={13} className="animate-spin text-gray-300 ml-1" />}
                     </div>
                     <p className="text-xs text-gray-400 mb-5">
                         {!naverLoading && naverResults.length > 0
-                            ? `${naverResults.length}개의 업체가 검색되었습니다`
-                            : naverLoading ? '검색 중...' : '네이버 검색 기반 업체 목록'}
+                            ? `${naverResults.length}개의 장소가 검색되었습니다`
+                            : naverLoading ? '검색 중...' : '네이버 검색 기반 장소 목록'}
                     </p>
 
                     {naverError && (
@@ -397,17 +397,17 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
 
                     {!naverLoading && naverResults.length > 0 && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {naverResults.map((vendor, i) => {
-                                const keywords = extractKeywords(vendor.description)
-                                const isAdded = addedVendors.has(vendor.title)
-                                const isAdding = addingVendor === vendor.title
+                            {naverResults.map((place, i) => {
+                                const keywords = extractKeywords(place.description)
+                                const isAdded = addedPlaces.has(place.title)
+                                const isAdding = addingPlace === place.title
                                 const detailParams = new URLSearchParams({
-                                    name: vendor.title,
-                                    address: vendor.roadAddress || vendor.address || '',
-                                    phone: vendor.telephone || '',
-                                    link: vendor.link || '',
-                                    mapx: vendor.mapx || '',
-                                    mapy: vendor.mapy || '',
+                                    name: place.title,
+                                    address: place.roadAddress || place.address || '',
+                                    phone: place.telephone || '',
+                                    link: place.link || '',
+                                    mapx: place.mapx || '',
+                                    mapy: place.mapy || '',
                                 }).toString()
 
                                 return (
@@ -417,28 +417,28 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.04 }}
                                         className="bg-white rounded-[1.5rem] border border-gray-100 p-5 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(244,114,182,0.12)] hover:border-pink-200 transition-all group flex flex-col h-full cursor-pointer"
-                                        onClick={() => router.push(`/vendors/category/${slug}/detail?${detailParams}`)}
+                                        onClick={() => router.push(`/places/category/${slug}/detail?${detailParams}`)}
                                     >
                                         <div className="flex items-start justify-between mb-4">
                                             <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gradient.bg} flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-300`}>
                                                 <span className="text-2xl drop-shadow-sm">{category.emoji}</span>
                                             </div>
-                                            {vendor.category && (
+                                            {place.category && (
                                                 <span className="text-[10px] font-bold text-gray-400 bg-gray-50/80 px-2.5 py-1 rounded-full border border-gray-100">
-                                                    {vendor.category.split('>').pop()}
+                                                    {place.category.split('>').pop()}
                                                 </span>
                                             )}
                                         </div>
 
                                         <div className="flex-1">
                                             <h4 className="font-bold text-gray-800 text-base leading-snug mb-2 group-hover:text-pink-600 transition-colors line-clamp-2">
-                                                {vendor.title}
+                                                {place.title}
                                             </h4>
 
-                                            {(vendor.roadAddress || vendor.address) && (
+                                            {(place.roadAddress || place.address) && (
                                                 <p className="flex items-start gap-1.5 text-xs text-gray-500 mb-3 font-medium">
                                                     <MapPin size={12} className="shrink-0 mt-0.5 text-gray-300 group-hover:text-pink-300 transition-colors" />
-                                                    <span className="line-clamp-2 leading-relaxed">{vendor.roadAddress || vendor.address}</span>
+                                                    <span className="line-clamp-2 leading-relaxed">{place.roadAddress || place.address}</span>
                                                 </p>
                                             )}
 
@@ -457,7 +457,7 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                             <button
                                                 onClick={e => {
                                                     e.stopPropagation()
-                                                    router.push(`/vendors/category/${slug}/detail?${detailParams}`)
+                                                    router.push(`/places/category/${slug}/detail?${detailParams}`)
                                                 }}
                                                 className="flex-1 py-2.5 rounded-xl border border-gray-100 bg-gray-50/50 text-gray-500 hover:text-pink-600 font-bold text-xs flex items-center justify-center gap-1 hover:bg-white hover:border-pink-200 hover:shadow-sm transition-all"
                                             >
@@ -466,7 +466,7 @@ export default function CategoryVendorClient({ slug }: { slug: string }) {
                                             <button
                                                 onClick={e => {
                                                     e.stopPropagation()
-                                                    handleAdd(vendor.title, vendor.roadAddress || vendor.address, vendor.telephone, vendor.link)
+                                                    handleAdd(place.title, place.roadAddress || place.address, place.telephone, place.link)
                                                 }}
                                                 disabled={isAdding || isAdded}
                                                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${isAdded

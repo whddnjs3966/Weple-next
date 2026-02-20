@@ -1,450 +1,497 @@
 export type Json =
-    | string
-    | number
-    | boolean
-    | null
-    | { [key: string]: Json | undefined }
-    | Json[]
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
-    public: {
-        Tables: {
-            comments: {
-                Row: {
-                    content: string
-                    created_at: string
-                    id: string
-                    post_id: string
-                    user_id: string
-                }
-                Insert: {
-                    content: string
-                    created_at?: string
-                    id?: string
-                    post_id: string
-                    user_id: string
-                }
-                Update: {
-                    content?: string
-                    created_at?: string
-                    id?: string
-                    post_id?: string
-                    user_id?: string
-                }
-                Relationships: [
-                    {
-                        foreignKeyName: "comments_post_id_fkey"
-                        columns: ["post_id"]
-                        isOneToOne: false
-                        referencedRelation: "posts"
-                        referencedColumns: ["id"]
-                    },
-                    {
-                        foreignKeyName: "comments_user_id_fkey"
-                        columns: ["user_id"]
-                        isOneToOne: false
-                        referencedRelation: "profiles"
-                        referencedColumns: ["id"]
-                    },
-                ]
-            }
-            posts: {
-                Row: {
-                    category: string | null
-                    content: string
-                    created_at: string
-                    id: string
-                    title: string
-                    user_id: string
-                    view_count: number | null
-                }
-                Insert: {
-                    category?: string | null
-                    content: string
-                    created_at?: string
-                    id?: string
-                    title: string
-                    user_id: string
-                    view_count?: number | null
-                }
-                Update: {
-                    category?: string | null
-                    content?: string
-                    created_at?: string
-                    id?: string
-                    title?: string
-                    user_id?: string
-                    view_count?: number | null
-                }
-                Relationships: [
-                    {
-                        foreignKeyName: "posts_user_id_fkey"
-                        columns: ["user_id"]
-                        isOneToOne: false
-                        referencedRelation: "profiles"
-                        referencedColumns: ["id"]
-                    },
-                ]
-            }
-            profiles: {
-                Row: {
-                    avatar_url: string | null
-                    budget_max: number | null
-                    budget_min: number | null
-                    full_name: string | null
-                    group_id: string | null
-                    id: string
-                    invite_code: string | null
-                    region_sido: string | null
-                    region_sigungu: string | null
-                    role: string | null
-                    style: string | null
-                    updated_at: string | null
-                    username: string | null
-                    website: string | null
-                    wedding_date: string | null
-                    wedding_group_id: string | null
-                }
-                Insert: {
-                    avatar_url?: string | null
-                    budget_max?: number | null
-                    budget_min?: number | null
-                    full_name?: string | null
-                    group_id?: string | null
-                    id: string
-                    invite_code?: string | null
-                    region_sido?: string | null
-                    region_sigungu?: string | null
-                    role?: string | null
-                    style?: string | null
-                    updated_at?: string | null
-                    username?: string | null
-                    website?: string | null
-                    wedding_date?: string | null
-                    wedding_group_id?: string | null
-                }
-                Update: {
-                    avatar_url?: string | null
-                    budget_max?: number | null
-                    budget_min?: number | null
-                    full_name?: string | null
-                    group_id?: string | null
-                    id?: string
-                    invite_code?: string | null
-                    region_sido?: string | null
-                    region_sigungu?: string | null
-                    role?: string | null
-                    style?: string | null
-                    updated_at?: string | null
-                    username?: string | null
-                    website?: string | null
-                    wedding_date?: string | null
-                    wedding_group_id?: string | null
-                }
-                Relationships: [
-                    {
-                        foreignKeyName: "profiles_wedding_group_id_fkey"
-                        columns: ["wedding_group_id"]
-                        isOneToOne: false
-                        referencedRelation: "wedding_groups"
-                        referencedColumns: ["id"]
-                    },
-                ]
-            }
-            tasks: {
-                Row: {
-                    actual_cost: number | null
-                    category: string | null
-                    created_at: string
-                    d_day: number | null
-                    description: string | null
-                    due_date: string | null
-                    estimated_budget: number | null
-                    id: string
-                    is_completed: boolean | null
-                    title: string
-                    user_id: string
-                }
-                Insert: {
-                    actual_cost?: number | null
-                    category?: string | null
-                    created_at?: string
-                    d_day?: number | null
-                    description?: string | null
-                    due_date?: string | null
-                    estimated_budget?: number | null
-                    id?: string
-                    is_completed?: boolean | null
-                    title: string
-                    user_id: string
-                }
-                Update: {
-                    actual_cost?: number | null
-                    category?: string | null
-                    created_at?: string
-                    d_day?: number | null
-                    description?: string | null
-                    due_date?: string | null
-                    estimated_budget?: number | null
-                    id?: string
-                    is_completed?: boolean | null
-                    title?: string
-                    user_id?: string
-                }
-                Relationships: [
-                    {
-                        foreignKeyName: "tasks_user_id_fkey"
-                        columns: ["user_id"]
-                        isOneToOne: false
-                        referencedRelation: "profiles"
-                        referencedColumns: ["id"]
-                    },
-                ]
-            }
-            vendor_categories: {
-                Row: {
-                    id: number
-                    name: string
-                    slug: string
-                }
-                Insert: {
-                    id?: number
-                    name: string
-                    slug: string
-                }
-                Update: {
-                    id?: number
-                    name?: string
-                    slug?: string
-                }
-                Relationships: []
-            }
-            vendors: {
-                Row: {
-                    category_id: number | null
-                    contact: string | null
-                    created_at: string
-                    id: number
-                    image_url: string | null
-                    name: string
-                    price_range: string | null
-                    rating: number | null
-                    region_sido: string | null
-                    region_sigungu: string | null
-                    summary: string | null
-                }
-                Insert: {
-                    category_id?: number | null
-                    contact?: string | null
-                    created_at?: string
-                    id?: number
-                    image_url?: string | null
-                    name: string
-                    price_range?: string | null
-                    rating?: number | null
-                    region_sido?: string | null
-                    region_sigungu?: string | null
-                    summary?: string | null
-                }
-                Update: {
-                    category_id?: number | null
-                    contact?: string | null
-                    created_at?: string
-                    id?: number
-                    image_url?: string | null
-                    name?: string
-                    price_range?: string | null
-                    rating?: number | null
-                    region_sido?: string | null
-                    region_sigungu?: string | null
-                    summary?: string | null
-                }
-                Relationships: [
-                    {
-                        foreignKeyName: "vendors_category_id_fkey"
-                        columns: ["category_id"]
-                        isOneToOne: false
-                        referencedRelation: "vendor_categories"
-                        referencedColumns: ["id"]
-                    },
-                ]
-            }
-            user_vendors: {
-                Row: {
-                    id: string
-                    group_id: string | null
-                    user_id: string
-                    category: string
-                    vendor_name: string
-                    vendor_address: string | null
-                    vendor_phone: string | null
-                    vendor_link: string | null
-                    price_range: string | null
-                    memo: string | null
-                    is_confirmed: boolean
-                    created_at: string
-                }
-                Insert: {
-                    id?: string
-                    group_id?: string | null
-                    user_id: string
-                    category: string
-                    vendor_name: string
-                    vendor_address?: string | null
-                    vendor_phone?: string | null
-                    vendor_link?: string | null
-                    price_range?: string | null
-                    memo?: string | null
-                    is_confirmed?: boolean
-                    created_at?: string
-                }
-                Update: {
-                    id?: string
-                    group_id?: string | null
-                    user_id?: string
-                    category?: string
-                    vendor_name?: string
-                    vendor_address?: string | null
-                    vendor_phone?: string | null
-                    vendor_link?: string | null
-                    price_range?: string | null
-                    memo?: string | null
-                    is_confirmed?: boolean
-                    created_at?: string
-                }
-                Relationships: [
-                    {
-                        foreignKeyName: "user_vendors_group_id_fkey"
-                        columns: ["group_id"]
-                        isOneToOne: false
-                        referencedRelation: "wedding_groups"
-                        referencedColumns: ["id"]
-                    },
-                ]
-            }
-            wedding_groups: {
-                Row: {
-                    bride_name: string | null
-                    created_at: string
-                    groom_name: string | null
-                    id: string
-                    total_budget: number | null
-                    updated_at: string
-                    wedding_date: string | null
-                }
-                Insert: {
-                    bride_name?: string | null
-                    created_at?: string
-                    groom_name?: string | null
-                    id?: string
-                    total_budget?: number | null
-                    updated_at?: string
-                    wedding_date?: string | null
-                }
-                Update: {
-                    bride_name?: string | null
-                    created_at?: string
-                    groom_name?: string | null
-                    id?: string
-                    total_budget?: number | null
-                    updated_at?: string
-                    wedding_date?: string | null
-                }
-                Relationships: []
-            }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
+  public: {
+    Tables: {
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
         }
-        Views: {
-            [_ in never]: never
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
         }
-        Functions: {
-            [_ in never]: never
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
         }
-        Enums: {
-            [_ in never]: never
+        Relationships: [
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      place_categories: {
+        Row: {
+          id: number
+          name: string
+          slug: string
         }
-        CompositeTypes: {
-            [_ in never]: never
+        Insert: {
+          id?: number
+          name: string
+          slug: string
         }
+        Update: {
+          id?: number
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      places: {
+        Row: {
+          category_id: number | null
+          contact: string | null
+          created_at: string
+          id: number
+          image_url: string | null
+          name: string
+          price_range: string | null
+          rating: number | null
+          region_sido: string | null
+          region_sigungu: string | null
+          summary: string | null
+        }
+        Insert: {
+          category_id?: number | null
+          contact?: string | null
+          created_at?: string
+          id?: number
+          image_url?: string | null
+          name: string
+          price_range?: string | null
+          rating?: number | null
+          region_sido?: string | null
+          region_sigungu?: string | null
+          summary?: string | null
+        }
+        Update: {
+          category_id?: number | null
+          contact?: string | null
+          created_at?: string
+          id?: number
+          image_url?: string | null
+          name?: string
+          price_range?: string | null
+          rating?: number | null
+          region_sido?: string | null
+          region_sigungu?: string | null
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "places_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "place_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          title: string
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          budget_max: number | null
+          budget_min: number | null
+          full_name: string | null
+          group_id: string | null
+          id: string
+          invite_code: string | null
+          region_sido: string | null
+          region_sigungu: string | null
+          role: string | null
+          style: string | null
+          updated_at: string | null
+          username: string | null
+          website: string | null
+          wedding_date: string | null
+          wedding_group_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          full_name?: string | null
+          group_id?: string | null
+          id: string
+          invite_code?: string | null
+          region_sido?: string | null
+          region_sigungu?: string | null
+          role?: string | null
+          style?: string | null
+          updated_at?: string | null
+          username?: string | null
+          website?: string | null
+          wedding_date?: string | null
+          wedding_group_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          budget_max?: number | null
+          budget_min?: number | null
+          full_name?: string | null
+          group_id?: string | null
+          id?: string
+          invite_code?: string | null
+          region_sido?: string | null
+          region_sigungu?: string | null
+          role?: string | null
+          style?: string | null
+          updated_at?: string | null
+          username?: string | null
+          website?: string | null
+          wedding_date?: string | null
+          wedding_group_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_wedding_group_id_fkey"
+            columns: ["wedding_group_id"]
+            isOneToOne: false
+            referencedRelation: "wedding_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          actual_cost: number | null
+          category: string | null
+          created_at: string
+          d_day: number | null
+          description: string | null
+          due_date: string | null
+          estimated_budget: number | null
+          id: string
+          is_completed: boolean | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          category?: string | null
+          created_at?: string
+          d_day?: number | null
+          description?: string | null
+          due_date?: string | null
+          estimated_budget?: number | null
+          id?: string
+          is_completed?: boolean | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          actual_cost?: number | null
+          category?: string | null
+          created_at?: string
+          d_day?: number | null
+          description?: string | null
+          due_date?: string | null
+          estimated_budget?: number | null
+          id?: string
+          is_completed?: boolean | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_places: {
+        Row: {
+          category: string
+          created_at: string | null
+          group_id: string | null
+          id: string
+          is_confirmed: boolean | null
+          memo: string | null
+          place_address: string | null
+          place_link: string | null
+          place_name: string
+          place_phone: string | null
+          price_range: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          is_confirmed?: boolean | null
+          memo?: string | null
+          place_address?: string | null
+          place_link?: string | null
+          place_name: string
+          place_phone?: string | null
+          price_range?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          group_id?: string | null
+          id?: string
+          is_confirmed?: boolean | null
+          memo?: string | null
+          place_address?: string | null
+          place_link?: string | null
+          place_name?: string
+          place_phone?: string | null
+          price_range?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_places_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "wedding_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wedding_groups: {
+        Row: {
+          bride_name: string | null
+          created_at: string
+          groom_name: string | null
+          id: string
+          total_budget: number | null
+          updated_at: string
+          wedding_date: string | null
+        }
+        Insert: {
+          bride_name?: string | null
+          created_at?: string
+          groom_name?: string | null
+          id?: string
+          total_budget?: number | null
+          updated_at?: string
+          wedding_date?: string | null
+        }
+        Update: {
+          bride_name?: string | null
+          created_at?: string
+          groom_name?: string | null
+          id?: string
+          total_budget?: number | null
+          updated_at?: string
+          wedding_date?: string | null
+        }
+        Relationships: []
+      }
     }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-    DefaultSchemaTableNameOrOptions extends
+  DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
-    TableName extends DefaultSchemaTableNameOrOptions extends {
-        schema: keyof Database
-    }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-    ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-            Row: infer R
-        }
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
     ? R
     : never
-    : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
         DefaultSchema["Views"])
     ? (DefaultSchema["Tables"] &
         DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-            Row: infer R
-        }
-    ? R
-    : never
+        Row: infer R
+      }
+      ? R
+      : never
     : never
 
 export type TablesInsert<
-    DefaultSchemaTableNameOrOptions extends
+  DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-    TableName extends DefaultSchemaTableNameOrOptions extends {
-        schema: keyof Database
-    }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-    ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-        Insert: infer I
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
     }
     ? I
     : never
-    : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
-    }
-    ? I
-    : never
+      }
+      ? I
+      : never
     : never
 
 export type TablesUpdate<
-    DefaultSchemaTableNameOrOptions extends
+  DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-    TableName extends DefaultSchemaTableNameOrOptions extends {
-        schema: keyof Database
-    }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+  schema: keyof DatabaseWithoutInternals
 }
-    ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-        Update: infer U
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
     }
     ? U
     : never
-    : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
-    }
-    ? U
+      }
+      ? U
+      : never
     : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

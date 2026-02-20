@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Star, MapPin, Image as ImageIcon, Sparkles } from 'lucide-react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 
-export default function VendorCard({ vendor }: { vendor: any }) {
+export default function PlaceCard({ place }: { place: any }) {
     const x = useMotionValue(0)
     const y = useMotionValue(0)
 
@@ -47,10 +47,10 @@ export default function VendorCard({ vendor }: { vendor: any }) {
             <div className="relative h-full flex flex-col rounded-xl bg-[#0a0a12]/80 overflow-hidden backdrop-blur-md" style={{ transform: "translateZ(20px)" }}>
                 {/* Image Area */}
                 <div className="relative h-48 overflow-hidden">
-                    {vendor.image_url ? (
+                    {place.image_url ? (
                         <img
-                            src={vendor.image_url}
-                            alt={vendor.name}
+                            src={place.image_url}
+                            alt={place.name}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                     ) : (
@@ -64,7 +64,7 @@ export default function VendorCard({ vendor }: { vendor: any }) {
                     {/* Category Badge */}
                     <div className="absolute top-3 left-3 flex gap-2">
                         <span className="px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
-                            {vendor.category?.name || vendor.category}
+                            {place.category?.name || place.category}
                         </span>
                     </div>
                 </div>
@@ -74,23 +74,23 @@ export default function VendorCard({ vendor }: { vendor: any }) {
                     <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-1 text-starlight font-bold text-sm shadow-glow">
                             <Star size={14} fill="currentColor" />
-                            <span>{vendor.rating?.toFixed(1) || '0.0'}</span>
-                            <span className="text-white/30 font-normal ml-1 text-xs">({vendor.review_count || 0})</span>
+                            <span>{place.rating?.toFixed(1) || '0.0'}</span>
+                            <span className="text-white/30 font-normal ml-1 text-xs">({place.review_count || 0})</span>
                         </div>
-                        {vendor.priceRange && (
+                        {place.priceRange && (
                             <span className="text-[10px] text-emerald-400 font-mono border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/10">
-                                {vendor.priceRange}
+                                {place.priceRange}
                             </span>
                         )}
                     </div>
 
                     <h3 className="text-xl font-bold text-white mb-1 group-hover:text-purple-300 transition-colors line-clamp-1 truncate">
-                        {vendor.name}
+                        {place.name}
                     </h3>
 
                     <p className="text-white/40 text-xs flex items-center gap-1.5 mb-4 font-light">
                         <MapPin size={12} />
-                        {vendor.region_sido ? `${vendor.region_sido} ${vendor.region_sigungu}` : (vendor.region || 'Seoul, Korea')}
+                        {place.region_sido ? `${place.region_sido} ${place.region_sigungu}` : (place.region || 'Seoul, Korea')}
                     </p>
 
                     <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
@@ -98,7 +98,7 @@ export default function VendorCard({ vendor }: { vendor: any }) {
                             <Sparkles size={10} /> Verified
                         </span>
                         <Link
-                            href={`/vendors/${vendor.id}`}
+                            href={`/places/${place.id}`}
                             className="text-xs font-bold text-white hover:text-pink-300 transition-colors flex items-center gap-1 group-hover:translate-x-1 duration-300"
                         >
                             Explore <span className="text-lg leading-none">›</span>

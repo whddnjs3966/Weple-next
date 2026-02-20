@@ -16,7 +16,7 @@ function stripHtml(str: string): string {
 
 /**
  * 카테고리별 웨딩 관련 키워드 매핑.
- * 복합 업체(예: 수성호텔)에서 웨딩 관련 리뷰만 필터링하기 위한 키워드.
+ * 복합 장소(예: 수성호텔)에서 웨딩 관련 리뷰만 필터링하기 위한 키워드.
  */
 const CATEGORY_WEDDING_KEYWORDS: Record<string, string[]> = {
     'wedding-hall': ['결혼', '웨딩', '예식', '뷔페', '본식', '신랑', '신부', '하객', '웨딩홀', '예식장', '결혼식'],
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     const categorySlug = searchParams.get('category') || ''
 
     if (!name) {
-        return NextResponse.json({ error: '업체명이 필요합니다.' }, { status: 400 })
+        return NextResponse.json({ error: '장소명이 필요합니다.' }, { status: 400 })
     }
 
     const clientId = process.env.NAVER_CLIENT_ID || process.env.NEXT_PUBLIC_NAVER_CLIENT_ID
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
     if (reviews.length > 0) {
         const models = getAIModels()
         if (models.length === 0) {
-            console.warn('[VendorDetail] 사용 가능한 AI 모델 없음')
+            console.warn('[PlaceDetail] 사용 가능한 AI 모델 없음')
         }
 
         const reviewTexts = reviews
@@ -149,27 +149,27 @@ export async function GET(request: NextRequest) {
             .map((r: { title: string; description: string }) => `- ${r.title}: ${r.description}`)
             .join('\n')
 
-        const prompt = `다음은 "${name}"에 대한 블로그 후기입니다:\n${reviewTexts}\n\n이 리뷰들을 분석하여 업체를 평가해 주세요.`
+        const prompt = `다음은 "${name}"에 대한 블로그 후기입니다:\n${reviewTexts}\n\n이 리뷰들을 분석하여 장소를 평가해 주세요.`
 
         for (const { name: modelName, model } of models) {
             try {
-                console.log(`[VendorDetail] AI 요약 시도 (${modelName}):`, name)
+                console.log(`[PlaceDetail] AI 요약 시도 (${modelName}):`, name)
                 const { object } = await generateObject({
                     model,
                     prompt,
                     schema: z.object({
-                        summary: z.string().describe("업체의 전반적인 특징과 분위기를 1~2문장으로 한국어로 요약"),
-                        keywords: z.array(z.string()).describe("이 업체를 나타내는 대표적인 특징 키워드 3~5개 (예: 친절함, 뷰맛집, 가성비)"),
+                        summary: z.string().describe("장소의 전반적인 특징과 분위기를 1~2문장으로 한국어로 요약"),
+                        keywords: z.array(z.string()).describe("이 장소를 나타내는 대표적인 특징 키워드 3~5개 (예: 친절함, 뷰맛집, 가성비)"),
                         pros: z.array(z.string()).describe("리뷰에서 주로 언급되는 장점 2~3개"),
                         cons: z.array(z.string()).describe("리뷰에서 주로 언급되는 단점이나 아쉬운 점 1~2개"),
                         rating: z.number().describe("리뷰 분위기를 바탕으로 한 5점 만점의 예상 평점 (소수점 1자리까지)")
                     }),
                 })
                 aiData = object
-                console.log(`[VendorDetail] AI 요약 성공 (${modelName})`)
+                console.log(`[PlaceDetail] AI 요약 성공 (${modelName})`)
                 break // 성공하면 루프 종료
             } catch (error) {
-                console.error(`[VendorDetail] AI 요약 실패 (${modelName}):`, error)
+                console.error(`[PlaceDetail] AI 요약 실패 (${modelName}):`, error)
                 // 다음 모델로 fallback
             }
         }

@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Sparkles, Plus, Trash2, CheckCircle2, Circle, ExternalLink, Loader2, HeartHandshake } from 'lucide-react'
-import type { UserVendor } from '@/actions/user-vendors'
-import { CATEGORIES } from '@/lib/constants/vendor-categories'
+import type { UserPlace } from '@/actions/user-places'
+import { CATEGORIES } from '@/lib/constants/place-categories'
 
 // 카테고리별 테마 그라디언트
 const CATEGORY_STYLES: Record<string, string> = {
@@ -27,42 +27,42 @@ const PRICE_COLOR: Record<string, string> = {
     '최고가': 'text-purple-600 bg-purple-50 border-purple-100',
 }
 
-interface VendorClientProps {
-    initialVendors: UserVendor[]
+interface PlaceClientProps {
+    initialPlaces: UserPlace[]
     defaultSido: string
     defaultSigungu: string
     budgetMax: number
     style: string
 }
 
-export default function VendorClient({
-    initialVendors,
-}: VendorClientProps) {
+export default function PlaceClient({
+    initialPlaces,
+}: PlaceClientProps) {
     const router = useRouter()
-    const [vendors, setVendors] = useState<UserVendor[]>(initialVendors)
+    const [places, setPlaces] = useState<UserPlace[]>(initialPlaces)
     const [removingId, setRemovingId] = useState<string | null>(null)
     const [confirmingId, setConfirmingId] = useState<string | null>(null)
 
-    const confirmedCount = vendors.filter(v => v.is_confirmed).length
-    const selectedCount = vendors.length
+    const confirmedCount = places.filter(v => v.is_confirmed).length
+    const selectedCount = places.length
 
-    const getVendorByCategory = (slug: string) =>
-        vendors.find(v => v.category === slug)
+    const getPlaceByCategory = (slug: string) =>
+        places.find(v => v.category === slug)
 
     const handleRemove = async (id: string) => {
         setRemovingId(id)
-        const { removeUserVendor } = await import('@/actions/user-vendors')
-        await removeUserVendor(id)
-        setVendors(prev => prev.filter(v => v.id !== id))
+        const { removeUserPlace } = await import('@/actions/user-places')
+        await removeUserPlace(id)
+        setPlaces(prev => prev.filter(v => v.id !== id))
         setRemovingId(null)
     }
 
-    const handleToggleConfirm = async (vendor: UserVendor) => {
-        setConfirmingId(vendor.id)
-        const { updateUserVendorMemo } = await import('@/actions/user-vendors')
-        await updateUserVendorMemo(vendor.id, vendor.memo || '', !vendor.is_confirmed)
-        setVendors(prev =>
-            prev.map(v => v.id === vendor.id ? { ...v, is_confirmed: !v.is_confirmed } : v)
+    const handleToggleConfirm = async (place: UserPlace) => {
+        setConfirmingId(place.id)
+        const { updateUserPlaceMemo } = await import('@/actions/user-places')
+        await updateUserPlaceMemo(place.id, place.memo || '', !place.is_confirmed)
+        setPlaces(prev =>
+            prev.map(v => v.id === place.id ? { ...v, is_confirmed: !v.is_confirmed } : v)
         )
         setConfirmingId(null)
     }
@@ -81,7 +81,7 @@ export default function VendorClient({
                     <HeartHandshake size={12} /> Our Dream Team
                 </span>
                 <h2 className="font-serif italic text-4xl md:text-5xl font-bold text-gray-800 tracking-tight mb-3">
-                    Vendors
+                    Places
                 </h2>
                 <p className="text-sm text-gray-400 font-medium">완벽한 하루를 위해 최고의 전문가들을 모아보세요</p>
 
@@ -102,7 +102,7 @@ export default function VendorClient({
                     <p className="text-[11px] text-gray-400 mt-3 text-center">
                         {selectedCount > 0
                             ? `${CATEGORIES.length}개 분야 중 ${selectedCount}개 분야 찜 · ${confirmedCount}개 최종 확정`
-                            : '카테고리를 클릭해 업체를 탐색하세요'}
+                            : '카테고리를 클릭해 장소를 탐색하세요'}
                     </p>
                 </div>
             </motion.div>
@@ -122,8 +122,8 @@ export default function VendorClient({
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-                    {CATEGORIES.map((cat, idx) => {
-                        const selected = getVendorByCategory(cat.slug)
+                    {CATEGORIES.map((cat: any, idx: any) => {
+                        const selected = getPlaceByCategory(cat.slug)
                         const styleClass = CATEGORY_STYLES[cat.slug] || 'from-gray-50 to-white text-gray-500 hover:border-gray-200'
 
                         return (
@@ -131,10 +131,10 @@ export default function VendorClient({
                                 key={cat.slug}
                                 whileHover={{ scale: 1.02, y: -2 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={() => router.push(`/vendors/category/${cat.slug}`)}
+                                onClick={() => router.push(`/places/category/${cat.slug}`)}
                                 className={`relative flex flex-col items-center justify-center gap-3 p-6 rounded-3xl border-2 transition-all group overflow-hidden ${selected
-                                        ? 'bg-white border-pink-200 shadow-sm'
-                                        : `bg-gradient-to-br border-transparent hover:shadow-md ${styleClass}`
+                                    ? 'bg-white border-pink-200 shadow-sm'
+                                    : `bg-gradient-to-br border-transparent hover:shadow-md ${styleClass}`
                                     }`}
                             >
                                 {/* Glassmorphism 빛 반사 효과 */}
@@ -164,7 +164,7 @@ export default function VendorClient({
                 </div>
             </motion.section>
 
-            {/* ── SECTION B: 내가 선택한 업체 (My List) ─────────────── */}
+            {/* ── SECTION B: 내가 선택한 장소 (My List) ─────────────── */}
             <motion.section
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -181,44 +181,44 @@ export default function VendorClient({
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                    {CATEGORIES.map((cat) => {
-                        const vendor = getVendorByCategory(cat.slug)
-                        if (vendor) {
+                    {CATEGORIES.map((cat: any) => {
+                        const place = getPlaceByCategory(cat.slug)
+                        if (place) {
                             return (
                                 <div
                                     key={cat.slug}
-                                    className={`relative rounded-[2rem] border p-5 transition-all duration-300 overflow-hidden group flex flex-col ${vendor.is_confirmed
+                                    className={`relative rounded-[2rem] border p-5 transition-all duration-300 overflow-hidden group flex flex-col ${place.is_confirmed
                                         ? 'bg-gradient-to-b from-white to-pink-50/30 border-pink-200 shadow-md shadow-pink-100/50'
                                         : 'bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-pink-100'
                                         }`}
                                 >
-                                    {vendor.is_confirmed && (
+                                    {place.is_confirmed && (
                                         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-pink-300 via-rose-400 to-pink-300" />
                                     )}
                                     <div className="flex items-start justify-between gap-1 mb-4">
                                         <span className="text-2xl drop-shadow-sm">{cat.emoji}</span>
                                         <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm rounded-full p-1 shadow-sm border border-black/5">
                                             <button
-                                                onClick={() => handleToggleConfirm(vendor)}
-                                                disabled={confirmingId === vendor.id}
+                                                onClick={() => handleToggleConfirm(place)}
+                                                disabled={confirmingId === place.id}
                                                 className="p-1.5 rounded-full hover:bg-pink-100 transition-colors text-gray-300 hover:text-pink-500"
-                                                title={vendor.is_confirmed ? '확정 취소' : '확정'}
+                                                title={place.is_confirmed ? '확정 취소' : '확정'}
                                             >
-                                                {confirmingId === vendor.id
+                                                {confirmingId === place.id
                                                     ? <Loader2 size={14} className="animate-spin" />
-                                                    : vendor.is_confirmed
+                                                    : place.is_confirmed
                                                         ? <CheckCircle2 size={14} className="text-pink-500 fill-pink-50" />
                                                         : <Circle size={14} />
                                                 }
                                             </button>
                                             <div className="w-px h-3 bg-gray-200" />
                                             <button
-                                                onClick={() => handleRemove(vendor.id)}
-                                                disabled={removingId === vendor.id}
+                                                onClick={() => handleRemove(place.id)}
+                                                disabled={removingId === place.id}
                                                 className="p-1.5 rounded-full hover:bg-red-50 transition-colors text-gray-300 hover:text-red-500"
                                                 title="삭제"
                                             >
-                                                {removingId === vendor.id
+                                                {removingId === place.id
                                                     ? <Loader2 size={14} className="animate-spin" />
                                                     : <Trash2 size={14} />
                                                 }
@@ -227,16 +227,16 @@ export default function VendorClient({
                                     </div>
                                     <div className="mt-auto">
                                         <p className="text-[10px] font-bold text-pink-400 uppercase tracking-wider mb-1">{cat.label}</p>
-                                        <p className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug mb-2 group-hover:text-pink-600 transition-colors">{vendor.vendor_name}</p>
+                                        <p className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug mb-2 group-hover:text-pink-600 transition-colors">{place.place_name}</p>
 
                                         <div className="flex flex-wrap items-center gap-2 mt-3">
-                                            {vendor.price_range && PRICE_COLOR[vendor.price_range] && (
-                                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${PRICE_COLOR[vendor.price_range]}`}>
-                                                    {vendor.price_range}
+                                            {place.price_range && PRICE_COLOR[place.price_range] && (
+                                                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${PRICE_COLOR[place.price_range]}`}>
+                                                    {place.price_range}
                                                 </span>
                                             )}
-                                            {vendor.vendor_link && (
-                                                <a href={vendor.vendor_link} target="_blank" rel="noopener noreferrer"
+                                            {place.place_link && (
+                                                <a href={place.place_link} target="_blank" rel="noopener noreferrer"
                                                     className="flex items-center gap-1 text-[10px] font-bold text-[#03C75A] bg-[#03C75A]/10 px-2 py-0.5 rounded-full hover:bg-[#03C75A]/20 transition-colors">
                                                     <ExternalLink size={10} />네이버
                                                 </a>
@@ -249,7 +249,7 @@ export default function VendorClient({
                         return (
                             <button
                                 key={cat.slug}
-                                onClick={() => router.push(`/vendors/category/${cat.slug}`)}
+                                onClick={() => router.push(`/places/category/${cat.slug}`)}
                                 className="flex flex-col items-center justify-center gap-3 rounded-[2rem] border-2 border-dashed border-gray-200 p-6 min-h-[160px] hover:border-pink-300 hover:bg-pink-50/50 transition-all text-gray-400 hover:text-pink-500 group bg-gray-50/50"
                             >
                                 <div className="relative">

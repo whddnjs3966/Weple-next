@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import CategoryVendorClient from '@/components/vendors/CategoryVendorClient'
+import CategoryPlaceClient from '@/components/places/CategoryPlaceClient'
 
-export default async function CategoryVendorPage({
+export default async function CategoryPlacePage({
     params,
 }: {
     params: Promise<{ slug: string }>
@@ -13,5 +13,5 @@ export default async function CategoryVendorPage({
 
     const { slug } = await params
 
-    return <CategoryVendorClient slug={slug} />
+    return <CategoryPlaceClient slug={slug} />
 }

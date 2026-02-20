@@ -38,6 +38,14 @@ function TiltCard({ children, className = '' }: { children: React.ReactNode; cla
 /* ─── Feature Slider ─── */
 function FeatureSlider() {
   const [active, setActive] = useState(0)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const items = [
     {
@@ -196,60 +204,61 @@ function FeatureSlider() {
     }
   ]
 
+  const cardWidth = isDesktop ? 500 : 300
+  const cardHeight = isDesktop ? 600 : 480
+  const gap = isDesktop ? 460 : 320
+
   return (
     <div className="w-full flex flex-col items-center select-none">
       {/* Cards Container */}
-      <div className="relative w-full h-[550px] sm:h-[650px] flex justify-center items-center overflow-hidden">
+      <div
+        className="relative w-full flex justify-center items-center overflow-hidden"
+        style={{ height: isDesktop ? 650 : 550 }}
+      >
         {items.map((item, i) => {
           const offset = i - active
           const absOffset = Math.abs(offset)
           const zIndex = 10 - absOffset
-          
-          // Size & Positioning Calculations
           const scale = 1 - absOffset * 0.12
-          const opacity = absOffset >= 2 ? 0 : (1 - absOffset * 0.4)
-          // Move them outward
-          const translateX = offset * 320 // Mobile distance
-          const smTranslateX = offset * 460 // Desktop distance
-          
-          // Hidden items shouldn't take clicks
+          const cardOpacity = absOffset >= 2 ? 0 : (1 - absOffset * 0.4)
+          const tx = offset * gap
           const isVisible = absOffset < 2
-          
+
           return (
             <div
               key={item.id}
               onClick={() => isVisible && setActive(i)}
-              className={`absolute top-1/2 left-1/2 w-[300px] sm:w-[500px] h-[480px] sm:h-[600px] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]
-                ${isVisible ? 'cursor-pointer' : 'pointer-events-none'}
-              `}
               style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: cardWidth,
+                height: cardHeight,
                 zIndex,
-                opacity,
-                transform: `translate(-50%, -50%) translateX(${translateX}px) scale(${scale})`,
+                opacity: cardOpacity,
+                transform: `translate(-50%, -50%) translateX(${tx}px) scale(${scale})`,
+                transition: 'all 0.7s cubic-bezier(0.16,1,0.3,1)',
+                pointerEvents: isVisible ? 'auto' : 'none',
+                cursor: isVisible ? 'pointer' : 'default',
               }}
             >
-              <style jsx>{`
-                @media (min-width: 640px) {
-                  div {
-                    transform: translate(-50%, -50%) translateX(${smTranslateX}px) scale(${scale}) !important;
-                  }
-                }
-              `}</style>
-              
               {/* The Card */}
-              <div 
-                className={`w-full h-full rounded-[2.5rem] flex flex-col overflow-hidden backdrop-blur-md transition-all duration-700
-                  ${offset === 0 
-                      ? 'bg-gradient-to-b from-white/[0.06] to-white/[0.02] border focus' 
-                      : 'bg-white/[0.02] border'}
-                `}
+              <div
+                className="w-full h-full rounded-[2.5rem] flex flex-col overflow-hidden backdrop-blur-md transition-all duration-700"
                 style={{
+                  background: offset === 0
+                    ? 'linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.02))'
+                    : 'rgba(255,255,255,0.02)',
+                  border: '1px solid',
                   borderColor: offset === 0 ? `${item.color}40` : 'rgba(255,255,255,0.05)',
-                  boxShadow: offset === 0 ? `0 20px 60px ${item.color}15, inset 0 1px 0 rgba(255,255,255,0.1)` : 'none'
+                  boxShadow: offset === 0 ? `0 20px 60px ${item.color}15, inset 0 1px 0 rgba(255,255,255,0.1)` : 'none',
                 }}
               >
                 {/* Header */}
-                <div className="p-6 sm:p-8 border-b border-white/[0.05] h-[140px] flex flex-col justify-center">
+                <div
+                  className="border-b border-white/[0.05] flex flex-col justify-center"
+                  style={{ padding: isDesktop ? '2rem' : '1.5rem', height: 140 }}
+                >
                   <div className="flex items-center gap-4 mb-3">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `${item.color}15`, border: `1px solid ${item.color}30` }}>
                       <item.icon size={22} color={item.color} />
@@ -258,42 +267,44 @@ function FeatureSlider() {
                   </div>
                   <p className="text-white/40 text-sm sm:text-base leading-relaxed break-keep">{item.desc}</p>
                 </div>
-                
+
                 {/* Content Mockup */}
-                <div className="flex-1 p-6 sm:p-8 flex flex-col relative bg-[#05050A]/40 overflow-hidden">
-                   {/* Blur overlay for inactive cards */}
-                   {offset !== 0 && (
-                     <div className="absolute inset-0 z-10 bg-[#0A0A14]/40 backdrop-blur-[2px]" />
-                   )}
-                   {item.content}
+                <div
+                  className="flex-1 flex flex-col relative overflow-hidden"
+                  style={{ padding: isDesktop ? '2rem' : '1.5rem', background: 'rgba(5,5,10,0.4)' }}
+                >
+                  {offset !== 0 && (
+                    <div className="absolute inset-0 z-10 bg-[#0A0A14]/40 backdrop-blur-[2px]" />
+                  )}
+                  {item.content}
                 </div>
               </div>
             </div>
           )
         })}
       </div>
-      
+
       {/* Navigation Controls */}
       <div className="flex items-center gap-6 mt-6 sm:mt-10">
-        <button 
-          onClick={() => setActive(Math.max(0, active - 1))} 
-          className="p-4 rounded-full bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.1] transition-all disabled:opacity-30 disabled:hover:bg-white/[0.03]" 
+        <button
+          onClick={() => setActive(Math.max(0, active - 1))}
+          className="p-4 rounded-full bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.1] transition-all disabled:opacity-30 disabled:hover:bg-white/[0.03]"
           disabled={active === 0}
         >
           <ChevronLeft size={20} className="text-white/70" />
         </button>
         <div className="flex gap-3">
           {items.map((_, i) => (
-             <div 
-               key={i} 
-               className={`h-2.5 rounded-full transition-all duration-500 cursor-pointer ${i === active ? 'w-10 bg-white' : 'w-2.5 bg-white/20 hover:bg-white/40'}`} 
-               onClick={() => setActive(i)}
-             />
+            <div
+              key={i}
+              className={`h-2.5 rounded-full transition-all duration-500 cursor-pointer ${i === active ? 'w-10 bg-white' : 'w-2.5 bg-white/20 hover:bg-white/40'}`}
+              onClick={() => setActive(i)}
+            />
           ))}
         </div>
-        <button 
-          onClick={() => setActive(Math.min(items.length - 1, active + 1))} 
-          className="p-4 rounded-full bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.1] transition-all disabled:opacity-30 disabled:hover:bg-white/[0.03]" 
+        <button
+          onClick={() => setActive(Math.min(items.length - 1, active + 1))}
+          className="p-4 rounded-full bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-white/[0.1] transition-all disabled:opacity-30 disabled:hover:bg-white/[0.03]"
           disabled={active === items.length - 1}
         >
           <ChevronRight size={20} className="text-white/70" />
@@ -303,37 +314,134 @@ function FeatureSlider() {
   )
 }
 
+/* ─── Pain Point Slider ─── */
+function PainPointSlider() {
+  const [active, setActive] = useState(0)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const cards = [
+    {
+      emoji: '😰',
+      q: '결혼식까지 6개월도 안 남았는데 뭐부터 해야 할지 모르겠어요.',
+      a: 'D-Day 기반 맞춤 체크리스트 자동 생성',
+      color: '#A78BFA',
+    },
+    {
+      emoji: '💑',
+      q: '파트너와 준비 현황을 실시간으로 같이 보고 싶어요.',
+      a: '초대 코드 하나로 모든 정보 커플 공유',
+      color: '#F9A8D4',
+    },
+    {
+      emoji: '🏛️',
+      q: '어떤 웨딩홀, 스튜디오를 골라야 할지 막막해요.',
+      a: 'AI가 위치·예산·스타일 기반으로 추천',
+      color: '#60A5FA',
+    },
+  ]
+
+  const cardW = isDesktop ? 400 : 280
+  const cardH = isDesktop ? 260 : 220
+  const spacing = isDesktop ? 420 : 300
+
+  return (
+    <section className="py-24 bg-[#07070F] overflow-hidden" id="stories">
+      <div className="max-w-[1400px] mx-auto flex flex-col items-center">
+        <div className="text-center mb-6 sm:mb-12 px-5">
+          <span className="inline-block text-[10px] font-bold tracking-[3px] text-[#A78BFA] uppercase mb-4 px-4 py-1.5 rounded-full bg-[#A78BFA]/10 border border-[#A78BFA]/20">
+            이런 커플에게 딱
+          </span>
+          <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">이런 고민, 있으신가요?</h2>
+        </div>
+
+        {/* Slider */}
+        <div className="w-full flex flex-col items-center select-none">
+          <div
+            className="relative w-full flex justify-center items-center"
+            style={{ height: cardH + 60 }}
+          >
+            {cards.map((card, i) => {
+              const offset = i - active
+              const absOffset = Math.abs(offset)
+              const zIndex = 10 - absOffset
+              const scale = 1 - absOffset * 0.1
+              const cardOpacity = absOffset >= 2 ? 0 : (1 - absOffset * 0.45)
+              const tx = offset * spacing
+
+              return (
+                <div
+                  key={i}
+                  onClick={() => absOffset < 2 && setActive(i)}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: cardW,
+                    height: cardH,
+                    zIndex,
+                    opacity: cardOpacity,
+                    transform: `translate(-50%, -50%) translateX(${tx}px) scale(${scale})`,
+                    transition: 'all 0.7s cubic-bezier(0.16,1,0.3,1)',
+                    pointerEvents: absOffset < 2 ? 'auto' : 'none',
+                    cursor: absOffset < 2 ? 'pointer' : 'default',
+                  }}
+                >
+                  <div
+                    className="w-full h-full rounded-[2rem] flex flex-col justify-between backdrop-blur-md overflow-hidden"
+                    style={{
+                      padding: isDesktop ? '2rem' : '1.5rem',
+                      background: offset === 0
+                        ? `linear-gradient(145deg, ${card.color}18 0%, rgba(7,7,15,0.9) 100%)`
+                        : 'rgba(255,255,255,0.02)',
+                      border: '1px solid',
+                      borderColor: offset === 0 ? `${card.color}35` : 'rgba(255,255,255,0.05)',
+                      boxShadow: offset === 0 ? `0 16px 48px ${card.color}12` : 'none',
+                    }}
+                  >
+                    <div>
+                      <span className="text-4xl block mb-4">{card.emoji}</span>
+                      <p className="text-white/55 text-sm sm:text-base leading-relaxed">&ldquo;{card.q}&rdquo;</p>
+                    </div>
+                    <div className="flex items-start gap-2.5 pt-4 border-t border-white/[0.06]">
+                      <Zap size={13} className="mt-0.5 flex-shrink-0" style={{ color: card.color }} />
+                      <span className="text-sm font-semibold leading-relaxed" style={{ color: card.color }}>{card.a}</span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Dots */}
+          <div className="flex gap-3 mt-4">
+            {cards.map((_, i) => (
+              <div
+                key={i}
+                className={`h-2.5 rounded-full transition-all duration-500 cursor-pointer ${i === active ? 'w-10 bg-white' : 'w-2.5 bg-white/20 hover:bg-white/40'}`}
+                onClick={() => setActive(i)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+
 /* ─── Main Page ─── */
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [aurora, setAurora] = useState({ x: 40, y: 40 })
   const heroRef = useRef<HTMLElement>(null)
-
-  // Drag-to-scroll (Pain Points 카드)
-  const sliderRef = useRef<HTMLDivElement>(null)
-  const drag = useRef({ active: false, startX: 0, scrollLeft: 0 })
-
-  const onDragStart = (e: React.MouseEvent) => {
-    if (!sliderRef.current) return
-    drag.current = { active: true, startX: e.pageX - sliderRef.current.offsetLeft, scrollLeft: sliderRef.current.scrollLeft }
-    sliderRef.current.style.cursor = 'grabbing'
-    sliderRef.current.style.userSelect = 'none'
-  }
-
-  const onDragMove = (e: React.MouseEvent) => {
-    if (!drag.current.active || !sliderRef.current) return
-    e.preventDefault()
-    const x = e.pageX - sliderRef.current.offsetLeft
-    sliderRef.current.scrollLeft = drag.current.scrollLeft - (x - drag.current.startX) * 1.4
-  }
-
-  const onDragEnd = () => {
-    drag.current.active = false
-    if (!sliderRef.current) return
-    sliderRef.current.style.cursor = 'grab'
-    sliderRef.current.style.userSelect = ''
-  }
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -400,19 +508,20 @@ export default function LandingPage() {
 
           {/* Badge */}
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] text-[#D4A373] text-xs font-semibold mb-8 tracking-widest backdrop-blur-sm">
-            <Sparkles size={11} /> AI 웨딩 플래너
+            <Sparkles size={11} /> Wedding Planner
           </span>
 
           {/* Headline */}
           <h1 className="text-[clamp(2.4rem,5.8vw,4.4rem)] font-bold text-white leading-[1.16] mb-5 tracking-[-1.5px]">
-            결혼 준비, 이제<br />
+            결혼 준비의 모든 것,<br />
             <span className="bg-gradient-to-r from-[#D4A373] via-[#EDD5A3] to-[#A78BFA] bg-clip-text text-transparent">
-              AI가 함께합니다
+              Wepln 하나로
             </span>
           </h1>
 
-          <p className="text-white/45 text-base sm:text-lg mb-10 leading-relaxed">
-            일정·예산·업체·체크리스트를 커플이 함께, 한 곳에서.
+          <p className="text-white/45 text-base sm:text-lg mb-10 leading-relaxed max-w-md mx-auto break-keep">
+            일정, 예산, 체크리스트, 업체 추천까지<br />
+            커플이 함께 관리하는 올인원 웨딩 플래너
           </p>
 
           {/* CTA Buttons */}
@@ -492,7 +601,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-            {/* ══════════════════════════════════
+      {/* ══════════════════════════════════
           SLIDER FEATURES
       ══════════════════════════════════ */}
       <section className="py-24 sm:py-32 px-5 bg-[#0A0A14] overflow-hidden" id="features">
@@ -503,9 +612,9 @@ export default function LandingPage() {
               Features
             </span>
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-              결혼 준비의 모든 것,<br className="sm:hidden" /> Wepln 하나로
+              어떤 기능이 있나요?
             </h2>
-            <p className="text-white/40 text-sm md:text-base break-keep">어렵고 막막한 결혼 준비, 슬라이드로 기능을 먼저 살펴보세요.</p>
+            <p className="text-white/40 text-sm md:text-base break-keep">Wepln이 제공하는 핵심 기능을 살펴보세요.</p>
           </div>
 
           <FeatureSlider />
@@ -516,69 +625,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════
           PAIN POINTS — 이런 고민, 있으신가요?
       ══════════════════════════════════ */}
-      <section className="py-24 bg-[#07070F]" id="stories">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12 px-5">
-            <span className="inline-block text-[10px] font-bold tracking-[3px] text-[#A78BFA] uppercase mb-4 px-4 py-1.5 rounded-full bg-[#A78BFA]/10 border border-[#A78BFA]/20">
-              이런 커플에게 딱
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">이런 고민, 있으신가요?</h2>
-          </div>
-
-          {/* Horizontal scroll — drag & snap */}
-          <div
-            ref={sliderRef}
-            className="flex gap-4 overflow-x-auto pb-5 scrollbar-hidden snap-x snap-mandatory px-5 select-none"
-            style={{ cursor: 'grab', scrollBehavior: 'auto' }}
-            onMouseDown={onDragStart}
-            onMouseMove={onDragMove}
-            onMouseUp={onDragEnd}
-            onMouseLeave={onDragEnd}
-          >
-            {[
-              {
-                emoji: '😰',
-                q: '결혼식까지 6개월도 안 남았는데 뭐부터 해야 할지 모르겠어요.',
-                a: 'D-Day 기반 맞춤 체크리스트 자동 생성',
-                c: '#A78BFA',
-              },
-              {
-                emoji: '💸',
-                q: '예산을 항목별로 어떻게 나눠야 할지 감이 안 와요.',
-                a: 'AI가 예산 배분 플랜을 자동으로 설계',
-                c: '#D4A373',
-              },
-              {
-                emoji: '💑',
-                q: '파트너와 준비 현황을 실시간으로 같이 보고 싶어요.',
-                a: '초대 코드 하나로 모든 정보 커플 공유',
-                c: '#F9A8D4',
-              },
-              {
-                emoji: '🏛️',
-                q: '어떤 웨딩홀, 스튜디오를 골라야 할지 막막해요.',
-                a: 'AI가 위치·예산·스타일 기반으로 추천',
-                c: '#60A5FA',
-              },
-            ].map((card, i) => (
-              <div
-                key={i}
-                className="flex-none w-[270px] sm:w-[295px] snap-start rounded-2xl border border-white/[0.07] p-6 flex flex-col gap-4 pointer-events-none"
-                style={{
-                  background: `linear-gradient(145deg, ${card.c}12 0%, rgba(7,7,15,0.85) 100%)`,
-                }}
-              >
-                <span className="text-4xl">{card.emoji}</span>
-                <p className="text-white/52 text-sm leading-relaxed flex-1">"{card.q}"</p>
-                <div className="flex items-start gap-2 pt-4 border-t border-white/[0.06]">
-                  <Zap size={11} className="mt-0.5 flex-shrink-0" style={{ color: card.c }} />
-                  <span className="text-xs font-semibold leading-relaxed" style={{ color: card.c }}>{card.a}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PainPointSlider />
 
       {/* ══════════════════════════════════
           HOW IT WORKS
@@ -600,7 +647,7 @@ export default function LandingPage() {
                 {
                   n: '01',
                   title: '가입 & 날짜 설정',
-                  desc: '결혼 예정일, 예산, 스타일을 입력하면 AI가 맞춤 준비 플랜을 자동으로 만들어드려요.',
+                  desc: '결혼 예정일과 예산을 입력하면 D-Day 기반 체크리스트가 자동으로 생성돼요.',
                   c: '#A78BFA',
                 },
                 {
@@ -611,8 +658,8 @@ export default function LandingPage() {
                 },
                 {
                   n: '03',
-                  title: 'AI와 함께 준비 완료',
-                  desc: '업체 추천부터 예산 배분, 일정 관리까지 — AI가 옆에서 빠짐없이 도와드려요.',
+                  title: '함께 준비 완료',
+                  desc: 'AI 장소 추천, 일정 관리, 예산 추적까지 — Wepln에서 빠짐없이 챙겨드려요.',
                   c: '#60A5FA',
                 },
               ].map((step, i) => (
@@ -659,8 +706,8 @@ export default function LandingPage() {
               결혼 준비가 달라집니다
             </span>
           </h2>
-          <p className="text-white/32 mb-10 leading-relaxed text-sm">
-            AI가 설계하고, 커플이 함께 만들어가는<br />새로운 웨딩 플래너를 경험해보세요.
+          <p className="text-white/32 mb-10 leading-relaxed text-sm break-keep">
+            복잡한 결혼 준비, Wepln과 함께라면<br />체계적이고 즐거운 여정이 됩니다.
           </p>
           <Link
             href="/login"

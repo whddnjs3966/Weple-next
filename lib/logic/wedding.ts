@@ -29,7 +29,7 @@ export function getDDayActions(dDay: number): DDayAction[] {
         ]
     } else if (dDay > 90) {
         return [
-            { title: "스드메 예약", desc: "스튜디오, 드레스, 메이크업 업체를 선정하세요.", icon: "bi-camera" },
+            { title: "스드메 예약", desc: "스튜디오, 드레스, 메이크업 장소를 선정하세요.", icon: "bi-camera" },
             { title: "신혼여행 예약", desc: "항공권과 숙소를 미리 예약하세요.", icon: "bi-airplane" },
             { title: "예물/예단 준비", desc: "예산에 맞춰 예물과 예단을 준비하세요.", icon: "bi-gem" },
         ]

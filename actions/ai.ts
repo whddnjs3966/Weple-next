@@ -43,17 +43,17 @@ async function getAIModel() {
     return null
 }
 
-export type AiVendorRec = {
+export type AiPlaceRec = {
     name: string
     reason: string
     priceRange: string
 }
 
-export async function recommendVendorsWithFilters(
+export async function recommendPlacesWithFilters(
     category: string,
     filters: Record<string, string>,
     sido: string = '서울',
-): Promise<{ recommendations: AiVendorRec[], error?: string }> {
+): Promise<{ recommendations: AiPlaceRec[], error?: string }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { recommendations: [], error: 'Unauthorized' }
@@ -66,12 +66,12 @@ export async function recommendVendorsWithFilters(
         .join('\n')
 
     const prompt = `당신은 한국 웨딩 전문가입니다.
-다음 조건에 맞는 ${sido} 지역의 ${categoryName} 업체 3곳을 추천해주세요:
+다음 조건에 맞는 ${sido} 지역의 ${categoryName} 장소 3곳을 추천해주세요:
 ${filterLines || '- 조건 미선택 (일반 추천)'}
 
-실제 존재하는 유명한 업체를 추천하고 특징을 간결하게 설명해주세요.
+실제 존재하는 유명한 장소를 추천하고 특징을 간결하게 설명해주세요.
 반드시 다음 JSON 배열 형식으로만 응답하세요 (다른 텍스트 없이):
-[{"name":"업체명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대"}]`
+[{"name":"장소명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대"}]`
 
     try {
         const model = await getAIModel()
@@ -89,12 +89,12 @@ ${filterLines || '- 조건 미선택 (일반 추천)'}
         return { recommendations: JSON.parse(jsonMatch[0]) }
     } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : String(error)
-        console.error('AI vendor recommendation error:', msg)
+        console.error('AI place recommendation error:', msg)
         return { error: `AI 추천 생성에 실패했습니다: ${msg}`, recommendations: [] }
     }
 }
 
-export async function recommendVendors(category: string): Promise<{ recommendations: AiVendorRec[], error?: string }> {
+export async function recommendPlaces(category: string): Promise<{ recommendations: AiPlaceRec[], error?: string }> {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { recommendations: [], error: 'Unauthorized' }
@@ -113,14 +113,14 @@ export async function recommendVendors(category: string): Promise<{ recommendati
     const categoryName = CATEGORY_NAMES[category] || category
 
     const prompt = `당신은 한국 웨딩 전문가입니다.
-다음 조건의 커플에게 ${categoryName} 업체 3곳을 추천해주세요:
+다음 조건의 커플에게 ${categoryName} 장소 3곳을 추천해주세요:
 - 위치: ${location}
 - 총 예산: ${budget.toLocaleString()}만원
 - 웨딩 스타일: ${style}
 
-실제 존재하는 유명한 업체를 추천하고 특징을 간결하게 설명해주세요.
+실제 존재하는 유명한 장소를 추천하고 특징을 간결하게 설명해주세요.
 반드시 다음 JSON 배열 형식으로만 응답하세요 (다른 텍스트 없이):
-[{"name":"업체명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대 (예: 500~700만원)"}]`
+[{"name":"장소명","reason":"추천 이유 1-2줄","priceRange":"예상 가격대 (예: 500~700만원)"}]`
 
     try {
         const model = await getAIModel()
@@ -137,11 +137,11 @@ export async function recommendVendors(category: string): Promise<{ recommendati
         const jsonMatch = text.match(/\[[\s\S]*\]/)
         if (!jsonMatch) return { recommendations: [] }
 
-        const recommendations: AiVendorRec[] = JSON.parse(jsonMatch[0])
+        const recommendations: AiPlaceRec[] = JSON.parse(jsonMatch[0])
         return { recommendations }
     } catch (error: unknown) {
         const msg = error instanceof Error ? error.message : String(error)
-        console.error('AI vendor recommendation error:', msg)
+        console.error('AI place recommendation error:', msg)
         return { error: `AI 추천 생성에 실패했습니다: ${msg}`, recommendations: [] }
     }
 }
@@ -181,7 +181,7 @@ export async function generateWeddingPlan(planData: WeddingPlanData) {
 
     if (planData.styles.includes('Dark')) {
         styleTasks.push({ title: '어두운 홀 투어 (조명/음향 체크)', d_day: 200 })
-        styleTasks.push({ title: '캔들/플라워 데코레이션 업체 선정', d_day: 150 })
+        styleTasks.push({ title: '캔들/플라워 데코레이션 장소 선정', d_day: 150 })
     }
     if (planData.styles.includes('Garden')) {
         styleTasks.push({ title: '야외 웨딩 베뉴 투어 (우천 대비 확인)', d_day: 200 })

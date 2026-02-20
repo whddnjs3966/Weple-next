@@ -23,7 +23,7 @@ export default function DashboardNavbar({ user, weddingDate, inviteCode }: Dashb
                     <div className="flex items-center gap-1">
                         <Link href="/schedule" className="px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-xs font-bold transition-all">Schedule</Link>
                         <Link href="/checklist" className="px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-xs font-bold transition-all">Checklist</Link>
-                        <Link href="/vendors" className="px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-xs font-bold transition-all">Vendor</Link>
+                        <Link href="/places" className="px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-xs font-bold transition-all">Place</Link>
                         <Link href="/community" className="px-4 py-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 text-xs font-bold transition-all">Community</Link>
                     </div>
 

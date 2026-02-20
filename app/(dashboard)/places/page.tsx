@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getUserVendors } from '@/actions/user-vendors'
-import VendorClient from '@/components/vendors/VendorClient'
+import { getUserPlaces } from '@/actions/user-places'
+import PlaceClient from '@/components/places/PlaceClient'
 
-export default async function VendorPage() {
+export default async function PlacePage() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
@@ -14,11 +14,11 @@ export default async function VendorPage() {
         .eq('id', user.id)
         .single()
 
-    const userVendors = await getUserVendors()
+    const userPlaces = await getUserPlaces()
 
     return (
-        <VendorClient
-            initialVendors={userVendors}
+        <PlaceClient
+            initialPlaces={userPlaces}
             defaultSido={profile?.region_sido || '서울'}
             defaultSigungu={profile?.region_sigungu || ''}
             budgetMax={profile?.budget_max || 3000}

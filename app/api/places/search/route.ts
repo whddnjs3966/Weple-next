@@ -14,7 +14,7 @@ const CATEGORY_QUERIES: Record<string, string[]> = {
 }
 
 // 네이버 category 필드 기반 필터링 키워드
-// 검색 결과 중 해당 카테고리에 맞지 않는 업체를 걸러냄
+// 검색 결과 중 해당 카테고리에 맞지 않는 장소를 걸러냄
 const CATEGORY_FILTERS: Record<string, string[]> = {
     'wedding-hall': ['웨딩', '예식', '컨벤션', '호텔', '연회', '홀', '채플', '결혼'],
     'studio': ['사진', '스튜디오', '촬영', '영상', '포토', '웨딩'],
@@ -113,9 +113,9 @@ export async function GET(request: NextRequest) {
 
     const primaryQuery = `${region} ${keywords[0]}`
 
-    console.log(`[vendor-search] category="${category}" region="${region}" | 키워드 ${keywords.length}개 × 3페이지 | 전체: ${allItems.length}건`)
+    console.log(`[place-search] category="${category}" region="${region}" | 키워드 ${keywords.length}개 × 3페이지 | 전체: ${allItems.length}건`)
 
-    // 중복 제거 (업체명 기준)
+    // 중복 제거 (장소명 기준)
     const seen = new Set<string>()
     const unique = allItems.filter(item => {
         const t = stripHtml(item.title)
@@ -124,9 +124,9 @@ export async function GET(request: NextRequest) {
         return true
     })
 
-    console.log(`[vendor-search] 중복 제거 후: ${unique.length}건`)
+    console.log(`[place-search] 중복 제거 후: ${unique.length}건`)
 
-    // 카테고리 관련성 필터링: 네이버 category 필드 + 업체명 + 설명에서 관련 키워드 확인
+    // 카테고리 관련성 필터링: 네이버 category 필드 + 장소명 + 설명에서 관련 키워드 확인
     const filtered = filterKeywords.length > 0
         ? unique.filter(item => {
             const cat = item.category.toLowerCase()
@@ -138,10 +138,10 @@ export async function GET(request: NextRequest) {
         })
         : unique
 
-    console.log(`[vendor-search] 카테고리 필터 후: ${filtered.length}건`)
+    console.log(`[place-search] 카테고리 필터 후: ${filtered.length}건`)
 
     // 결과 셔플 → 매번 다른 순서로 표시
-    const vendors = shuffle(filtered).map(item => ({
+    const places = shuffle(filtered).map(item => ({
         title: stripHtml(item.title),
         address: item.address,
         roadAddress: item.roadAddress,
@@ -153,5 +153,5 @@ export async function GET(request: NextRequest) {
         mapy: item.mapy,
     }))
 
-    return NextResponse.json({ vendors, query: primaryQuery })
+    return NextResponse.json({ places, query: primaryQuery })
 }
