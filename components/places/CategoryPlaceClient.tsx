@@ -67,6 +67,7 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
     // 신규 모드
     const [searchMode, setSearchMode] = useState<'choice' | 'direct' | 'ai'>('choice')
     const [directQuery, setDirectQuery] = useState('')
+    const [directRegion, setDirectRegion] = useState('')
     const [searchingDirect, setSearchingDirect] = useState(false)
 
     // ── 위자드 네비게이션 ──────────────────────────────
@@ -149,6 +150,7 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
     const resetWizard = () => {
         setSearchMode('choice')
         setDirectQuery('')
+        setDirectRegion('')
         setSearchingDirect(false)
         setSearched(false)
         setShowSummary(false)
@@ -162,40 +164,27 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
 
     const handleDirectSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault()
-        if (!directQuery.trim()) return
+        if (!directQuery.trim() || !directRegion) return
 
         setSearchingDirect(true)
         setNaverError(null)
+        setSearched(true)
+        setNaverResults([])
 
         try {
-            const res = await fetch(`/api/places/direct?query=${encodeURIComponent(directQuery)}`)
+            const res = await fetch(`/api/places/direct?query=${encodeURIComponent(directQuery)}&region=${encodeURIComponent(directRegion)}&category=${slug}`)
             const data = await res.json()
 
             if (data.error) {
                 setNaverError(data.error)
-                setSearchingDirect(false)
-                return
+            } else if (!data.places || data.places.length === 0) {
+                setNaverError('해당 지역에 검색어와 일치하는 결과가 없습니다.')
+            } else {
+                setNaverResults(data.places)
             }
-
-            if (!data.places || data.places.length === 0) {
-                setNaverError('검색 결과가 없습니다. 다른 검색어를 입력해주세요.')
-                setSearchingDirect(false)
-                return
-            }
-
-            const place = data.places[0]
-            const detailParams = new URLSearchParams({
-                name: place.title,
-                address: place.roadAddress || place.address || '',
-                phone: place.telephone || '',
-                link: place.link || '',
-                mapx: place.mapx || '',
-                mapy: place.mapy || '',
-            }).toString()
-
-            router.push(`/places/category/${slug}/detail?${detailParams}`)
         } catch (error) {
             setNaverError('검색 중 오류가 발생했습니다.')
+        } finally {
             setSearchingDirect(false)
         }
     }
@@ -267,29 +256,43 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
             )}
 
             {/* ── 직접 검색 화면 ── */}
-            {searchMode === 'direct' && (
+            {searchMode === 'direct' && !searched && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] py-12 px-6 sm:px-12 mb-8 text-center max-w-2xl mx-auto">
                     <h3 className="text-2xl font-bold text-gray-800 mb-3">업체명 직접 검색하기</h3>
-                    <p className="text-sm text-gray-500 mb-8 font-medium">찾으시는 업체의 이름을 정확하게 검색해주시면 바로 상세 정보로 넘어갑니다.</p>
+                    <p className="text-sm text-gray-500 mb-8 font-medium">지역을 선택하고 찾으시는 업체의 이름을 정확하게 검색해주세요.</p>
 
-                    <form onSubmit={handleDirectSearch} className="flex flex-col sm:flex-row gap-3">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                type="text"
-                                placeholder={`예) 노마하우스 스튜디오`}
-                                value={directQuery}
-                                onChange={e => setDirectQuery(e.target.value)}
-                                className="w-full pl-11 pr-4 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-pink-300 focus:bg-white transition-all outline-none font-medium text-gray-800 text-base"
-                            />
+                    <form onSubmit={handleDirectSearch} className="flex flex-col gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <select
+                                value={directRegion}
+                                onChange={e => setDirectRegion(e.target.value)}
+                                className="sm:w-36 pl-4 pr-8 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-pink-300 focus:bg-white transition-all outline-none font-medium text-gray-800 text-base appearance-none cursor-pointer"
+                                required
+                            >
+                                <option value="" disabled>지역 선택</option>
+                                {CITIES.map(city => (
+                                    <option key={city} value={city}>{city}</option>
+                                ))}
+                            </select>
+                            <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                <input
+                                    type="text"
+                                    placeholder={`예) 노마하우스 스튜디오`}
+                                    value={directQuery}
+                                    onChange={e => setDirectQuery(e.target.value)}
+                                    className="w-full pl-11 pr-4 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-pink-300 focus:bg-white transition-all outline-none font-medium text-gray-800 text-base"
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={searchingDirect || !directQuery.trim() || !directRegion}
+                                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-2 justify-center hover:shadow-lg hover:shadow-pink-300/50 hover:-translate-y-0.5 transition-all text-base"
+                            >
+                                {searchingDirect ? <Loader2 size={18} className="animate-spin" /> : '검색'}
+                            </button>
                         </div>
-                        <button
-                            type="submit"
-                            disabled={searchingDirect || !directQuery.trim()}
-                            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-2 justify-center hover:shadow-lg hover:shadow-pink-300/50 hover:-translate-y-0.5 transition-all text-base"
-                        >
-                            {searchingDirect ? <Loader2 size={18} className="animate-spin" /> : '검색 및 보기'}
-                        </button>
                     </form>
 
                     {naverError && (
@@ -478,30 +481,37 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
             )}
 
             {/* ── 검색 조건 요약 바 ── */}
-            {searchMode === 'ai' && searched && (
+            {searched && (
                 <div className="bg-white/80 backdrop-blur-md border border-pink-100 rounded-2xl p-5 mb-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
-                        <span className="text-[11px] font-extrabold text-pink-500 uppercase tracking-widest shrink-0 mr-2 bg-pink-50 px-2 py-1 rounded-md">검색 조건</span>
-                        <span className="text-sm text-pink-600 font-bold bg-white px-4 py-1.5 rounded-full border border-pink-200 shadow-sm">
-                            {sido || '서울'}
+                        <span className="text-[11px] font-extrabold text-pink-500 uppercase tracking-widest shrink-0 mr-2 bg-pink-50 px-2 py-1 rounded-md">
+                            {searchMode === 'direct' ? '직접 검색' : '검색 조건'}
                         </span>
-                        {Object.entries(selectedFilters).filter(([, v]) => v).map(([k, v]) => (
+                        <span className="text-sm text-pink-600 font-bold bg-white px-4 py-1.5 rounded-full border border-pink-200 shadow-sm">
+                            {searchMode === 'direct' ? directRegion : (sido || '서울')}
+                        </span>
+                        {searchMode === 'direct' && (
+                            <span className="text-sm text-gray-700 font-bold bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200 shadow-sm">
+                                {directQuery}
+                            </span>
+                        )}
+                        {searchMode === 'ai' && Object.entries(selectedFilters).filter(([, v]) => v).map(([k, v]) => (
                             <span key={k} className="text-sm text-gray-700 font-bold bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200 shadow-sm">
                                 {v}
                             </span>
                         ))}
                     </div>
                     <button
-                        onClick={resetWizard}
+                        onClick={searchMode === 'direct' ? () => { setSearched(false); setNaverResults([]); setNaverError(null); } : resetWizard}
                         className="text-xs font-bold text-gray-500 hover:text-pink-600 bg-white border border-gray-200 hover:border-pink-200 px-4 py-2 rounded-full shrink-0 transition-all hover:shadow-sm"
                     >
-                        다시 검색
+                        {searchMode === 'direct' ? '다시 검색' : '처음부터 다시'}
                     </button>
                 </div>
             )}
 
             {/* ── 검색 결과 ── */}
-            {searchMode === 'ai' && searched && (
+            {searched && (
                 <section>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm font-extrabold text-[#03C75A] leading-none">N</span>
