@@ -39,6 +39,15 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Validation: Prevent users from changing their name TO "관리자"
+        // But allow if their current name IS ALREADY "관리자" (they are just saving other settings)
+        const currentName = user?.user_metadata?.first_name || user?.email?.split('@')[0] || '';
+        if (firstName.trim() === '관리자' && currentName !== '관리자') {
+            alert("'관리자'라는 닉네임은 사용할 수 없습니다.");
+            return;
+        }
+
         setLoading(true)
 
         const formData = new FormData()
@@ -112,7 +121,7 @@ export default function SettingsModal({ isOpen, onClose, user, weddingDate, invi
                                         type="text"
                                         value={firstName}
                                         onChange={(e) => setFirstName(e.target.value)}
-                                        className="w-full bg-rose-50/30 border-2 border-rose-100 rounded-xl px-4 py-3 text-rose-900 outline-none focus:bg-white focus:border-rose-400 transition-all"
+                                        className="w-full bg-rose-50/30 border-2 border-rose-100 rounded-xl px-4 py-3 text-rose-900 outline-none transition-all focus:bg-white focus:border-rose-400"
                                         placeholder="닉네임을 입력하세요"
                                     />
                                 </div>

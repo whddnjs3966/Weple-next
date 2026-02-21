@@ -14,7 +14,7 @@ const CATEGORIES = [
     { code: 'TIP', name: '꿀팁' },
 ]
 
-export default function WritePostForm() {
+export default function WritePostForm({ role }: { role?: string }) {
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
     const [category, setCategory] = useState('FREE')
@@ -67,7 +67,7 @@ export default function WritePostForm() {
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-gray-600 block pl-1">카테고리</label>
                         <div className="flex flex-wrap gap-2">
-                            {CATEGORIES.map((cat) => (
+                            {(role === 'admin' ? [{ code: 'NOTICE', name: '공지사항' }, ...CATEGORIES] : CATEGORIES).map((cat) => (
                                 <button
                                     key={cat.code}
                                     type="button"

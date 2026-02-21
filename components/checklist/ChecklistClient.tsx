@@ -1,11 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, AlertCircle, Calendar, X, Save } from 'lucide-react'
 import { format } from 'date-fns'
+import { useRouter } from 'next/navigation'
 import { useSchedule } from '@/contexts/ScheduleContext'
+import { Database } from '@/lib/types/database.types'
+import { seedDefaultTasks, toggleTaskCompletion, updateTaskBudget, updateTaskDate, deleteTasks } from '@/actions/checklist'
+import AddTaskModal from './AddTaskModal'
 
+type DbTask = Database['public']['Tables']['tasks']['Row']
+
+// We keep defaultTasks local. If initialTasks is empty, we show these.
 interface Task {
     id: string
     title: string
@@ -54,13 +61,58 @@ const defaultTasks: Task[] = [
     { id: 'c35', title: '결혼식 당일 🎉', description: '축하합니다! 행복한 하루 보내세요!', dDayOffset: 0, estimatedBudget: 0, scheduledDate: null, isDone: false },
 ]
 
-export default function ChecklistClient() {
-    const [tasks, setTasks] = useState<Task[]>(defaultTasks)
+export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask[] }) {
+    // Map DB tasks to local format. If empty, maybe show empty or defaults? For now, map DB.
+    const mappedTasks: Task[] = initialTasks.map(t => ({
+        id: t.id,
+        title: t.title,
+        description: t.description || undefined,
+        dDayOffset: t.d_day || 0,
+        estimatedBudget: t.estimated_budget || 0,
+        scheduledDate: t.due_date,
+        isDone: t.is_completed || false,
+    }))
+
+    // We no longer fallback to defaultTasks. Let them be empty and show a seed button.
+    const router = useRouter()
+    const [tasks, setTasks] = useState<Task[]>(mappedTasks)
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
     const [isDateModalOpen, setIsDateModalOpen] = useState(false)
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [isSeeding, setIsSeeding] = useState(false)
     const [dateModalTaskId, setDateModalTaskId] = useState<string | null>(null)
     const [dateInput, setDateInput] = useState('')
     const [selectAll, setSelectAll] = useState(false)
+
+    // Sync local state when server gives new initialTasks (e.g., after revalidatePath)
+    useEffect(() => {
+        setTasks(initialTasks.map(t => ({
+            id: t.id,
+            title: t.title,
+            description: t.description || undefined,
+            dDayOffset: t.d_day || 0,
+            estimatedBudget: t.estimated_budget || 0,
+            scheduledDate: t.due_date,
+            isDone: t.is_completed || false,
+        })))
+    }, [initialTasks])
+
+    const handleSeedDefault = async () => {
+        setIsSeeding(true)
+        const dbReadyTasks = defaultTasks.map(t => ({
+            title: t.title,
+            description: t.description,
+            d_day: t.dDayOffset,
+            estimated_budget: t.estimatedBudget
+        }))
+        const result = await seedDefaultTasks(dbReadyTasks)
+        setIsSeeding(false)
+        if (result?.error) {
+            alert('기본 체크리스트를 불러오는 중 오류가 발생했습니다.')
+        } else {
+            router.refresh()
+        }
+    }
 
     const { addEvent, events } = useSchedule()
 
@@ -71,8 +123,14 @@ export default function ChecklistClient() {
     // Schedule tab events that are of type 'schedule' should also show here
     const scheduleEvents = events.filter(e => e.type === 'schedule')
 
-    const toggleStatus = (id: string) => {
+    const toggleStatus = async (id: string) => {
+        const task = tasks.find(t => t.id === id)
+        if (!task) return
         setTasks(tasks.map(t => t.id === id ? { ...t, isDone: !t.isDone } : t))
+
+        if (mappedTasks.find(t => t.id === id)) {
+            await toggleTaskCompletion(id, !task.isDone)
+        }
     }
 
     const toggleSelect = (id: string) => {
@@ -93,12 +151,27 @@ export default function ChecklistClient() {
         }
     }
 
-    const deleteSelected = () => {
+    const deleteSelected = async () => {
         if (selectedIds.size === 0) return
         if (confirm(`${selectedIds.size}개 항목을 삭제하시겠습니까?`)) {
-            setTasks(tasks.filter(t => !selectedIds.has(t.id)))
+            const idsToDelete = Array.from(selectedIds)
+
+            // Optimistic Update: instantly hide deleted items from UI
+            setTasks(prev => prev.filter(t => !selectedIds.has(t.id)))
             setSelectedIds(new Set())
             setSelectAll(false)
+
+            // Delete from DB only if they are real tasks
+            const realIds = idsToDelete.filter(id => !id.startsWith('c'))
+            if (realIds.length > 0) {
+                const res = await deleteTasks(realIds)
+                if (res?.error) {
+                    console.error('Failed to delete tasks:', res.error)
+                    alert('삭제에 실패했습니다.')
+                } else {
+                    router.refresh() // Trigger a re-fetch of initialTasks
+                }
+            }
         }
     }
 
@@ -107,11 +180,12 @@ export default function ChecklistClient() {
         setTasks(tasks.map(t => t.id === id ? { ...t, estimatedBudget: numValue } : t))
     }
 
-    const saveBudget = (id: string) => {
+    const saveBudget = async (id: string) => {
         const task = tasks.find(t => t.id === id)
         if (task) {
-            console.log(`예산 저장: ${task.title} → ${task.estimatedBudget.toLocaleString()}₩`)
-            // TODO: Supabase에 저장
+            if (!id.startsWith('c')) {
+                await updateTaskBudget(id, task.estimatedBudget)
+            }
         }
     }
 
@@ -122,13 +196,17 @@ export default function ChecklistClient() {
         setIsDateModalOpen(true)
     }
 
-    const handleScheduleDate = () => {
+    const handleScheduleDate = async () => {
         if (!dateModalTaskId || !dateInput) return
         const task = tasks.find(t => t.id === dateModalTaskId)
         if (!task) return
 
         // Update task with scheduled date
         setTasks(tasks.map(t => t.id === dateModalTaskId ? { ...t, scheduledDate: dateInput } : t))
+
+        if (!dateModalTaskId.startsWith('c')) {
+            await updateTaskDate(dateModalTaskId, dateInput)
+        }
 
         // Add to shared schedule context so it shows on calendar
         addEvent({
@@ -206,7 +284,7 @@ export default function ChecklistClient() {
                         <Trash2 size={13} />
                         {selectedIds.size > 0 && <span className="font-bold">{selectedIds.size}개 삭제</span>}
                     </button>
-                    <button className="h-8 flex items-center gap-1.5 px-4 rounded-lg bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs shadow-md shadow-pink-300/20 hover:-translate-y-0.5 transition-all">
+                    <button onClick={() => setIsAddModalOpen(true)} className="h-8 flex items-center gap-1.5 px-4 rounded-lg bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs shadow-md shadow-pink-300/20 hover:-translate-y-0.5 transition-all">
                         <Plus size={13} /> 추가
                     </button>
                 </div>
@@ -352,9 +430,29 @@ export default function ChecklistClient() {
 
             {/* Empty State */}
             {tasks.length === 0 && (
-                <div className="text-center py-16 text-gray-300">
-                    <ClipboardCheck className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">체크리스트가 비어 있습니다. 항목을 추가하세요.</p>
+                <div className="text-center py-20 px-6 max-w-md mx-auto">
+                    <div className="w-16 h-16 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-pink-100 shadow-sm">
+                        <ClipboardCheck className="w-8 h-8 text-pink-300" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">체크리스트가 텅 비어있네요!</h3>
+                    <p className="text-[13px] text-gray-500 mb-6 leading-relaxed">
+                        결혼 준비에 필요한 필수 체크리스트 35개를<br />
+                        버튼 클릭 한 번으로 불러올 수 있습니다.
+                    </p>
+                    <button
+                        onClick={handleSeedDefault}
+                        disabled={isSeeding}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-bold text-sm rounded-xl shadow-md shadow-pink-200 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isSeeding ? (
+                            <span className="animate-pulse">불러오는 중...</span>
+                        ) : (
+                            <>기본 체크리스트 불러오기 ✨</>
+                        )}
+                    </button>
+                    <div className="mt-4 text-xs text-gray-400">
+                        물론, 우측 상단의 <span className="text-pink-400 font-bold">+ 추가</span> 버튼으로 직접 작성해도 좋습니다.
+                    </div>
                 </div>
             )}
 
@@ -411,6 +509,8 @@ export default function ChecklistClient() {
                     </div>
                 </div>
             )}
+            {/* Add Task Modal */}
+            <AddTaskModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
         </div>
     )
 }

@@ -9,10 +9,10 @@ const CATEGORY_NAMES: Record<string, string> = {
     'studio': '웨딩스튜디오',
     'dress': '웨딩드레스 샵',
     'makeup': '웨딩 메이크업 샵',
-    'meeting-place': '상견례 레스토랑',
-    'hanbok': '한복 대여점',
-    'wedding-ring': '웨딩반지 전문점',
-    'honeymoon': '신혼여행 패키지',
+    'snap': '본식스냅 업체',
+    'jewelry': '예물/웨딩밴드 샵',
+    'suit': '예복/테일러 샵',
+    'bouquet': '본식 부케 샵',
 }
 
 /**

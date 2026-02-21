@@ -47,7 +47,7 @@ export default async function PostDetailPage({
             </div>
 
             {/* Post Content */}
-            <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div className="bg-white/70 backdrop-blur-xl rounded-[24px] shadow-xl border border-white/50 overflow-hidden mb-8">
                 <div className="p-8 border-b border-gray-50">
                     <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold mb-4">
                         {post.category === 'notice' ? '공지사항' : '자유게시판'}
@@ -80,7 +80,7 @@ export default async function PostDetailPage({
             </div>
 
             {/* Comments Section */}
-            <div className="bg-gray-50 rounded-[24px] p-8 border border-gray-100">
+            <div className="bg-white/50 backdrop-blur-md rounded-[24px] p-8 border border-white/50 shadow-sm">
                 <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
                     댓글 <span className="text-primary">{comments.length}</span>
                 </h3>
@@ -110,13 +110,13 @@ export default async function PostDetailPage({
                     <input type="hidden" name="post_id" value={post.id} />
                     <textarea
                         name="content"
-                        className="w-full h-24 bg-white border border-gray-200 rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none shadow-sm transition-all"
+                        className="w-full h-24 bg-white/60 backdrop-blur-sm border border-white/50 rounded-xl p-4 text-sm focus:ring-2 focus:ring-pink-300/50 focus:border-pink-300 outline-none resize-none shadow-sm transition-all placeholder-gray-400"
                         placeholder="댓글을 남겨보세요..."
                         required
                     ></textarea>
                     <button
                         type="submit"
-                        className="absolute bottom-3 right-3 px-4 py-1.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition-colors shadow-md"
+                        className="absolute bottom-3 right-3 px-4 py-1.5 bg-gradient-to-r from-pink-400 to-rose-400 text-white text-xs font-bold rounded-lg hover:shadow-lg hover:shadow-pink-300/30 hover:-translate-y-0.5 transition-all focus:ring-2 focus:ring-offset-2 focus:ring-pink-300"
                     >
                         등록
                     </button>

@@ -78,6 +78,7 @@ export type Database = {
           created_at: string
           id: number
           image_url: string | null
+          is_featured: boolean | null
           name: string
           price_range: string | null
           rating: number | null
@@ -91,6 +92,7 @@ export type Database = {
           created_at?: string
           id?: number
           image_url?: string | null
+          is_featured?: boolean | null
           name: string
           price_range?: string | null
           rating?: number | null
@@ -104,6 +106,7 @@ export type Database = {
           created_at?: string
           id?: number
           image_url?: string | null
+          is_featured?: boolean | null
           name?: string
           price_range?: string | null
           rating?: number | null

@@ -6,8 +6,11 @@ import { ChevronLeft, ChevronRight, CalendarDays, Clock, MapPin, CheckCircle, Pl
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSchedule } from '@/contexts/ScheduleContext'
+import { Database } from '@/lib/types/database.types'
 
-export default function ScheduleClient() {
+type DbTask = Database['public']['Tables']['tasks']['Row']
+
+export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { weddingDate?: string | null, checklistTasks?: DbTask[] }) {
     const router = useRouter()
     const [currentDate, setCurrentDate] = useState(new Date())
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -65,11 +68,34 @@ export default function ScheduleClient() {
         setIsModalOpen(false)
     }
 
-    // 실제 다가오는 일정 (context에서 계산)
     const today = new Date()
     const todayStr = format(today, 'yyyy-MM-dd')
 
-    const upcomingEvents = sharedEvents
+    const dbChecklistEvents = checklistTasks
+        .filter(t => t.due_date)
+        .map(t => ({
+            id: t.id,
+            title: t.title,
+            date: t.due_date!,
+            type: 'checklist' as const,
+            checklistId: t.id,
+            time: undefined,
+            location: undefined,
+            memo: undefined,
+        }))
+
+    const allEvents = [
+        ...sharedEvents.filter(e => e.type !== 'checklist'),
+        ...dbChecklistEvents,
+        ...(weddingDate ? [{
+            id: 'wedding-day',
+            title: '결혼식',
+            date: weddingDate,
+            type: 'schedule' as const,
+        }] : [])
+    ]
+
+    const upcomingEvents = allEvents
         .filter(e => e.type === 'schedule' && e.date >= todayStr)
         .sort((a, b) => a.date.localeCompare(b.date))
         .slice(0, 3)
@@ -91,18 +117,22 @@ export default function ScheduleClient() {
         setScheduleTime('')
     }
 
-    // Event indicators from shared context
+    // Event indicators
     const hasEvent = (day: Date) => {
         const dateStr = format(day, 'yyyy-MM-dd')
-        return sharedEvents.some(e => e.date === dateStr && (e.type === 'schedule' || e.type === 'checklist'))
+        return allEvents.some(e => e.date === dateStr && (e.type === 'schedule' || e.type === 'checklist'))
     }
     const hasMemo = (day: Date) => {
         const dateStr = format(day, 'yyyy-MM-dd')
-        return sharedEvents.some(e => e.date === dateStr && e.type === 'memo')
+        return allEvents.some(e => e.date === dateStr && e.type === 'memo')
     }
     const hasChecklist = (day: Date) => {
         const dateStr = format(day, 'yyyy-MM-dd')
-        return sharedEvents.some(e => e.date === dateStr && e.type === 'checklist')
+        return allEvents.some(e => e.date === dateStr && e.type === 'checklist')
+    }
+    const hasWedding = (day: Date) => {
+        if (!weddingDate) return false
+        return format(day, 'yyyy-MM-dd') === weddingDate
     }
 
     return (
@@ -191,11 +221,12 @@ export default function ScheduleClient() {
                             const dayHasEvent = hasEvent(day)
                             const dayHasMemo = hasMemo(day)
                             const dayHasChecklist = hasChecklist(day)
+                            const dayHasWedding = hasWedding(day)
 
                             return (
                                 <div
                                     key={day.toISOString()}
-                                    className="aspect-square min-h-[90px] md:min-h-[110px]"
+                                    className="aspect-square min-h-[68px] sm:min-h-[90px] md:min-h-[110px]"
                                 >
                                     {isCurrentMonth ? (
                                         <div
@@ -235,6 +266,12 @@ export default function ScheduleClient() {
                                                     <div className="text-[8px] px-1 py-0.5 rounded bg-pink-50 text-pink-300 font-medium truncate flex items-center gap-0.5">
                                                         <span className="w-1 h-1 rounded-full bg-pink-400 shrink-0"></span>
                                                         체크
+                                                    </div>
+                                                )}
+                                                {dayHasWedding && (
+                                                    <div className="text-[8px] px-1 py-0.5 rounded bg-pink-100 text-pink-500 font-bold truncate flex items-center gap-0.5 border border-pink-200 shadow-sm">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-pink-500 shrink-0 animate-pulse"></span>
+                                                        결혼식
                                                     </div>
                                                 )}
                                             </div>
@@ -343,7 +380,7 @@ export default function ScheduleClient() {
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
             </div>
 
-            {/* ② D-Day 체크리스트 */}
+            {/* ② D-Day 체크리스트 (실제 데이터 기반) */}
             <section className="mb-16">
                 <div className="text-center mb-8">
                     <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-pink-50 text-pink-400 border border-pink-100 mb-3">
@@ -351,7 +388,7 @@ export default function ScheduleClient() {
                     </span>
                     <h3 className="text-2xl font-extrabold text-gray-800">D-Day 체크리스트</h3>
                     <p className="text-sm text-gray-400 mt-1">
-                        오늘 꼭 챙겨야 할 중요 항목들&nbsp;&nbsp;
+                        가장 가까운 미완료 항목들&nbsp;&nbsp;
                         <Link href="/checklist" className="text-pink-400 font-bold hover:text-pink-500 transition-colors">
                             전체보기 →
                         </Link>
@@ -359,34 +396,53 @@ export default function ScheduleClient() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { icon: Sparkles, title: '본식 드레스 가봉', dday: 'D-7', desc: '최종 상태와 사이즈를 점검하세요. 보정 필요시 여유시간도 확보하세요.', color: 'from-pink-400 to-pink-300' },
-                        { icon: Gift, title: '식권/방명록 준비', dday: 'D-5', desc: '당일 사용할 물품들을 꼼꼼히 챙겨두세요. 수량도 다시 확인하세요.', color: 'from-fuchsia-400 to-pink-300' },
-                        { icon: Shirt, title: '컨디션 조절', dday: 'D-3', desc: '충분한 수면과 휴식, 피부관리로 최상의 컨디션을 만드세요.', color: 'from-rose-400 to-pink-400' },
-                    ].map((item) => {
-                        const Icon = item.icon
-                        return (
-                            <div key={item.title} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                                <div className="p-5">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white shadow-sm`}>
-                                            <Icon size={20} />
+                    {(() => {
+                        const incompleteTasks = checklistTasks
+                            .filter(t => !t.is_completed)
+                            .sort((a, b) => Math.abs(a.d_day || 999) - Math.abs(b.d_day || 999))
+                            .slice(0, 3)
+
+                        const gradients = [
+                            'from-pink-400 to-pink-300',
+                            'from-fuchsia-400 to-pink-300',
+                            'from-rose-400 to-pink-400',
+                        ]
+                        const icons = [Sparkles, Gift, Shirt]
+
+                        return incompleteTasks.length > 0 ? incompleteTasks.map((task, i) => {
+                            const Icon = icons[i % icons.length]
+                            const dDay = task.d_day || 0
+                            const ddayLabel = dDay === 0 ? 'D-Day' : `D${dDay}`
+                            return (
+                                <div key={task.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                                    <div className="p-5">
+                                        <div className="flex items-start justify-between mb-4">
+                                            <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradients[i % gradients.length]} flex items-center justify-center text-white shadow-sm`}>
+                                                <Icon size={20} />
+                                            </div>
+                                            <span className="text-[11px] font-extrabold text-pink-400 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-100">
+                                                {ddayLabel}
+                                            </span>
                                         </div>
-                                        <span className="text-[11px] font-extrabold text-pink-400 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-100">
-                                            {item.dday}
-                                        </span>
+                                        <h4 className="font-bold text-gray-800 text-[15px] mb-2 leading-tight">{task.title}</h4>
+                                        <p className="text-xs text-gray-400 leading-relaxed mb-4 line-clamp-2">{task.description || '체크리스트에서 상세 내용을 확인하세요.'}</p>
+                                        <Link href="/checklist" className="flex items-center gap-1.5 text-xs font-bold text-pink-400 hover:text-pink-500 transition-colors">
+                                            <CheckCircle size={13} />
+                                            체크리스트에서 관리
+                                        </Link>
                                     </div>
-                                    <h4 className="font-bold text-gray-800 text-[15px] mb-2 leading-tight">{item.title}</h4>
-                                    <p className="text-xs text-gray-400 leading-relaxed mb-4">{item.desc}</p>
-                                    <button className="flex items-center gap-1.5 text-xs font-bold text-pink-400 hover:text-pink-500 transition-colors">
-                                        <CheckCircle size={13} />
-                                        완료 표시
-                                    </button>
+                                    <div className={`h-0.5 bg-gradient-to-r ${gradients[i % gradients.length]}`} />
                                 </div>
-                                <div className={`h-0.5 bg-gradient-to-r ${item.color}`} />
+                            )
+                        }) : (
+                            <div className="sm:col-span-2 lg:col-span-3 bg-pink-50/30 rounded-2xl border border-pink-100 p-8 text-center">
+                                <p className="text-gray-400 text-sm">아직 체크리스트 항목이 없어요.</p>
+                                <Link href="/checklist" className="text-pink-400 font-bold text-sm hover:text-pink-500 transition-colors mt-2 inline-block">
+                                    체크리스트 만들기 →
+                                </Link>
                             </div>
                         )
-                    })}
+                    })()}
 
                     {/* 직접 추가하기 → 체크리스트 탭으로 이동 */}
                     <button

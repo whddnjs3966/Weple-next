@@ -1,0 +1,9 @@
+﻿app/(dashboard)/places/category/[slug]/detail/page.tsx(3,30): error TS2307: Cannot find module '@/components/places/PlacePlaceDetail' or its corresponding type declarations.
+components/places/CategoryPlaceClient.tsx(12,46): error TS2307: Cannot find module '@/lib/constants/place-categories' or its corresponding type declarations.
+components/places/CategoryPlaceClient.tsx(49,38): error TS7006: Parameter 'c' implicitly has an 'any' type.
+components/places/CategoryPlaceClient.tsx(261,72): error TS7006: Parameter 'option' implicitly has an 'any' type.
+components/places/CategoryPlaceClient.tsx(313,54): error TS7006: Parameter 'f' implicitly has an 'any' type.
+components/places/PlaceClient.tsx(8,28): error TS2307: Cannot find module '@/lib/constants/place-categories' or its corresponding type declarations.
+components/places/PlaceClient.tsx(125,38): error TS7006: Parameter 'cat' implicitly has an 'any' type.
+components/places/PlaceClient.tsx(125,43): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+components/places/PlaceClient.tsx(184,38): error TS7006: Parameter 'cat' implicitly has an 'any' type.

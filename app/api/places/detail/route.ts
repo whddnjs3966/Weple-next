@@ -23,10 +23,10 @@ const CATEGORY_WEDDING_KEYWORDS: Record<string, string[]> = {
     'studio': ['웨딩', '촬영', '스냅', '셀프웨딩', '브라이덜', '웨딩촬영', '결혼', '드레스촬영'],
     'dress': ['웨딩드레스', '드레스', '웨딩', '신부', '결혼', '브라이덜', '본식드레스'],
     'makeup': ['메이크업', '웨딩', '신부', '결혼', '브라이덜', '본식 메이크업'],
-    'meeting-place': ['상견례', '양가', '결혼', '웨딩', '첫상견례'],
-    'hanbok': ['한복', '전통혼례', '결혼', '웨딩', '신부한복', '혼주한복'],
-    'wedding-ring': ['웨딩반지', '결혼반지', '웨딩밴드', '커플링', '예물', '반지', '결혼'],
-    'honeymoon': ['신혼여행', '허니문', '결혼', '신혼', '웨딩'],
+    'snap': ['본식스냅', '웨딩스냅', '스냅사진', '본식촬영', '웨딩사진', '원판'],
+    'jewelry': ['예물', '웨딩밴드', '결혼반지', '웨딩링', '커플링', '다이아'],
+    'suit': ['예복', '맞춤정장', '테일러', '신랑예복', '턱시도', '양복'],
+    'bouquet': ['부케', '웨딩부케', '본식부케', '본식 부케', '꽃장식'],
 }
 
 /**
@@ -38,10 +38,10 @@ const CATEGORY_SEARCH_PREFIX: Record<string, string> = {
     'studio': '웨딩 촬영',
     'dress': '웨딩드레스',
     'makeup': '웨딩 메이크업',
-    'meeting-place': '상견례',
-    'hanbok': '한복 결혼',
-    'wedding-ring': '웨딩반지 예물',
-    'honeymoon': '신혼여행',
+    'snap': '본식스냅',
+    'jewelry': '웨딩밴드 예물',
+    'suit': '신랑 예복',
+    'bouquet': '본식 부케',
 }
 
 /**
@@ -153,7 +153,6 @@ export async function GET(request: NextRequest) {
 
         for (const { name: modelName, model } of models) {
             try {
-                console.log(`[PlaceDetail] AI 요약 시도 (${modelName}):`, name)
                 const { object } = await generateObject({
                     model,
                     prompt,
@@ -166,7 +165,6 @@ export async function GET(request: NextRequest) {
                     }),
                 })
                 aiData = object
-                console.log(`[PlaceDetail] AI 요약 성공 (${modelName})`)
                 break // 성공하면 루프 종료
             } catch (error) {
                 console.error(`[PlaceDetail] AI 요약 실패 (${modelName}):`, error)

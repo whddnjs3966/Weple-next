@@ -64,6 +64,16 @@ export async function getPlaces(params?: { category?: string; region?: string })
     return filteredData
 }
 
+export async function getFeaturedPlaces(): Promise<Place[]> {
+    const supabase = await createClient()
+    const { data } = await supabase
+        .from('places')
+        .select('*, category:place_categories(*)')
+        .eq('is_featured', true)
+        .limit(4)
+    return (data as Place[]) ?? []
+}
+
 export async function getPlaceById(id: number) {
     const supabase = await createClient()
     const { data, error } = await supabase

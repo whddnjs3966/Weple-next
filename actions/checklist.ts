@@ -83,11 +83,19 @@ export async function updateTask(id: string, updates: TaskUpdate) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
+    // Fetch group members just like getTasks
+    const { data: profile } = await supabase.from('profiles').select('wedding_group_id').eq('id', user.id).single()
+    let userIds = [user.id]
+    if (profile?.wedding_group_id) {
+        const { data: members } = await supabase.from('profiles').select('id').eq('wedding_group_id', profile.wedding_group_id)
+        if (members) userIds = members.map(m => m.id)
+    }
+
     const { error } = await supabase
         .from('tasks')
         .update(updates)
         .eq('id', id)
-        .eq('user_id', user.id)
+        .in('user_id', userIds)
 
     if (error) return { error: error.message }
 
@@ -102,11 +110,19 @@ export async function deleteTasks(ids: string[]) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
+    // Fetch group members just like getTasks
+    const { data: profile } = await supabase.from('profiles').select('wedding_group_id').eq('id', user.id).single()
+    let userIds = [user.id]
+    if (profile?.wedding_group_id) {
+        const { data: members } = await supabase.from('profiles').select('id').eq('wedding_group_id', profile.wedding_group_id)
+        if (members) userIds = members.map(m => m.id)
+    }
+
     const { error } = await supabase
         .from('tasks')
         .delete()
         .in('id', ids)
-        .eq('user_id', user.id)
+        .in('user_id', userIds)
 
     if (error) return { error: error.message }
 
@@ -129,4 +145,29 @@ export async function updateTaskDate(id: string, date: string) {
 
 export async function updateTaskActualCost(id: string, cost: number) {
     return await updateTask(id, { actual_cost: cost })
+}
+
+export async function seedDefaultTasks(tasksToInsert: Pick<TaskInsert, 'title' | 'description' | 'd_day' | 'estimated_budget'>[]) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    const fullTasks = tasksToInsert.map(t => ({
+        ...t,
+        user_id: user.id,
+        is_completed: false
+    }))
+
+    const { error } = await supabase
+        .from('tasks')
+        .insert(fullTasks)
+
+    if (error) {
+        console.error('Error seeding tasks:', error)
+        return { error: error.message }
+    }
+
+    revalidatePath('/checklist')
+    revalidatePath('/schedule')
+    return { success: true }
 }

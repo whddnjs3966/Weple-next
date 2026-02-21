@@ -13,7 +13,7 @@ export type Comment = Database['public']['Tables']['comments']['Row'] & {
     author: { username: string | null } | null
 }
 
-export async function getPosts(category: string = 'free', page = 1, limit = 10) {
+export async function getPosts(category: string = 'free', page = 1, limit = 10, search?: string) {
     const supabase = await createClient()
     const from = (page - 1) * limit
     const to = from + limit - 1
@@ -29,6 +29,10 @@ export async function getPosts(category: string = 'free', page = 1, limit = 10) 
 
     if (category !== 'all') {
         query = query.eq('category', category.toLowerCase())
+    }
+
+    if (search && search.trim()) {
+        query = query.or(`title.ilike.%${search.trim()}%,content.ilike.%${search.trim()}%`)
     }
 
     const { data, error, count } = await query

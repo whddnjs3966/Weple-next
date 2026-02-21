@@ -7,10 +7,10 @@ const CATEGORY_QUERIES: Record<string, string[]> = {
     'studio': ['웨딩스튜디오', '웨딩촬영', '브라이덜사진'],
     'dress': ['웨딩드레스', '브라이덜샵', '웨딩드레스대여'],
     'makeup': ['웨딩메이크업', '브라이덜메이크업', '웨딩헤어메이크업'],
-    'meeting-place': ['상견례식당', '상견례레스토랑', '상견례맛집'],
-    'hanbok': ['한복대여', '혼주한복', '웨딩한복'],
-    'wedding-ring': ['웨딩반지', '예물반지', '커플링'],
-    'honeymoon': ['신혼여행패키지', '허니문여행사', '신혼여행'],
+    'snap': ['본식스냅', '웨딩스냅', '결혼식스냅'],
+    'jewelry': ['예물', '웨딩밴드', '결혼반지', '웨딩링'],
+    'suit': ['맞춤정장', '예복', '맞춤예복', '테일러샵'],
+    'bouquet': ['웨딩부케', '본식부케', '맞춤부케'],
 }
 
 // 네이버 category 필드 기반 필터링 키워드
@@ -20,10 +20,10 @@ const CATEGORY_FILTERS: Record<string, string[]> = {
     'studio': ['사진', '스튜디오', '촬영', '영상', '포토', '웨딩'],
     'dress': ['웨딩', '드레스', '의류', '의상', '브라이덜', '브라이달'],
     'makeup': ['미용', '메이크업', '뷰티', '헤어', '웨딩'],
-    'meeting-place': ['음식점', '한식', '중식', '일식', '양식', '레스토랑', '식당', '뷔페', '카페'],
-    'hanbok': ['한복', '의류', '의상', '전통', '대여', '웨딩'],
-    'wedding-ring': ['보석', '귀금속', '주얼리', '쥬얼리', '반지', '예물', '금은', '다이아'],
-    'honeymoon': ['여행', '관광', '항공', '투어', '리조트', '허니문'],
+    'snap': ['사진', '스냅', '촬영', '웨딩', '결혼'],
+    'jewelry': ['보석', '귀금속', '주얼리', '쥬얼리', '반지', '예물', '다이아'],
+    'suit': ['테일러', '맞춤', '정장', '의류', '양복', '예복'],
+    'bouquet': ['꽃', '화원', '플라워', '부케', '식물'],
 }
 
 function stripHtml(str: string): string {
@@ -113,8 +113,6 @@ export async function GET(request: NextRequest) {
 
     const primaryQuery = `${region} ${keywords[0]}`
 
-    console.log(`[place-search] category="${category}" region="${region}" | 키워드 ${keywords.length}개 × 3페이지 | 전체: ${allItems.length}건`)
-
     // 중복 제거 (장소명 기준)
     const seen = new Set<string>()
     const unique = allItems.filter(item => {
@@ -124,11 +122,29 @@ export async function GET(request: NextRequest) {
         return true
     })
 
-    console.log(`[place-search] 중복 제거 후: ${unique.length}건`)
+    // 제외 키워드 필터링 (불필요한 공방, 셀프사진관 등 제거)
+    const GLOBAL_EXCLUDED = ['공방', '셀프', '클래스', '원데이', '수강', '레슨', '체험', '취미', 'DIY', '만들기', '교실', '학원', '강좌']
+    const CATEGORY_EXCLUDED: Record<string, string[]> = {
+        'jewelry': ['반지공방', '커플링체험', '실버', '은반지', '체험공방', '우드링'],
+        'studio': ['셀프사진관', '포토부스', '증명사진', '여권사진', '인생네컷'],
+        'dress': ['한복대여', '코스프레', '파티의상'],
+        'makeup': ['네일', '왁싱', '반영구', '피부과', '에스테틱'],
+        'suit': ['세탁', '수선', '클리닝'],
+        'bouquet': ['화환', '조화', '조경', '인테리어'],
+        'snap': ['셀프사진관', '포토부스', '증명사진'],
+        'wedding-hall': ['장례', '연습실', '세미나'],
+    }
+    const extraExcluded = CATEGORY_EXCLUDED[category] || []
+    const allExcluded = [...GLOBAL_EXCLUDED, ...extraExcluded]
+    const uniqueFiltered = unique.filter(item => {
+        const title = stripHtml(item.title).toLowerCase()
+        const cat = item.category.toLowerCase()
+        return !allExcluded.some(kw => title.includes(kw.toLowerCase()) || cat.includes(kw.toLowerCase()))
+    })
 
     // 카테고리 관련성 필터링: 네이버 category 필드 + 장소명 + 설명에서 관련 키워드 확인
     const filtered = filterKeywords.length > 0
-        ? unique.filter(item => {
+        ? uniqueFiltered.filter(item => {
             const cat = item.category.toLowerCase()
             const title = stripHtml(item.title).toLowerCase()
             const desc = item.description.toLowerCase()
@@ -136,9 +152,7 @@ export async function GET(request: NextRequest) {
                 cat.includes(kw) || title.includes(kw) || desc.includes(kw)
             )
         })
-        : unique
-
-    console.log(`[place-search] 카테고리 필터 후: ${filtered.length}건`)
+        : uniqueFiltered
 
     // 결과 셔플 → 매번 다른 순서로 표시
     const places = shuffle(filtered).map(item => ({

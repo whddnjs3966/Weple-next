@@ -14,7 +14,9 @@
       "Bash(git commit:*)",
       "Bash(git pull:*)",
       "Bash(git push:*)",
-      "Bash(npx next build:*)"
+      "Bash(npx next build:*)",
+      "Bash(git rm:*)",
+      "Bash(tail:*)"
     ]
   }
 }

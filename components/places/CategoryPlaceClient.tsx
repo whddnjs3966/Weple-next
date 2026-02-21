@@ -38,10 +38,10 @@ const CATEGORY_GRADIENTS: Record<string, { bg: string; text: string }> = {
     'studio': { bg: 'from-violet-100 via-purple-100 to-purple-200', text: 'text-violet-400' },
     'dress': { bg: 'from-pink-100 via-rose-100 to-rose-200', text: 'text-pink-400' },
     'makeup': { bg: 'from-fuchsia-100 via-pink-100 to-pink-200', text: 'text-fuchsia-400' },
-    'meeting-place': { bg: 'from-amber-100 via-orange-50 to-orange-200', text: 'text-amber-500' },
-    'hanbok': { bg: 'from-red-100 via-rose-100 to-rose-200', text: 'text-red-400' },
-    'wedding-ring': { bg: 'from-yellow-100 via-amber-50 to-amber-200', text: 'text-yellow-500' },
-    'honeymoon': { bg: 'from-sky-100 via-blue-50 to-blue-200', text: 'text-sky-400' },
+    'snap': { bg: 'from-amber-100 via-orange-50 to-orange-200', text: 'text-amber-500' },
+    'jewelry': { bg: 'from-yellow-100 via-amber-50 to-amber-200', text: 'text-yellow-500' },
+    'suit': { bg: 'from-red-100 via-rose-100 to-rose-200', text: 'text-red-400' },
+    'bouquet': { bg: 'from-sky-100 via-blue-50 to-blue-200', text: 'text-sky-400' },
 }
 
 export default function CategoryPlaceClient({ slug }: { slug: string }) {
@@ -93,6 +93,7 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
         setNaverLoading(true)
         setNaverError(null)
         setNaverResults([])
+        window.scrollTo({ top: 0, behavior: 'smooth' })
 
         const searchSido = sido || '서울'
         fetch(`/api/places/search?category=${slug}&sido=${encodeURIComponent(searchSido)}`)

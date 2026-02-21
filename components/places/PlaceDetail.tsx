@@ -43,10 +43,10 @@ const CATEGORY_THEMES: Record<string, { gradient: string; accent: string; icon: 
     'studio': { gradient: 'from-slate-800 via-slate-700 to-violet-900/80', accent: 'text-violet-300', icon: '📸' },
     'dress': { gradient: 'from-stone-800 via-stone-700 to-pink-900/60', accent: 'text-pink-300', icon: '👗' },
     'makeup': { gradient: 'from-stone-800 via-warm-gray-700 to-rose-900/60', accent: 'text-rose-300', icon: '💄' },
-    'meeting-place': { gradient: 'from-stone-800 via-amber-900/40 to-stone-700', accent: 'text-amber-300', icon: '🍽' },
-    'hanbok': { gradient: 'from-stone-800 via-red-900/30 to-stone-700', accent: 'text-red-300', icon: '👘' },
-    'wedding-ring': { gradient: 'from-stone-800 via-amber-900/50 to-stone-700', accent: 'text-amber-300', icon: '💍' },
-    'honeymoon': { gradient: 'from-slate-800 via-sky-900/40 to-slate-700', accent: 'text-sky-300', icon: '✈️' },
+    'snap': { gradient: 'from-stone-800 via-amber-900/40 to-stone-700', accent: 'text-amber-300', icon: '📷' },
+    'jewelry': { gradient: 'from-stone-800 via-amber-900/50 to-stone-700', accent: 'text-amber-300', icon: '💍' },
+    'suit': { gradient: 'from-stone-800 via-red-900/30 to-stone-700', accent: 'text-red-300', icon: '👔' },
+    'bouquet': { gradient: 'from-slate-800 via-sky-900/40 to-slate-700', accent: 'text-sky-300', icon: '💐' },
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -54,10 +54,10 @@ const CATEGORY_LABELS: Record<string, string> = {
     'studio': '스튜디오',
     'dress': '드레스',
     'makeup': '메이크업',
-    'meeting-place': '상견례',
-    'hanbok': '한복',
-    'wedding-ring': '웨딩링',
-    'honeymoon': '허니문',
+    'snap': '본식스냅',
+    'jewelry': '예물',
+    'suit': '예복',
+    'bouquet': '부케/기타',
 }
 
 const INITIAL_REVIEW_COUNT = 3

@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Sparkles, Plus, Trash2, CheckCircle2, Circle, ExternalLink, Loader2, HeartHandshake } from 'lucide-react'
+import { Sparkles, Plus, Trash2, CheckCircle2, Circle, ExternalLink, Loader2, HeartHandshake, Star, MapPin } from 'lucide-react'
 import type { UserPlace } from '@/actions/user-places'
+import type { Place } from '@/actions/places'
 import { CATEGORIES } from '@/lib/constants/place-categories'
 
 // 카테고리별 테마 그라디언트
@@ -13,10 +14,10 @@ const CATEGORY_STYLES: Record<string, string> = {
     'studio': 'from-violet-100/80 to-purple-50/50 text-violet-500 hover:border-violet-200',
     'dress': 'from-pink-100/80 to-rose-50/50 text-pink-500 hover:border-pink-200',
     'makeup': 'from-fuchsia-100/80 to-pink-50/50 text-fuchsia-500 hover:border-fuchsia-200',
-    'meeting-place': 'from-amber-100/80 to-orange-50/50 text-amber-500 hover:border-amber-200',
-    'hanbok': 'from-red-100/80 to-rose-50/50 text-red-500 hover:border-red-200',
-    'wedding-ring': 'from-yellow-100/80 to-amber-50/50 text-yellow-600 hover:border-yellow-200',
-    'honeymoon': 'from-sky-100/80 to-blue-50/50 text-sky-500 hover:border-sky-200',
+    'snap': 'from-amber-100/80 to-orange-50/50 text-amber-500 hover:border-amber-200',
+    'jewelry': 'from-yellow-100/80 to-amber-50/50 text-yellow-600 hover:border-yellow-200',
+    'suit': 'from-red-100/80 to-rose-50/50 text-red-500 hover:border-red-200',
+    'bouquet': 'from-sky-100/80 to-blue-50/50 text-sky-500 hover:border-sky-200',
 }
 
 // 가격대 컬러
@@ -33,10 +34,12 @@ interface PlaceClientProps {
     defaultSigungu: string
     budgetMax: number
     style: string
+    featuredPlaces: Place[]
 }
 
 export default function PlaceClient({
     initialPlaces,
+    featuredPlaces,
 }: PlaceClientProps) {
     const router = useRouter()
     const [places, setPlaces] = useState<UserPlace[]>(initialPlaces)
@@ -260,6 +263,94 @@ export default function PlaceClient({
                                 </div>
                                 <span className="text-[11px] font-bold uppercase tracking-wider">{cat.label} 추가</span>
                             </button>
+                        )
+                    })}
+                </div>
+            </motion.section>
+
+            {/* ── SECTION C: 추천 장소 ─────────────────────────────── */}
+            <motion.section
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+                className="pt-6"
+            >
+                <div className="flex items-center gap-2 mb-5 px-2">
+                    <div className="p-1.5 bg-amber-100 rounded-lg">
+                        <Star size={16} className="text-amber-500" />
+                    </div>
+                    <div>
+                        <h2 className="text-base font-bold text-gray-800">추천 장소</h2>
+                        <p className="text-[10px] text-gray-400">지금 핫한 장소</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                    {Array.from({ length: 4 }).map((_, idx) => {
+                        const place = featuredPlaces[idx]
+                        if (place) {
+                            return (
+                                <motion.div
+                                    key={place.id}
+                                    whileHover={{ y: -4 }}
+                                    className="relative rounded-[2rem] overflow-hidden border border-pink-100 shadow-sm hover:shadow-md transition-all bg-white group"
+                                >
+                                    {/* 이미지 영역 */}
+                                    <div className="relative h-36 bg-gradient-to-br from-pink-100 to-rose-50 overflow-hidden">
+                                        {place.image_url ? (
+                                            <img
+                                                src={place.image_url}
+                                                alt={place.name}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center">
+                                                <span className="text-4xl opacity-30">🏛️</span>
+                                            </div>
+                                        )}
+                                        {/* 추천 뱃지 */}
+                                        <div className="absolute top-2 left-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-sm border border-amber-100">
+                                            <Star size={10} className="text-amber-400 fill-amber-400" />
+                                            <span className="text-[9px] font-bold text-amber-600">추천</span>
+                                        </div>
+                                    </div>
+
+                                    {/* 정보 영역 */}
+                                    <div className="p-4">
+                                        {place.category && (
+                                            <span className="inline-block text-[9px] font-bold uppercase tracking-wider text-pink-500 bg-pink-50 border border-pink-100 rounded-full px-2 py-0.5 mb-2">
+                                                {place.category.name}
+                                            </span>
+                                        )}
+                                        <p className="text-sm font-bold text-gray-800 line-clamp-1 mb-1">{place.name}</p>
+                                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                                            {place.rating && (
+                                                <span className="flex items-center gap-0.5">
+                                                    <Star size={9} className="text-amber-400 fill-amber-400" />
+                                                    {place.rating.toFixed(1)}
+                                                </span>
+                                            )}
+                                            {place.region_sigungu && (
+                                                <span className="flex items-center gap-0.5">
+                                                    <MapPin size={9} />
+                                                    {place.region_sigungu}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )
+                        }
+
+                        // 빈 슬롯
+                        return (
+                            <div
+                                key={`empty-${idx}`}
+                                className="rounded-[2rem] border-2 border-dashed border-gray-200 min-h-[200px] flex flex-col items-center justify-center gap-3 bg-gray-50/50 text-gray-300"
+                            >
+                                <div className="text-3xl opacity-40">✨</div>
+                                <p className="text-[11px] font-bold tracking-wide">준비중</p>
+                            </div>
                         )
                     })}
                 </div>

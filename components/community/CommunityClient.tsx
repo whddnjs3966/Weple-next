@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useTransition, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, PenTool, Flame, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { Search, PenTool, ChevronLeft, ChevronRight, Loader2, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import { getPosts, type Post as DBPost } from '@/actions/community'
 import { format } from 'date-fns'
 
-// UI용 Post 타입 확장
 interface PostWithAuthor extends DBPost {
     author: { username: string | null } | null
 }
@@ -21,6 +20,8 @@ const CATEGORIES = [
     { code: 'TIP', name: '꿀팁' },
 ]
 
+const PAGE_SIZE = 10
+
 interface CommunityClientProps {
     initialPosts: PostWithAuthor[]
     initialCount: number
@@ -32,15 +33,42 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
     const [searchQuery, setSearchQuery] = useState('')
     const [isPending, startTransition] = useTransition()
     const [totalCount, setTotalCount] = useState(initialCount)
+    const [currentPage, setCurrentPage] = useState(1)
 
-    // 카테고리 변경 핸들러
-    const handleCategoryChange = (categoryCode: string) => {
-        setCurrentCategory(categoryCode)
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
+
+    const fetchPosts = useCallback((category: string, page: number, search?: string) => {
         startTransition(async () => {
-            const { posts: newPosts, count } = await getPosts(categoryCode.toLowerCase())
+            const { posts: newPosts, count } = await getPosts(
+                category.toLowerCase(),
+                page,
+                PAGE_SIZE,
+                search || undefined
+            )
             setPosts(newPosts as PostWithAuthor[])
             setTotalCount(count)
         })
+    }, [])
+
+    const handleCategoryChange = (categoryCode: string) => {
+        setCurrentCategory(categoryCode)
+        setCurrentPage(1)
+        fetchPosts(categoryCode, 1, searchQuery)
+    }
+
+    const handlePageChange = (page: number) => {
+        if (page < 1 || page > totalPages) return
+        setCurrentPage(page)
+        fetchPosts(currentCategory, page, searchQuery)
+    }
+
+    const handleSearch = () => {
+        setCurrentPage(1)
+        fetchPosts(currentCategory, 1, searchQuery)
+    }
+
+    const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleSearch()
     }
 
     const getCategoryBadge = (cat: string | null | undefined) => {
@@ -61,10 +89,19 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
         return found ? found.name : cat
     }
 
-    // 날짜 포맷팅
     const formatDate = (dateString: string | null | undefined) => {
         if (!dateString) return ''
         return format(new Date(dateString), 'yyyy.MM.dd')
+    }
+
+    const getPageNumbers = () => {
+        const pages: number[] = []
+        const maxVisible = 5
+        let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
+        const end = Math.min(totalPages, start + maxVisible - 1)
+        start = Math.max(1, end - maxVisible + 1)
+        for (let i = start; i <= end; i++) pages.push(i)
+        return pages
     }
 
     return (
@@ -82,9 +119,9 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                 <p className="text-gray-400 text-sm mt-4">결혼 준비 이야기를 나눠보세요</p>
             </div>
 
-            {/* Category Tabs (Underline Style) */}
+            {/* Category Tabs */}
             <div className="border-b border-gray-200 mb-8">
-                <div className="flex gap-0 overflow-x-auto">
+                <div className="flex gap-0 overflow-x-auto scrollbar-hidden">
                     {CATEGORIES.map(cat => (
                         <button
                             key={cat.code}
@@ -93,7 +130,7 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                             className={`
                                 px-5 py-3 text-sm font-medium whitespace-nowrap transition-all relative
                                 ${currentCategory === cat.code
-                                    ? 'text-pink-300 font-bold'
+                                    ? 'text-pink-500 font-bold'
                                     : 'text-gray-400 hover:text-gray-600'
                                 }
                             `}
@@ -111,8 +148,7 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
             </div>
 
             {/* Table */}
-            <div className={`bg-white/70 backdrop-blur-xl rounded-[20px] shadow-xl border border-white/50 overflow-hidden mb-8 transition-opacity ${isPending ? 'opacity-50' : 'opacity-100'}`}>
-                {/* Loading Indicator */}
+            <div className={`relative bg-white/70 backdrop-blur-xl rounded-[20px] shadow-xl border border-white/50 overflow-hidden mb-8 transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
                 {isPending && (
                     <div className="absolute inset-0 flex items-center justify-center z-10">
                         <Loader2 className="animate-spin text-pink-400 w-8 h-8" />
@@ -121,7 +157,7 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
 
                 <table className="w-full">
                     <thead>
-                        <tr className="border-b border-gray-100">
+                        <tr className="border-b border-gray-100/50 bg-white/40">
                             <th className="py-3.5 px-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-16">No</th>
                             <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-24">카테고리</th>
                             <th className="py-3.5 px-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">제목</th>
@@ -139,44 +175,31 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        className="border-b border-gray-50 transition-colors cursor-pointer hover:bg-pink-50/20"
+                                        transition={{ delay: index * 0.02 }}
+                                        className="border-b border-gray-50/50 transition-all cursor-pointer hover:bg-pink-50/30 group"
+                                        onClick={() => window.location.href = `/community/${post.id}`}
                                     >
-                                        {/* No: 단순히 역순 번호 표시 (페이지네이션 고려 필요하지만 일단 간단히) */}
                                         <td className="py-3.5 px-4 text-center">
-                                            <span className="text-sm text-gray-400">{totalCount - index}</span>
+                                            <span className="text-sm text-gray-400">
+                                                {totalCount - ((currentPage - 1) * PAGE_SIZE) - index}
+                                            </span>
                                         </td>
-
-                                        {/* Category */}
                                         <td className="py-3.5 px-3 text-center">
                                             <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${getCategoryBadge(post.category)}`}>
                                                 {getCategoryName(post.category)}
                                             </span>
                                         </td>
-
-                                        {/* Title */}
                                         <td className="py-3.5 px-4">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium text-sm text-gray-700 hover:text-pink-300 transition-colors">
-                                                    {post.title}
-                                                </span>
-                                                {/* 댓글 수 표시 (임시) */}
-                                                {/* {post._count?.comments > 0 && (
-                                                    <span className="text-[10px] text-pink-300 font-bold">[{post._count.comments}]</span>
-                                                )} */}
-                                            </div>
+                                            <span className="font-bold text-sm text-gray-800 group-hover:text-pink-500 transition-colors">
+                                                {post.title}
+                                            </span>
                                         </td>
-
-                                        {/* Author */}
                                         <td className="py-3.5 px-3 text-center">
                                             <span className="text-xs text-gray-500">{post.author?.username || '익명'}</span>
                                         </td>
-
-                                        {/* Date */}
                                         <td className="py-3.5 px-3 text-center hidden md:table-cell">
                                             <span className="text-xs text-gray-400">{formatDate(post.created_at)}</span>
                                         </td>
-
-                                        {/* Views */}
                                         <td className="py-3.5 px-3 text-center hidden md:table-cell">
                                             <span className="text-xs text-gray-400">{post.view_count || 0}</span>
                                         </td>
@@ -184,8 +207,26 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="py-10 text-center text-gray-400 text-sm">
-                                        등록된 게시글이 없습니다.
+                                    <td colSpan={6} className="py-16 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="w-12 h-12 rounded-full bg-pink-50 flex items-center justify-center border border-pink-100">
+                                                <MessageCircle size={20} className="text-pink-300" />
+                                            </div>
+                                            <p className="text-gray-400 text-sm font-medium">
+                                                {searchQuery
+                                                    ? `"${searchQuery}" 검색 결과가 없습니다.`
+                                                    : currentCategory !== 'ALL'
+                                                        ? `${getCategoryName(currentCategory)} 카테고리에 아직 글이 없어요.`
+                                                        : '등록된 게시글이 없습니다.'
+                                                }
+                                            </p>
+                                            <Link
+                                                href="/community/write"
+                                                className="text-xs text-pink-400 font-bold hover:text-pink-500 transition-colors"
+                                            >
+                                                첫 글을 작성해보세요 →
+                                            </Link>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
@@ -196,21 +237,27 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
 
             {/* Bottom: Search + Write */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-                {/* Search */}
                 <div className="flex items-center gap-2 flex-1 max-w-sm">
-                    <div className="bg-white/70 backdrop-blur-xl border border-white/50 rounded-xl px-4 py-2.5 flex items-center flex-1 shadow-sm">
-                        <Search size={14} className="text-gray-300 mr-2" />
+                    <div className="bg-white/70 backdrop-blur-xl border border-white/50 rounded-xl px-4 py-2.5 flex items-center flex-1 shadow-sm focus-within:border-pink-300 focus-within:ring-2 focus-within:ring-pink-100 transition-all">
+                        <Search size={14} className="text-gray-300 mr-2 shrink-0" />
                         <input
                             type="text"
-                            placeholder="제목, 작성자, 본문내용"
+                            placeholder="제목, 본문 내용 검색"
                             className="bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-300 w-full"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleSearchKeyDown}
                         />
                     </div>
+                    <button
+                        onClick={handleSearch}
+                        disabled={isPending}
+                        className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-bold text-gray-500 transition-all disabled:opacity-50 shrink-0"
+                    >
+                        검색
+                    </button>
                 </div>
 
-                {/* Write Button */}
                 <Link
                     href="/community/write"
                     className="flex items-center gap-2 px-5 py-2.5 bg-pink-400 hover:bg-pink-500 rounded-xl text-white text-sm font-bold shadow-lg shadow-pink-300/20 hover:-translate-y-0.5 transition-all"
@@ -219,18 +266,38 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                 </Link>
             </div>
 
-            {/* Pagination (Visual Only for now) */}
-            <div className="flex justify-center gap-1.5">
-                <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-200 transition-all">
-                    <ChevronLeft size={14} />
-                </button>
-                <button className="w-9 h-9 rounded-lg bg-pink-400 text-white font-bold text-sm flex items-center justify-center shadow-sm">1</button>
-                <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-200 transition-all text-sm">2</button>
-                <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-500 hover:text-gray-700 hover:border-gray-200 transition-all text-sm">3</button>
-                <button className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-200 transition-all">
-                    <ChevronRight size={14} />
-                </button>
-            </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex justify-center gap-1.5">
+                    <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1 || isPending}
+                        className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        <ChevronLeft size={14} />
+                    </button>
+                    {getPageNumbers().map(page => (
+                        <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            disabled={isPending}
+                            className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all ${page === currentPage
+                                ? 'bg-pink-400 text-white font-bold shadow-sm shadow-pink-200'
+                                : 'bg-white border border-gray-100 text-gray-500 hover:text-gray-700 hover:border-gray-200'
+                            }`}
+                        >
+                            {page}
+                        </button>
+                    ))}
+                    <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages || isPending}
+                        className="w-9 h-9 rounded-lg bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-200 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                        <ChevronRight size={14} />
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

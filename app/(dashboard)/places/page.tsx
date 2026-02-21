@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getUserPlaces } from '@/actions/user-places'
+import { getFeaturedPlaces } from '@/actions/places'
 import PlaceClient from '@/components/places/PlaceClient'
 
 export default async function PlacePage() {
@@ -14,7 +15,10 @@ export default async function PlacePage() {
         .eq('id', user.id)
         .single()
 
-    const userPlaces = await getUserPlaces()
+    const [userPlaces, featuredPlaces] = await Promise.all([
+        getUserPlaces(),
+        getFeaturedPlaces(),
+    ])
 
     return (
         <PlaceClient
@@ -23,6 +27,7 @@ export default async function PlacePage() {
             defaultSigungu={profile?.region_sigungu || ''}
             budgetMax={profile?.budget_max || 3000}
             style={profile?.style || ''}
+            featuredPlaces={featuredPlaces}
         />
     )
 }

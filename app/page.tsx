@@ -4,34 +4,59 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowRight, ChevronDown, ChevronLeft, ChevronRight, CalendarHeart, CheckSquare,
-  PiggyBank, Heart, Sparkles, Users, Zap, Bot, } from 'lucide-react'
+  PiggyBank, Heart, Sparkles, Users, Zap, Bot,
+} from 'lucide-react'
 import Particles from '@/components/Particles'
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import clsx from 'clsx'
 
-/* ─── 3D Tilt Card ─── */
+/* ─── 3D Tilt Card (Framer Motion) ─── */
 function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [tilt, setTilt] = useState({ x: 0, y: 0, active: false })
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["12deg", "-12deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-12deg", "12deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   return (
-    <div
-      ref={ref}
-      onMouseMove={(e) => {
-        if (!ref.current) return
-        const r = ref.current.getBoundingClientRect()
-        const x = (e.clientX - r.left) / r.width - 0.5
-        const y = (e.clientY - r.top) / r.height - 0.5
-        setTilt({ x: -y * 12, y: x * 12, active: true })
-      }}
-      onMouseLeave={() => setTilt({ x: 0, y: 0, active: false })}
+    <motion.div
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       style={{
-        transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${tilt.active ? 1.018 : 1})`,
-        transition: tilt.active ? 'transform 0.08s ease' : 'transform 0.55s cubic-bezier(0.16,1,0.3,1)',
+        rotateY,
+        rotateX,
+        transformStyle: "preserve-3d",
       }}
-      className={className}
+      whileHover={{ scale: 1.018 }}
+      className={clsx("relative rounded-[2.5rem] bg-white/[0.02] border border-white/[0.05] backdrop-blur-xl hover:shadow-[0_20px_60px_rgba(255,255,255,0.05)] transition-shadow duration-500", className)}
     >
+      <div
+        className="absolute inset-0 rounded-[2.5rem] pointer-events-none"
+        style={{ transform: "translateZ(30px)" }}
+      ></div>
       {children}
-    </div>
-  )
+    </motion.div>
+  );
 }
 
 
@@ -56,16 +81,16 @@ function FeatureSlider() {
       color: '#A78BFA',
       content: (
         <div className="flex flex-col items-center w-full mt-4">
-          <div className="text-[4rem] sm:text-[5rem] font-bold text-white/90 font-cinzel leading-none mb-6">D-247</div>
+          <div className="text-[4rem] sm:text-[5rem] font-bold text-white/90 font-cinzel leading-none mb-6 drop-shadow-[0_0_15px_rgba(167,139,250,0.5)]">D-247</div>
           <div className="w-full space-y-3 px-2 sm:px-6">
             {[
               { label: '웨딩홀 투어', date: '3월 15일', color: '#A78BFA' },
               { label: '드레스 피팅', date: '4월 02일', color: '#D4A373' },
               { label: '청첩장 발송', date: '5월 10일', color: '#60A5FA' },
             ].map((s, i) => (
-              <div key={i} className="flex justify-between items-center text-sm p-4 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+              <div key={i} className="flex justify-between items-center text-sm p-4 rounded-xl bg-white/[0.03] border border-white/[0.05] backdrop-blur-md">
                 <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: s.color }} />
+                  <div className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]" style={{ background: s.color, color: s.color }} />
                   <span className="text-white/70 font-medium">{s.label}</span>
                 </div>
                 <span className="text-white/40">{s.date}</span>
@@ -91,8 +116,8 @@ function FeatureSlider() {
               { l: '청첩장 제작', done: false },
               { l: '상견례', done: false },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                <div className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${item.done ? 'border-[#A7C4A0] bg-[#A7C4A0]/20' : 'border-white/15'}`}>
+              <div key={i} className="flex items-center gap-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04] backdrop-blur-md">
+                <div className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${item.done ? 'border-[#A7C4A0] bg-[#A7C4A0]/20 shadow-[0_0_10px_rgba(167,196,160,0.3)]' : 'border-white/15'}`}>
                   {item.done && <div className="w-2.5 h-2.5 rounded-sm bg-[#A7C4A0]" />}
                 </div>
                 <span className={`text-sm transition-colors ${item.done ? 'text-white/30 line-through' : 'text-white/80 font-medium'}`}>{item.l}</span>
@@ -101,10 +126,10 @@ function FeatureSlider() {
           </div>
           <div className="mt-6 pt-5 border-t border-white/[0.05]">
             <div className="flex justify-between text-xs text-white/40 mb-3 font-medium">
-              <span>전체 진행률</span><span className="text-[#A7C4A0] font-bold text-sm">40%</span>
+              <span>전체 진행률</span><span className="text-[#A7C4A0] font-bold text-sm drop-shadow-[0_0_5px_rgba(167,196,160,0.5)]">40%</span>
             </div>
             <div className="h-2.5 rounded-full bg-white/[0.05] overflow-hidden">
-              <div className="h-full w-[40%] rounded-full bg-gradient-to-r from-[#A7C4A0] to-[#6BAE68]" />
+              <div className="h-full w-[40%] rounded-full bg-gradient-to-r from-[#A7C4A0] to-[#6BAE68] shadow-[0_0_10px_rgba(167,196,160,0.5)]" />
             </div>
           </div>
         </div>
@@ -119,7 +144,7 @@ function FeatureSlider() {
       content: (
         <div className="w-full flex-1 flex flex-col justify-center px-2 sm:px-4">
           <div className="text-center mb-10">
-            <div className="text-5xl sm:text-6xl font-bold text-white/90 leading-none mb-3 tracking-tight">2,400<span className="text-xl font-normal text-white/40 ml-1">만원</span></div>
+            <div className="text-5xl sm:text-6xl font-bold text-white/90 leading-none mb-3 tracking-tight drop-shadow-[0_0_15px_rgba(212,163,115,0.4)]">2,400<span className="text-xl font-normal text-white/40 ml-1">만원</span></div>
             <div className="text-sm text-white/40 font-medium tracking-wide">총 예산 5,000만원 중 사용</div>
           </div>
           <div className="space-y-4">
@@ -131,9 +156,9 @@ function FeatureSlider() {
               <div key={i} className="flex items-center gap-4">
                 <span className="text-sm text-white/50 w-14 font-medium">{b.l}</span>
                 <div className="flex-1 h-3 rounded-full bg-white/[0.05] overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${b.p}%`, background: b.c }} />
+                  <div className="h-full rounded-full shadow-[0_0_8px_currentColor]" style={{ width: `${b.p}%`, background: b.c, color: b.c }} />
                 </div>
-                <span className="text-sm text-white/40 w-10 text-right font-bold">{b.p}%</span>
+                <span className="text-sm text-white/40 w-10 text-right font-bold drop-shadow-[0_0_3px_currentColor]" style={{ color: b.c }}>{b.p}%</span>
               </div>
             ))}
           </div>
@@ -148,12 +173,12 @@ function FeatureSlider() {
       color: '#60A5FA',
       content: (
         <div className="w-full flex-1 flex flex-col justify-center space-y-4 sm:px-2">
-          {[
+          {['그랜드 워커힐 서울', '어두운 홀', '식대 10만원', '호텔 웨딩 · 광진구', '98점', '#60A5FA', '스냅 스튜디오 강남', '인물 중심', '자연광', '스튜디오 · 강남구', '95점', '#A78BFA'].length === 0 ? null : [
             { name: '그랜드 워커힐 서울', tag: '호텔 웨딩 · 광진구', score: '98점', color: '#60A5FA', tags: ['어두운 홀', '식대 10만원'] },
             { name: '스냅 스튜디오 강남', tag: '스튜디오 · 강남구', score: '95점', color: '#A78BFA', tags: ['인물 중심', '자연광'] },
           ].map((v, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl border border-white/[0.05] bg-white/[0.02]">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex-shrink-0" style={{ background: `linear-gradient(135deg, ${v.color}22, ${v.color}0A)` }} />
+            <div key={i} className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl border border-white/[0.05] bg-white/[0.02] backdrop-blur-md">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex-shrink-0" style={{ background: `linear-gradient(135deg, ${v.color}22, ${v.color}0A)`, boxShadow: `inset 0 0 0 1px ${v.color}40` }} />
               <div className="flex-1 min-w-0">
                 <div className="text-white/80 text-sm sm:text-base font-bold truncate mb-1">{v.name}</div>
                 <div className="text-white/30 text-xs sm:text-sm mb-2">{v.tag}</div>
@@ -161,7 +186,7 @@ function FeatureSlider() {
                   {v.tags.map(t => <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/40 border border-white/10 shrink-0">{t}</span>)}
                 </div>
               </div>
-              <div className="text-base sm:text-lg font-black flex-shrink-0" style={{ color: v.color }}>{v.score}</div>
+              <div className="text-base sm:text-lg font-black flex-shrink-0 drop-shadow-[0_0_8px_currentColor]" style={{ color: v.color }}>{v.score}</div>
             </div>
           ))}
           <div className="text-center text-white/40 text-[13px] mt-4 bg-[#60A5FA]/10 py-3.5 rounded-xl border border-[#60A5FA]/20 text-[#60A5FA] font-bold tracking-wide shadow-[0_4px_20px_rgba(96,165,250,0.1)]">
@@ -180,24 +205,26 @@ function FeatureSlider() {
         <div className="w-full flex-1 flex flex-col items-center justify-center">
           <div className="flex items-center gap-6 sm:gap-10 mb-10">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#F9A8D4] to-[#F472B6] flex items-center justify-center text-3xl sm:text-4xl shadow-[0_0_30px_rgba(249,168,212,0.25)] ring-4 ring-white/[0.02]">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#F9A8D4] to-[#F472B6] flex items-center justify-center text-3xl sm:text-4xl shadow-[0_0_30px_rgba(249,168,212,0.4)] ring-4 ring-white/[0.05] relative overflow-hidden">
+                <div className="absolute inset-0 bg-white/20 blur-xl opacity-50 mix-blend-overlay"></div>
                 👩
               </div>
-              <span className="text-white/40 text-xs sm:text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-white/10 mt-2">신부</span>
+              <span className="text-white/40 text-xs sm:text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-white/10 mt-2 backdrop-blur-sm">신부</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <Heart size={32} className="text-[#F9A8D4] fill-[#F9A8D4] animate-pulse" />
-              <span className="text-[10px] sm:text-xs text-[#F9A8D4]/70 font-bold tracking-wider bg-[#F9A8D4]/10 px-3 py-1.5 rounded-full border border-[#F9A8D4]/20 mt-2">동기화됨</span>
+              <Heart size={32} className="text-[#F9A8D4] fill-[#F9A8D4] animate-pulse drop-shadow-[0_0_15px_rgba(249,168,212,0.6)]" />
+              <span className="text-[10px] sm:text-xs text-[#F9A8D4]/90 font-bold tracking-wider bg-[#F9A8D4]/10 px-3 py-1.5 rounded-full border border-[#F9A8D4]/30 mt-2 shadow-[0_0_10px_rgba(249,168,212,0.2)]">동기화됨</span>
             </div>
             <div className="flex flex-col items-center gap-3">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#8B5CF6] flex items-center justify-center text-3xl sm:text-4xl shadow-[0_0_30px_rgba(167,139,250,0.25)] ring-4 ring-white/[0.02]">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-[#A78BFA] to-[#8B5CF6] flex items-center justify-center text-3xl sm:text-4xl shadow-[0_0_30px_rgba(167,139,250,0.4)] ring-4 ring-white/[0.05] relative overflow-hidden">
+                <div className="absolute inset-0 bg-white/20 blur-xl opacity-50 mix-blend-overlay"></div>
                 👨
               </div>
-              <span className="text-white/40 text-xs sm:text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-white/10 mt-2">신랑</span>
+              <span className="text-white/40 text-xs sm:text-sm font-bold bg-white/5 px-4 py-1.5 rounded-full border border-white/10 mt-2 backdrop-blur-sm">신랑</span>
             </div>
           </div>
-          <div className="w-full max-w-[280px] text-center text-white/40 text-sm py-4 rounded-2xl border border-white/[0.1] bg-white/[0.02] border-dashed">
-            초대 코드: <span className="text-white font-mono font-bold tracking-widest ml-2 text-lg">WPLN-2026</span>
+          <div className="w-full max-w-[280px] text-center text-white/60 text-sm py-4 rounded-2xl border border-white/[0.15] bg-white/[0.02] border-dashed backdrop-blur-md">
+            초대 코드: <span className="text-white font-mono font-bold tracking-widest ml-2 text-lg drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">WPLN-2026</span>
           </div>
         </div>
       )
@@ -225,61 +252,69 @@ function FeatureSlider() {
           const isVisible = absOffset < 2
 
           return (
-            <div
+            <motion.div
               key={item.id}
               onClick={() => isVisible && setActive(i)}
+              initial={false}
+              animate={{
+                x: `calc(-50% + ${tx}px)`,
+                y: '-50%',
+                scale,
+                opacity: cardOpacity,
+                zIndex
+              }}
+              transition={{ type: "spring", stiffness: 200, damping: 20, mass: 0.8 }}
               style={{
                 position: 'absolute',
                 top: '50%',
                 left: '50%',
                 width: cardWidth,
                 height: cardHeight,
-                zIndex,
-                opacity: cardOpacity,
-                transform: `translate(-50%, -50%) translateX(${tx}px) scale(${scale})`,
-                transition: 'all 0.7s cubic-bezier(0.16,1,0.3,1)',
                 pointerEvents: isVisible ? 'auto' : 'none',
                 cursor: isVisible ? 'pointer' : 'default',
               }}
             >
               {/* The Card */}
               <div
-                className="w-full h-full rounded-[2.5rem] flex flex-col overflow-hidden backdrop-blur-md transition-all duration-700"
+                className="w-full h-full rounded-[2.5rem] flex flex-col overflow-hidden backdrop-blur-xl transition-all duration-700 relative group"
                 style={{
                   background: offset === 0
-                    ? 'linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.02))'
+                    ? 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)'
                     : 'rgba(255,255,255,0.02)',
                   border: '1px solid',
-                  borderColor: offset === 0 ? `${item.color}40` : 'rgba(255,255,255,0.05)',
-                  boxShadow: offset === 0 ? `0 20px 60px ${item.color}15, inset 0 1px 0 rgba(255,255,255,0.1)` : 'none',
+                  borderColor: offset === 0 ? `${item.color}50` : 'rgba(255,255,255,0.05)',
+                  boxShadow: offset === 0 ? `0 20px 80px -20px ${item.color}40, inset 0 1px 0 rgba(255,255,255,0.2)` : 'none',
                 }}
               >
+                {/* Noise overlay for glassmorphism 2.0 */}
+                <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+
                 {/* Header */}
                 <div
-                  className="border-b border-white/[0.05] flex flex-col justify-center"
+                  className="border-b border-white/[0.08] flex flex-col justify-center relative z-10"
                   style={{ padding: isDesktop ? '2rem' : '1.5rem', height: 140 }}
                 >
                   <div className="flex items-center gap-4 mb-3">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `${item.color}15`, border: `1px solid ${item.color}30` }}>
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_15px_currentColor] transition-all" style={{ background: `${item.color}15`, border: `1px solid ${item.color}40`, color: item.color }}>
                       <item.icon size={22} color={item.color} />
                     </div>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">{item.title}</h3>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">{item.title}</h3>
                   </div>
-                  <p className="text-white/40 text-sm sm:text-base leading-relaxed break-keep">{item.desc}</p>
+                  <p className="text-white/50 text-sm sm:text-base leading-relaxed break-keep">{item.desc}</p>
                 </div>
 
                 {/* Content Mockup */}
                 <div
-                  className="flex-1 flex flex-col relative overflow-hidden"
-                  style={{ padding: isDesktop ? '2rem' : '1.5rem', background: 'rgba(5,5,10,0.4)' }}
+                  className="flex-1 flex flex-col relative overflow-hidden z-10"
+                  style={{ padding: isDesktop ? '2rem' : '1.5rem', background: 'rgba(5,5,10,0.5)' }}
                 >
                   {offset !== 0 && (
-                    <div className="absolute inset-0 z-10 bg-[#0A0A14]/40 backdrop-blur-[2px]" />
+                    <div className="absolute inset-0 z-20 bg-[#0A0A14]/50 backdrop-blur-[2px] transition-all duration-500" />
                   )}
                   {item.content}
                 </div>
               </div>
-            </div>
+            </motion.div>
           )
         })}
       </div>
@@ -329,27 +364,30 @@ function PainPointSlider() {
   const cards = [
     {
       emoji: '😰',
-      q: '결혼식까지 6개월도 안 남았는데 뭐부터 해야 할지 모르겠어요.',
+      q: '예식장은 잡았는데... 그 다음엔 뭐부터 해야 하죠? 놓치는 게 있을까봐 불안해요.',
+      detail: '결혼일을 등록하면 시기별 준비 항목이 자동으로 정리돼요. 빠뜨릴 걱정 없이 할 일에만 집중하세요.',
       a: 'D-Day 기반 맞춤 체크리스트 자동 생성',
       color: '#A78BFA',
     },
     {
       emoji: '💑',
-      q: '파트너와 준비 현황을 실시간으로 같이 보고 싶어요.',
+      q: '나는 알고 있는데 파트너는 어디까지 알고 있을까요? 매번 공유하기가 너무 번거로워요.',
+      detail: '초대 코드 하나로 연결하면 체크리스트·일정·예산이 파트너와 실시간으로 함께 보여요.',
       a: '초대 코드 하나로 모든 정보 커플 공유',
       color: '#F9A8D4',
     },
     {
       emoji: '🏛️',
-      q: '어떤 웨딩홀, 스튜디오를 골라야 할지 막막해요.',
+      q: '웨딩홀·스튜디오를 어떻게 골라야 할까요? 찾아봐도 선택지가 너무 많아서 막막해요.',
+      detail: '원하는 위치, 예산, 분위기를 입력하면 AI가 우리 커플에게 딱 맞는 장소를 추천해드려요.',
       a: 'AI가 위치·예산·스타일 기반으로 추천',
       color: '#60A5FA',
     },
   ]
 
-  const cardW = isDesktop ? 400 : 280
-  const cardH = isDesktop ? 260 : 220
-  const spacing = isDesktop ? 420 : 300
+  const cardW = isDesktop ? 420 : 300
+  const cardH = isDesktop ? 370 : 340
+  const spacing = isDesktop ? 440 : 320
 
   return (
     <section className="py-24 bg-[#07070F] overflow-hidden" id="stories">
@@ -406,12 +444,23 @@ function PainPointSlider() {
                     }}
                   >
                     <div>
-                      <span className="text-4xl block mb-4">{card.emoji}</span>
-                      <p className="text-white/55 text-sm sm:text-base leading-relaxed">&ldquo;{card.q}&rdquo;</p>
+                      <span className="text-4xl block mb-3">{card.emoji}</span>
+                      <p className="text-white/60 text-sm sm:text-base leading-relaxed mb-3">&ldquo;{card.q}&rdquo;</p>
+                      <p className="text-white/30 text-xs sm:text-sm leading-relaxed break-keep">{card.detail}</p>
                     </div>
-                    <div className="flex items-start gap-2.5 pt-4 border-t border-white/[0.06]">
-                      <Zap size={13} className="mt-0.5 flex-shrink-0" style={{ color: card.color }} />
-                      <span className="text-sm font-semibold leading-relaxed" style={{ color: card.color }}>{card.a}</span>
+                    <div className="pt-4 border-t border-white/[0.08]">
+                      <p className="text-[10px] font-bold tracking-[2px] text-white/25 uppercase mb-2.5">Wepln 솔루션</p>
+                      <div
+                        className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
+                        style={{
+                          background: `${card.color}18`,
+                          border: `1px solid ${card.color}35`,
+                          boxShadow: `0 4px 16px ${card.color}10`,
+                        }}
+                      >
+                        <Zap size={18} style={{ color: card.color }} className="flex-shrink-0" />
+                        <span className="text-sm sm:text-base font-bold leading-snug break-keep" style={{ color: card.color }}>{card.a}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -504,7 +553,7 @@ export default function LandingPage() {
         <Particles className="absolute inset-0 z-[1] opacity-50" quantity={75} />
 
         {/* Content */}
-        <div className="relative z-[3] flex flex-col items-center text-center px-5 w-full max-w-4xl mx-auto pt-24 pb-16">
+        <div className="relative z-[3] flex flex-col items-center text-center px-5 w-full max-w-4xl mx-auto pt-32 pb-32">
 
           {/* Badge */}
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] text-[#D4A373] text-xs font-semibold mb-8 tracking-widest backdrop-blur-sm">
@@ -525,7 +574,7 @@ export default function LandingPage() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mb-16">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/login"
               className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#D4A373] to-[#B8845A] text-white font-semibold text-sm shadow-[0_0_40px_rgba(212,163,115,0.28)] hover:shadow-[0_0_60px_rgba(212,163,115,0.44)] hover:-translate-y-1 transition-all duration-300"
@@ -539,60 +588,6 @@ export default function LandingPage() {
               기능 살펴보기 <ChevronDown size={15} />
             </Link>
           </div>
-
-          {/* Floating Dashboard Mockup */}
-          <TiltCard className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-white/[0.035] backdrop-blur-xl shadow-[0_40px_100px_rgba(0,0,0,0.5)] overflow-hidden">
-            {/* Window bar */}
-            <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/[0.05] bg-white/[0.02]">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500/40" />
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/40" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500/40" />
-              <span className="ml-2 text-white/20 text-[10px] font-mono">wepln.app — 대시보드</span>
-            </div>
-            <div className="p-5 grid grid-cols-2 gap-3">
-              {/* D-Day */}
-              <div className="col-span-2 rounded-xl bg-gradient-to-r from-[#A78BFA]/10 to-[#D4A373]/10 border border-white/[0.05] p-4 flex items-center justify-between">
-                <div>
-                  <div className="text-white/30 text-[10px] mb-0.5">결혼식까지</div>
-                  <div className="text-5xl font-bold text-white font-cinzel leading-none">D-147</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[#D4A373] text-[10px] font-medium">2026.07.04 (토)</div>
-                  <div className="text-white/20 text-[9px] mt-0.5">서울 강남구 그랜드홀</div>
-                </div>
-              </div>
-              {/* Checklist mini */}
-              <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
-                <div className="text-white/30 text-[10px] mb-2.5">체크리스트</div>
-                <div className="space-y-1.5">
-                  {[
-                    { t: '예식장 계약', done: true },
-                    { t: '스드메 예약', done: true },
-                    { t: '청첩장 제작', done: false },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <div className={`w-3 h-3 rounded-full border flex-shrink-0 flex items-center justify-center ${item.done ? 'border-[#A7C4A0] bg-[#A7C4A0]/20' : 'border-white/15'}`}>
-                        {item.done && <div className="w-1.5 h-1.5 rounded-full bg-[#A7C4A0]" />}
-                      </div>
-                      <span className={`text-[9px] ${item.done ? 'text-white/25 line-through' : 'text-white/60'}`}>{item.t}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Budget mini */}
-              <div className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
-                <div className="text-white/30 text-[10px] mb-1.5">예산 현황</div>
-                <div className="text-xl font-bold text-white leading-none">
-                  2,400<span className="text-[9px] font-normal text-white/30 ml-0.5">만원</span>
-                </div>
-                <div className="text-[9px] text-white/20 mb-2">/ 5,000만원</div>
-                <div className="h-1.5 rounded-full bg-white/[0.08]">
-                  <div className="h-full w-[48%] rounded-full bg-gradient-to-r from-[#D4A373] to-[#EDD5A3]" />
-                </div>
-                <div className="text-[9px] text-[#D4A373]/60 mt-1">48% 사용</div>
-              </div>
-            </div>
-          </TiltCard>
         </div>
 
         {/* Scroll hint */}
@@ -606,7 +601,7 @@ export default function LandingPage() {
       ══════════════════════════════════ */}
       <section className="py-24 sm:py-32 px-5 bg-[#0A0A14] overflow-hidden" id="features">
         <div className="max-w-[1400px] mx-auto flex flex-col items-center">
-          
+
           <div className="text-center mb-6 sm:mb-12 z-20">
             <span className="inline-block text-[10px] font-bold tracking-[3px] text-[#D4A373] uppercase mb-4 px-4 py-1.5 rounded-full bg-[#D4A373]/10 border border-[#D4A373]/20">
               Features
