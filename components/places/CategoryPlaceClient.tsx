@@ -64,6 +64,11 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
     const [addedPlaces, setAddedPlaces] = useState<Set<string>>(new Set())
     const [searched, setSearched] = useState(false)
 
+    // 신규 모드
+    const [searchMode, setSearchMode] = useState<'choice' | 'direct' | 'ai'>('choice')
+    const [directQuery, setDirectQuery] = useState('')
+    const [searchingDirect, setSearchingDirect] = useState(false)
+
     // ── 위자드 네비게이션 ──────────────────────────────
     const advance = (fromStep: number) => {
         setDir(1)
@@ -96,7 +101,14 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
         window.scrollTo({ top: 0, behavior: 'smooth' })
 
         const searchSido = sido || '서울'
-        fetch(`/api/places/search?category=${slug}&sido=${encodeURIComponent(searchSido)}`)
+        const filterValues = Object.values(selectedFilters).filter(Boolean).join(',')
+        const queryParams = new URLSearchParams({
+            category: slug,
+            sido: searchSido,
+            filters: filterValues
+        }).toString()
+
+        fetch(`/api/places/search?${queryParams}`)
             .then(r => r.json())
             .then(data => {
                 if (data.error) setNaverError(data.error)
@@ -135,6 +147,9 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
     }
 
     const resetWizard = () => {
+        setSearchMode('choice')
+        setDirectQuery('')
+        setSearchingDirect(false)
         setSearched(false)
         setShowSummary(false)
         setStep(0)
@@ -143,6 +158,46 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
         setSelectedFilters({})
         setNaverResults([])
         setNaverError(null)
+    }
+
+    const handleDirectSearch = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault()
+        if (!directQuery.trim()) return
+
+        setSearchingDirect(true)
+        setNaverError(null)
+
+        try {
+            const res = await fetch(`/api/places/direct?query=${encodeURIComponent(directQuery)}`)
+            const data = await res.json()
+
+            if (data.error) {
+                setNaverError(data.error)
+                setSearchingDirect(false)
+                return
+            }
+
+            if (!data.places || data.places.length === 0) {
+                setNaverError('검색 결과가 없습니다. 다른 검색어를 입력해주세요.')
+                setSearchingDirect(false)
+                return
+            }
+
+            const place = data.places[0]
+            const detailParams = new URLSearchParams({
+                name: place.title,
+                address: place.roadAddress || place.address || '',
+                phone: place.telephone || '',
+                link: place.link || '',
+                mapx: place.mapx || '',
+                mapy: place.mapy || '',
+            }).toString()
+
+            router.push(`/places/category/${slug}/detail?${detailParams}`)
+        } catch (error) {
+            setNaverError('검색 중 오류가 발생했습니다.')
+            setSearchingDirect(false)
+        }
     }
 
     if (!category) {
@@ -184,8 +239,77 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
                 </div>
             </div>
 
+            {/* ── 선택 화면 ── */}
+            {searchMode === 'choice' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 mb-16 max-w-3xl mx-auto">
+                    <button
+                        onClick={() => setSearchMode('direct')}
+                        className="flex flex-col items-center justify-center p-10 bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(244,114,182,0.15)] hover:border-pink-200 transition-all hover:-translate-y-1 group"
+                    >
+                        <div className="w-16 h-16 bg-pink-50 rounded-2xl flex items-center justify-center mb-6 border border-pink-100 group-hover:scale-110 transition-transform shadow-inner">
+                            <Search className="text-pink-400" size={28} />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-2 group-hover:text-pink-600 transition-colors">사용자 직접 검색</h3>
+                        <p className="text-sm text-gray-500 text-center font-medium leading-relaxed">원하는 {category.label}의<br />이름을 직접 검색해 바로 확인</p>
+                    </button>
+
+                    <button
+                        onClick={() => setSearchMode('ai')}
+                        className="flex flex-col items-center justify-center p-10 bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgb(139,92,246,0.15)] hover:border-violet-200 transition-all hover:-translate-y-1 group"
+                    >
+                        <div className="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center mb-6 border border-violet-100 group-hover:scale-110 transition-transform shadow-inner">
+                            <Star className="text-violet-400 leading-none pb-1" size={30} />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-2 group-hover:text-violet-600 transition-colors">AI 맞춤 추천</h3>
+                        <p className="text-sm text-gray-500 text-center font-medium leading-relaxed">원하는 지역과 취향을 고르고<br />AI가 선별한 장소를 추천받기</p>
+                    </button>
+                </div>
+            )}
+
+            {/* ── 직접 검색 화면 ── */}
+            {searchMode === 'direct' && (
+                <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] py-12 px-6 sm:px-12 mb-8 text-center max-w-2xl mx-auto">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-3">업체명 직접 검색하기</h3>
+                    <p className="text-sm text-gray-500 mb-8 font-medium">찾으시는 업체의 이름을 정확하게 검색해주시면 바로 상세 정보로 넘어갑니다.</p>
+
+                    <form onSubmit={handleDirectSearch} className="flex flex-col sm:flex-row gap-3">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder={`예) 노마하우스 스튜디오`}
+                                value={directQuery}
+                                onChange={e => setDirectQuery(e.target.value)}
+                                className="w-full pl-11 pr-4 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-pink-300 focus:bg-white transition-all outline-none font-medium text-gray-800 text-base"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={searchingDirect || !directQuery.trim()}
+                            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold whitespace-nowrap disabled:opacity-50 flex items-center gap-2 justify-center hover:shadow-lg hover:shadow-pink-300/50 hover:-translate-y-0.5 transition-all text-base"
+                        >
+                            {searchingDirect ? <Loader2 size={18} className="animate-spin" /> : '검색 및 보기'}
+                        </button>
+                    </form>
+
+                    {naverError && (
+                        <div className="mt-5 bg-orange-50 border border-orange-100 rounded-2xl p-4 text-sm font-bold text-orange-500 text-left">
+                            {naverError}
+                        </div>
+                    )}
+
+                    <button
+                        onClick={resetWizard}
+                        className="mt-8 text-sm text-gray-400 hover:text-gray-600 font-bold underline underline-offset-4"
+                    >
+                        모드 변경하기 (이전으로)
+                    </button>
+                </div>
+            )}
+
+
             {/* ── 슬라이딩 위자드 ── */}
-            {!searched && (
+            {searchMode === 'ai' && !searched && (
                 <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden mb-8">
                     {/* 진행 표시 */}
                     <div className="flex items-center justify-center gap-1.5 pt-6 pb-1 px-8">
@@ -354,7 +478,7 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
             )}
 
             {/* ── 검색 조건 요약 바 ── */}
-            {searched && (
+            {searchMode === 'ai' && searched && (
                 <div className="bg-white/80 backdrop-blur-md border border-pink-100 rounded-2xl p-5 mb-8 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2 flex-wrap min-w-0">
                         <span className="text-[11px] font-extrabold text-pink-500 uppercase tracking-widest shrink-0 mr-2 bg-pink-50 px-2 py-1 rounded-md">검색 조건</span>
@@ -371,13 +495,13 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
                         onClick={resetWizard}
                         className="text-xs font-bold text-gray-500 hover:text-pink-600 bg-white border border-gray-200 hover:border-pink-200 px-4 py-2 rounded-full shrink-0 transition-all hover:shadow-sm"
                     >
-                        다시 설정
+                        다시 검색
                     </button>
                 </div>
             )}
 
             {/* ── 검색 결과 ── */}
-            {searched && (
+            {searchMode === 'ai' && searched && (
                 <section>
                     <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm font-extrabold text-[#03C75A] leading-none">N</span>

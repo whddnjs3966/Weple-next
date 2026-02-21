@@ -8,7 +8,7 @@ import {
     ChevronDown, Search, Heart, Navigation,
     Quote, Calendar, User, ArrowUpRight, Info,
 } from 'lucide-react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { addUserPlace } from '@/actions/user-places'
 
 interface BlogReview {
@@ -106,6 +106,7 @@ export default function PlacePlaceDetail({
     mapx,
     mapy,
 }: PlacePlaceDetailProps) {
+    const router = useRouter()
     const [reviews, setReviews] = useState<BlogReview[]>([])
     const [summary, setSummary] = useState<AiData | null>(null)
     const [summaryLoading, setSummaryLoading] = useState(true)
@@ -210,13 +211,13 @@ export default function PlacePlaceDetail({
                 animate={{ opacity: 1, x: 0 }}
                 className="mt-6 mb-5"
             >
-                <Link
-                    href={`/places/category/${slug}`}
+                <button
+                    onClick={() => router.back()}
                     className="inline-flex items-center gap-2 text-stone-400 hover:text-stone-600 transition-colors text-sm font-medium group"
                 >
                     <ArrowLeft size={15} className="group-hover:-translate-x-1 transition-transform" />
                     검색 결과로 돌아가기
-                </Link>
+                </button>
             </motion.div>
 
             {/* ═══════════════════════════════════════════════ */}

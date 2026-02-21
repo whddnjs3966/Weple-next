@@ -136,10 +136,10 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                             {['/dashboard', '/schedule', '/checklist', '/places', '/community'].some(path => pathname.startsWith(path)) ? (
                                 <div className="flex items-center gap-1 p-1 bg-pink-50/50 rounded-full border border-pink-100/50">
                                     {[
-                                        { name: 'Schedule', href: '/schedule', icon: Calendar },
-                                        { name: 'Checklist', href: '/checklist', icon: CheckSquare },
-                                        { name: 'Places', href: '/places', icon: Store },
-                                        { name: 'Community', href: '/community', icon: Users },
+                                        { name: '일정표', href: '/schedule', icon: Calendar },
+                                        { name: '체크리스트', href: '/checklist', icon: CheckSquare },
+                                        { name: '장소', href: '/places', icon: Store },
+                                        { name: '커뮤니티', href: '/community', icon: Users },
                                     ].map((item) => {
                                         const Icon = item.icon
                                         const isActive = pathname.startsWith(item.href)
@@ -192,7 +192,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                 title="Logout"
                             >
                                 <LogOut size={14} />
-                                <span className="hidden lg:inline">Log Out</span>
+                                <span className="hidden lg:inline">로그아웃</span>
                             </button>
                         </div>
                     </div>

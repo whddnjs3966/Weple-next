@@ -62,8 +62,9 @@ const defaultTasks: Task[] = [
 ]
 
 export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask[] }) {
-    // Map DB tasks to local format. If empty, maybe show empty or defaults? For now, map DB.
-    const mappedTasks: Task[] = initialTasks.map(t => ({
+    const router = useRouter()
+
+    const mapDbTasks = (dbTasks: DbTask[]): Task[] => dbTasks.map(t => ({
         id: t.id,
         title: t.title,
         description: t.description || undefined,
@@ -73,9 +74,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
         isDone: t.is_completed || false,
     }))
 
-    // We no longer fallback to defaultTasks. Let them be empty and show a seed button.
-    const router = useRouter()
-    const [tasks, setTasks] = useState<Task[]>(mappedTasks)
+    const [tasks, setTasks] = useState<Task[]>(mapDbTasks(initialTasks))
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
     const [isDateModalOpen, setIsDateModalOpen] = useState(false)
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -86,15 +85,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
 
     // Sync local state when server gives new initialTasks (e.g., after revalidatePath)
     useEffect(() => {
-        setTasks(initialTasks.map(t => ({
-            id: t.id,
-            title: t.title,
-            description: t.description || undefined,
-            dDayOffset: t.d_day || 0,
-            estimatedBudget: t.estimated_budget || 0,
-            scheduledDate: t.due_date,
-            isDone: t.is_completed || false,
-        })))
+        setTasks(mapDbTasks(initialTasks))
     }, [initialTasks])
 
     const handleSeedDefault = async () => {
@@ -127,10 +118,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
         const task = tasks.find(t => t.id === id)
         if (!task) return
         setTasks(tasks.map(t => t.id === id ? { ...t, isDone: !t.isDone } : t))
-
-        if (mappedTasks.find(t => t.id === id)) {
-            await toggleTaskCompletion(id, !task.isDone)
-        }
+        await toggleTaskCompletion(id, !task.isDone)
     }
 
     const toggleSelect = (id: string) => {
@@ -161,15 +149,13 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
             setSelectedIds(new Set())
             setSelectAll(false)
 
-            // Delete from DB only if they are real tasks
-            const realIds = idsToDelete.filter(id => !id.startsWith('c'))
-            if (realIds.length > 0) {
-                const res = await deleteTasks(realIds)
+            if (idsToDelete.length > 0) {
+                const res = await deleteTasks(idsToDelete)
                 if (res?.error) {
                     console.error('Failed to delete tasks:', res.error)
                     alert('삭제에 실패했습니다.')
                 } else {
-                    router.refresh() // Trigger a re-fetch of initialTasks
+                    router.refresh()
                 }
             }
         }
@@ -183,9 +169,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
     const saveBudget = async (id: string) => {
         const task = tasks.find(t => t.id === id)
         if (task) {
-            if (!id.startsWith('c')) {
-                await updateTaskBudget(id, task.estimatedBudget)
-            }
+            await updateTaskBudget(id, task.estimatedBudget)
         }
     }
 
@@ -204,9 +188,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
         // Update task with scheduled date
         setTasks(tasks.map(t => t.id === dateModalTaskId ? { ...t, scheduledDate: dateInput } : t))
 
-        if (!dateModalTaskId.startsWith('c')) {
-            await updateTaskDate(dateModalTaskId, dateInput)
-        }
+        await updateTaskDate(dateModalTaskId, dateInput)
 
         // Add to shared schedule context so it shows on calendar
         addEvent({
