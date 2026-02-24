@@ -1,9 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Star, Users, MessageSquare, Search, Trash2, Crown, X, CheckCircle2, MapPin } from 'lucide-react'
+import { Star, Users, MessageSquare, Search, Trash2, Crown, X, CheckCircle2, MapPin, BarChart3 } from 'lucide-react'
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
+    PieChart, Pie, Cell
+} from 'recharts'
 import type { Place } from '@/actions/places'
-import type { AdminMember } from '@/actions/admin'
+import type { AdminMember, AnalyticsData } from '@/actions/admin'
 
 type Post = {
     id: string
@@ -20,15 +24,16 @@ interface AdminClientProps {
     posts: Post[]
     members: AdminMember[]
     places: Place[]
+    analytics?: AnalyticsData[]
 }
 
-type Tab = 'featured' | 'posts' | 'members'
+type Tab = 'featured' | 'posts' | 'members' | 'analytics'
 
 // 최대 4개 슬롯
 const SLOT_COUNT = 4
 
-export default function AdminClient({ posts: initialPosts, members: initialMembers, places }: AdminClientProps) {
-    const [tab, setTab] = useState<Tab>('featured')
+export default function AdminClient({ posts: initialPosts, members: initialMembers, places, analytics = [] }: AdminClientProps) {
+    const [tab, setTab] = useState<Tab>('analytics')
     const [posts, setPosts] = useState(initialPosts)
     const [members, setMembers] = useState(initialMembers)
     const [isPending, startTransition] = useTransition()
@@ -155,6 +160,7 @@ export default function AdminClient({ posts: initialPosts, members: initialMembe
             {/* 탭 */}
             <div className="flex gap-1 border-b border-gray-200">
                 {([
+                    { key: 'analytics', label: '통계 및 분석', icon: BarChart3 },
                     { key: 'featured', label: '추천 장소 관리', icon: Star },
                     { key: 'posts', label: '게시판 관리', icon: MessageSquare },
                     { key: 'members', label: '멤버 관리', icon: Users },
@@ -172,6 +178,83 @@ export default function AdminClient({ posts: initialPosts, members: initialMembe
                     </button>
                 ))}
             </div>
+
+            {/* ── 탭 0: 통계 및 분석 ─────────────────────────────────── */}
+            {tab === 'analytics' && (
+                <div className="space-y-6">
+                    <p className="text-sm text-gray-500">사용자들의 탭별 방문 수 및 체류 시간 통계입니다.</p>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* 클릭수 차트 */}
+                        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <h3 className="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <BarChart3 size={18} className="text-rose-500" />
+                                탭별 방문 수
+                            </h3>
+                            <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={analytics} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                        <XAxis dataKey="tab_name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
+                                        <RechartsTooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                        <Bar dataKey="views" name="방문 수" fill="#FB7185" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* 체류 시간 차트 */}
+                        <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                            <h3 className="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <BarChart3 size={18} className="text-pink-500" />
+                                탭별 총 체류 시간 (분)
+                            </h3>
+                            <div className="h-[300px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    {/* duration_seconds를 분으로 변환하여 표시 */}
+                                    <BarChart data={analytics.map(a => ({ ...a, total_minutes: Math.round(a.total_duration / 60) }))} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                        <XAxis dataKey="tab_name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
+                                        <RechartsTooltip cursor={{ fill: '#F3F4F6' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                                        <Bar dataKey="total_minutes" name="총 체류 시간(분)" fill="#F472B6" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 상세 데이터 테이블 */}
+                    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-gray-50 border-b border-gray-200">
+                                    <th className="px-4 py-3 text-left border-b text-xs font-bold text-gray-500">탭 이름</th>
+                                    <th className="px-4 py-3 text-right border-b text-xs font-bold text-gray-500">방문 수</th>
+                                    <th className="px-4 py-3 text-right border-b text-xs font-bold text-gray-500">총 체류 시간</th>
+                                    <th className="px-4 py-3 text-right border-b text-xs font-bold text-gray-500">평균 체류 시간</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {analytics.map((item) => (
+                                    <tr key={item.tab_name} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3 font-medium text-gray-800">{item.tab_name}</td>
+                                        <td className="px-4 py-3 text-right text-gray-600 font-medium">{item.views.toLocaleString()}회</td>
+                                        <td className="px-4 py-3 text-right text-gray-600">{Math.round(item.total_duration / 60)}분</td>
+                                        <td className="px-4 py-3 text-right text-gray-600">{item.avg_duration}초</td>
+                                    </tr>
+                                ))}
+                                {analytics.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-400">수집된 데이터가 없습니다.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* ── 탭 1: 추천 장소 ─────────────────────────────────── */}
             {tab === 'featured' && (

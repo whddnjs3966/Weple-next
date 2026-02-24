@@ -18,10 +18,10 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
     const taskPct = tasks.total > 0 ? Math.round((tasks.completed / tasks.total) * 100) : 0
 
     const navItems = [
-        { name: 'Schedule',  href: '/schedule',  icon: Calendar,    desc: '일정 관리',   color: '#A78BFA', bg: 'rgba(167,139,250,0.12)' },
-        { name: 'Checklist', href: '/checklist', icon: CheckSquare, desc: '체크리스트',   color: '#A7C4A0', bg: 'rgba(167,196,160,0.12)' },
-        { name: 'Places',   href: '/places',   icon: Store,       desc: '장소 분석',   color: '#D4A373', bg: 'rgba(212,163,115,0.12)' },
-        { name: 'Community', href: '/community', icon: Users,       desc: '커뮤니티',    color: '#F9A8D4', bg: 'rgba(249,168,212,0.12)' },
+        { name: 'Schedule', href: '/schedule', icon: Calendar, desc: '일정 관리', color: '#A78BFA', bg: 'rgba(167,139,250,0.12)' },
+        { name: 'Checklist', href: '/checklist', icon: CheckSquare, desc: '체크리스트', color: '#A7C4A0', bg: 'rgba(167,196,160,0.12)' },
+        { name: 'Places', href: '/places', icon: Store, desc: '장소 분석', color: '#D4A373', bg: 'rgba(212,163,115,0.12)' },
+        { name: 'Community', href: '/community', icon: Users, desc: '커뮤니티', color: '#F9A8D4', bg: 'rgba(249,168,212,0.12)' },
     ]
 
     return (
@@ -125,8 +125,8 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
                             {budgetPct}%
                         </span>
                         <span className="text-white/35 text-xs text-right leading-relaxed">
-                            {budget.used.toLocaleString()} ₩<br />
-                            <span className="text-white/20">/ {budget.total.toLocaleString()} ₩</span>
+                            {budget.used.toLocaleString()}만 ₩<br />
+                            <span className="text-white/20">/ {budget.total.toLocaleString()}만 ₩</span>
                         </span>
                     </div>
 

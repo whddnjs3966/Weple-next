@@ -70,11 +70,11 @@ export function BudgetStatus({ budget }: { budget: StatusModulesProps['budget'] 
                 <div className="flex-1 space-y-2">
                     <div>
                         <p className="text-[10px] text-rose-300 uppercase tracking-wide">Total Budget</p>
-                        <p className="text-rose-900 font-bold">{budget.total.toLocaleString()} ₩</p>
+                        <p className="text-rose-900 font-bold">{budget.total.toLocaleString()}만 ₩</p>
                     </div>
                     <div>
                         <p className="text-[10px] text-rose-300 uppercase tracking-wide">Spent</p>
-                        <p className="text-rose-500 font-bold">{budget.used.toLocaleString()} ₩</p>
+                        <p className="text-rose-500 font-bold">{budget.used.toLocaleString()}만 ₩</p>
                     </div>
                 </div>
             </div>

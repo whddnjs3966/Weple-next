@@ -205,7 +205,7 @@ function LoginPageContent() {
                             )}
 
                             {/* Social Buttons */}
-                            <div className="space-y-3">
+                            <div className="space-y-3 w-full">
 
                                 {/* Naver */}
                                 <button

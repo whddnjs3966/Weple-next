@@ -31,6 +31,8 @@ export const metadata: Metadata = {
 };
 
 import SessionGuard from '@/components/SessionGuard'
+import InAppBrowserBlocker from '@/components/InAppBrowserBlocker'
+import AnalyticsTracker from '@/components/AnalyticsTracker'
 
 export default function RootLayout({
   children,
@@ -40,6 +42,8 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${cormorant.variable} ${dancingScript.variable} ${cinzel.variable} antialiased`}>
       <body className="font-sans">
+        <InAppBrowserBlocker />
+        <AnalyticsTracker />
         <SessionGuard />
         {children}
       </body>

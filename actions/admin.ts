@@ -97,3 +97,50 @@ export async function promoteToAdmin(userId: string) {
 
     if (error) throw new Error(error.message)
 }
+
+export type AnalyticsData = {
+    tab_name: string
+    views: number
+    avg_duration: number
+    total_duration: number
+}
+
+export async function getAnalyticsData(): Promise<AnalyticsData[]> {
+    const supabase = await requireAdmin()
+
+    // 이 예제에서는 단순함을 위해 모든 날짜의 데이터를 집계합니다.
+    // 실서비스에서는 특정 기간(예: 최근 7일) 필터링이 필요할 수 있습니다.
+    const { data, error } = await supabase
+        .from('analytics_events' as any)
+        .select('tab_name, duration_seconds')
+        .eq('event_type', 'page_view')
+
+    if (error) {
+        console.error('getAnalyticsData error:', error)
+        return []
+    }
+
+    const aggregated: Record<string, { views: number, total_duration: number }> = {}
+
+    data.forEach((event: any) => {
+        const tab = event.tab_name || 'Unknown'
+        if (!aggregated[tab]) {
+            aggregated[tab] = { views: 0, total_duration: 0 }
+        }
+        aggregated[tab].views += 1
+        aggregated[tab].total_duration += (event.duration_seconds || 0)
+    })
+
+    const result: AnalyticsData[] = Object.keys(aggregated).map(tab => {
+        const stat = aggregated[tab]
+        return {
+            tab_name: tab,
+            views: stat.views,
+            total_duration: stat.total_duration,
+            avg_duration: stat.views > 0 ? Math.round(stat.total_duration / stat.views) : 0
+        }
+    })
+
+    // 조회수 기준으로 내림차순 정렬
+    return result.sort((a, b) => b.views - a.views)
+}

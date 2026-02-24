@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSchedule } from '@/contexts/ScheduleContext'
 import { Database } from '@/lib/types/database.types'
+import { WEDDING_RECOMMENDATIONS } from '@/lib/constants/wedding-recommendations'
 
 type DbTask = Database['public']['Tables']['tasks']['Row']
 
@@ -380,83 +381,126 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                 <div className="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
             </div>
 
-            {/* ② D-Day 체크리스트 (실제 데이터 기반) */}
+            {/* ② AI 추천 체크리스트 (결혼식 D-Day 기반) */}
             <section className="mb-16">
-                <div className="text-center mb-8">
-                    <span className="inline-block px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-pink-50 text-pink-400 border border-pink-100 mb-3">
-                        Checklist
+                <div className="text-center mb-8 flex flex-col items-center justify-center">
+                    <span className="inline-flex px-4 py-1.5 rounded-full text-[10px] items-center justify-center gap-1 font-extrabold uppercase tracking-widest bg-emerald-50 text-emerald-500 border border-emerald-100 mb-3 whitespace-nowrap">
+                        <Sparkles size={12} className="text-emerald-400" />
+                        AI Recommended
                     </span>
-                    <h3 className="text-2xl font-extrabold text-gray-800">D-Day 체크리스트</h3>
+                    <h3 className="text-2xl font-extrabold text-gray-800">AI 추천 체크리스트</h3>
                     <p className="text-sm text-gray-400 mt-1">
-                        가장 가까운 미완료 항목들&nbsp;&nbsp;
-                        <Link href="/checklist" className="text-pink-400 font-bold hover:text-pink-500 transition-colors">
-                            전체보기 →
-                        </Link>
+                        현재 D-Day에 맞춰 꼭 필요한 준비 사항을 AI가 추천해 드립니다.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {(() => {
-                        const incompleteTasks = checklistTasks
-                            .filter(t => !t.is_completed)
-                            .sort((a, b) => Math.abs(a.d_day || 999) - Math.abs(b.d_day || 999))
-                            .slice(0, 3)
+                        // 1. Calculate D-Day for AI Recommendations
+                        let currentDDay = 999;
+                        if (weddingDate) {
+                            const eventDate = new Date(weddingDate + 'T00:00:00');
+                            currentDDay = differenceInDays(eventDate, today);
+                        }
 
-                        const gradients = [
-                            'from-pink-400 to-pink-300',
-                            'from-fuchsia-400 to-pink-300',
-                            'from-rose-400 to-pink-400',
+                        // 2. Find matching recommendations based on D-Day
+                        let recommendedTasks: { title: string, description: string }[] = [];
+                        let recMinDDay = 0;
+                        let recMaxDDay = 0;
+                        const match = WEDDING_RECOMMENDATIONS.find(
+                            (rec) => currentDDay <= rec.maxDDay && currentDDay >= rec.minDDay
+                        );
+
+                        if (match) {
+                            recommendedTasks = match.tasks;
+                            recMinDDay = match.minDDay;
+                            recMaxDDay = match.maxDDay;
+                        } else if (currentDDay > 1000) {
+                            // Too far in the future
+                            recommendedTasks = WEDDING_RECOMMENDATIONS[0].tasks;
+                            recMinDDay = WEDDING_RECOMMENDATIONS[0].minDDay;
+                            recMaxDDay = WEDDING_RECOMMENDATIONS[0].maxDDay;
+                        } else {
+                            // Past wedding
+                            recommendedTasks = WEDDING_RECOMMENDATIONS[WEDDING_RECOMMENDATIONS.length - 1].tasks;
+                            recMinDDay = WEDDING_RECOMMENDATIONS[WEDDING_RECOMMENDATIONS.length - 1].minDDay;
+                            recMaxDDay = WEDDING_RECOMMENDATIONS[WEDDING_RECOMMENDATIONS.length - 1].maxDDay;
+                        }
+
+                        // Get exactly 4 tasks (or fewer if that's all there is)
+                        const displayTasks = recommendedTasks.slice(0, 4);
+
+                        const themes = [
+                            {
+                                accent: 'via-emerald-300/60',
+                                iconBg: 'bg-emerald-50',
+                                iconBorder: 'border-emerald-100',
+                                iconText: 'text-emerald-500',
+                            },
+                            {
+                                accent: 'via-teal-300/60',
+                                iconBg: 'bg-teal-50',
+                                iconBorder: 'border-teal-100',
+                                iconText: 'text-teal-500',
+                            },
+                            {
+                                accent: 'via-cyan-300/60',
+                                iconBg: 'bg-cyan-50',
+                                iconBorder: 'border-cyan-100',
+                                iconText: 'text-cyan-500',
+                            },
+                            {
+                                accent: 'via-indigo-300/60',
+                                iconBg: 'bg-indigo-50',
+                                iconBorder: 'border-indigo-100',
+                                iconText: 'text-indigo-500',
+                            }
                         ]
-                        const icons = [Sparkles, Gift, Shirt]
+                        const icons = [CheckCircle, CalendarDays, Clock, MapPin]
 
-                        return incompleteTasks.length > 0 ? incompleteTasks.map((task, i) => {
+                        return displayTasks.map((taskItem, i) => {
                             const Icon = icons[i % icons.length]
-                            const dDay = task.d_day || 0
-                            const ddayLabel = dDay === 0 ? 'D-Day' : `D${dDay}`
+                            const theme = themes[i % themes.length]
+                            const ddayLabel = currentDDay === 0 ? 'D-Day' : (currentDDay > 0 ? `D-${currentDDay}` : `D+${Math.abs(currentDDay)}`);
+
                             return (
-                                <div key={task.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                                    <div className="p-5">
+                                <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col h-full">
+                                    {/* 상단 액센트 라인 */}
+                                    <div className={`h-px bg-gradient-to-r from-transparent ${theme.accent} to-transparent`} />
+                                    <div className="p-5 flex-1 flex flex-col">
                                         <div className="flex items-start justify-between mb-4">
-                                            <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${gradients[i % gradients.length]} flex items-center justify-center text-white shadow-sm`}>
-                                                <Icon size={20} />
+                                            <div className="flex flex-col gap-2">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-[10px] font-extrabold text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded uppercase tracking-wider">나의 일정</span>
+                                                    <p
+                                                        className="font-cinzel text-xl font-bold leading-none"
+                                                        style={{
+                                                            background: 'linear-gradient(135deg, #10B981, #059669)',
+                                                            WebkitBackgroundClip: 'text',
+                                                            WebkitTextFillColor: 'transparent',
+                                                            backgroundClip: 'text',
+                                                        }}
+                                                    >
+                                                        {weddingDate ? ddayLabel : '미정'}
+                                                    </p>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 flex items-center w-fit">
+                                                    추천 시기: {recMaxDDay === 1000 ? 'D-300 이전' : recMinDDay === -999 ? '예식 후' : recMinDDay === 0 ? `D-${recMaxDDay} ~ D-Day` : `D-${recMaxDDay} ~ D-${recMinDDay}`}
+                                                </span>
                                             </div>
-                                            <span className="text-[11px] font-extrabold text-pink-400 bg-pink-50 px-2.5 py-1 rounded-full border border-pink-100">
-                                                {ddayLabel}
-                                            </span>
+                                            <div className={`w-8 h-8 rounded-full ${theme.iconBg} flex items-center justify-center ${theme.iconText} shadow-sm border ${theme.iconBorder} shrink-0`}>
+                                                <Icon size={14} />
+                                            </div>
                                         </div>
-                                        <h4 className="font-bold text-gray-800 text-[15px] mb-2 leading-tight">{task.title}</h4>
-                                        <p className="text-xs text-gray-400 leading-relaxed mb-4 line-clamp-2">{task.description || '체크리스트에서 상세 내용을 확인하세요.'}</p>
-                                        <Link href="/checklist" className="flex items-center gap-1.5 text-xs font-bold text-pink-400 hover:text-pink-500 transition-colors">
-                                            <CheckCircle size={13} />
-                                            체크리스트에서 관리
-                                        </Link>
+                                        <h4 className="font-bold text-gray-800 text-[15px] mb-2 leading-snug">{taskItem.title}</h4>
+                                        <p className="text-xs text-gray-400 leading-relaxed pb-1">
+                                            {taskItem.description}
+                                        </p>
                                     </div>
-                                    <div className={`h-0.5 bg-gradient-to-r ${gradients[i % gradients.length]}`} />
                                 </div>
                             )
-                        }) : (
-                            <div className="sm:col-span-2 lg:col-span-3 bg-pink-50/30 rounded-2xl border border-pink-100 p-8 text-center">
-                                <p className="text-gray-400 text-sm">아직 체크리스트 항목이 없어요.</p>
-                                <Link href="/checklist" className="text-pink-400 font-bold text-sm hover:text-pink-500 transition-colors mt-2 inline-block">
-                                    체크리스트 만들기 →
-                                </Link>
-                            </div>
-                        )
+                        })
                     })()}
-
-                    {/* 직접 추가하기 → 체크리스트 탭으로 이동 */}
-                    <button
-                        onClick={() => router.push('/checklist')}
-                        className="bg-white rounded-2xl border-2 border-dashed border-gray-200 shadow-sm overflow-hidden hover:border-pink-200 hover:shadow-md transition-all flex flex-col items-center justify-center py-8 gap-3 group"
-                    >
-                        <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center group-hover:border-pink-200 group-hover:bg-pink-50/40 transition-all">
-                            <Plus size={18} className="text-gray-300 group-hover:text-pink-400 transition-colors" />
-                        </div>
-                        <div className="text-center">
-                            <p className="text-sm font-semibold text-gray-300 group-hover:text-gray-400 transition-colors">직접 추가하기</p>
-                            <p className="text-xs text-gray-200 mt-0.5 group-hover:text-gray-300 transition-colors">체크리스트 탭으로 이동</p>
-                        </div>
-                    </button>
                 </div>
             </section>
 
