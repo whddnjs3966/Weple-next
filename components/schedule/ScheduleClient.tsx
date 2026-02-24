@@ -181,7 +181,7 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                 </div>
 
                 {/* Legend — 오른쪽 정렬 */}
-                <div className="flex items-center justify-end gap-5 px-6 md:px-10 pb-3">
+                <div className="flex items-center justify-end gap-3 md:gap-5 px-6 md:px-10 pb-3">
                     <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
                         <span className="text-[11px] font-bold text-gray-400">일정</span>
@@ -227,13 +227,13 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                             return (
                                 <div
                                     key={day.toISOString()}
-                                    className="aspect-square min-h-[68px] sm:min-h-[90px] md:min-h-[110px]"
+                                    className="aspect-square"
                                 >
                                     {isCurrentMonth ? (
                                         <div
-                                            className={`h-full p-2 rounded-lg transition-all cursor-pointer relative
-                                                ${isToday(day) ? 'ring-2 ring-pink-300 bg-pink-50/50 shadow-sm' : 'bg-gray-50/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'}
-                                                ${isSelected && !isToday(day) ? 'ring-2 ring-pink-200 bg-white shadow-sm' : ''}
+                                            className={`h-full p-1 sm:p-2 rounded-lg transition-all cursor-pointer relative
+                                                ${isToday(day) ? 'ring-2 ring-inset ring-pink-300 bg-pink-50/50 shadow-sm' : 'bg-gray-50/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'}
+                                                ${isSelected && !isToday(day) ? 'ring-2 ring-inset ring-pink-200 bg-white shadow-sm' : ''}
                                                 hover:bg-pink-50/40 hover:shadow-sm
                                             `}
                                             onClick={() => handleDateClick(day)}
@@ -249,8 +249,8 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                                                 {format(day, 'd')}
                                             </span>
 
-                                            {/* Event Pills */}
-                                            <div className="flex flex-col gap-0.5 mt-1">
+                                            {/* Event Pills — full on sm+, dots only on mobile */}
+                                            <div className="hidden sm:flex flex-col gap-0.5 mt-1">
                                                 {dayHasEvent && (
                                                     <div className="text-[8px] px-1 py-0.5 rounded bg-emerald-50 text-emerald-500 font-medium truncate flex items-center gap-0.5">
                                                         <span className="w-1 h-1 rounded-full bg-emerald-400 shrink-0"></span>
@@ -275,6 +275,13 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                                                         결혼식
                                                     </div>
                                                 )}
+                                            </div>
+                                            {/* Mobile: dot indicators only */}
+                                            <div className="flex sm:hidden gap-0.5 mt-1 justify-center">
+                                                {dayHasEvent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
+                                                {dayHasMemo && <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>}
+                                                {dayHasChecklist && <span className="w-1.5 h-1.5 rounded-full bg-pink-300"></span>}
+                                                {dayHasWedding && <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>}
                                             </div>
                                         </div>
                                     ) : (

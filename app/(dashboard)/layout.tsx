@@ -41,7 +41,7 @@ export default async function DashboardLayout({
                     <Navbar userEmail={user.email} />
 
                     {/* Main Content */}
-                    <main className="w-full min-h-screen pt-24 pb-16">
+                    <main className="w-full min-h-screen pt-24 pb-24 md:pb-16">
                         {children}
                     </main>
 

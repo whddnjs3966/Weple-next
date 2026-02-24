@@ -29,7 +29,7 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
 
             {/* ── D-Day Card ── */}
             <motion.div
-                className="lg:col-span-2 flex flex-col items-center justify-center text-center px-8 py-10 rounded-3xl relative overflow-hidden"
+                className="lg:col-span-2 flex flex-col items-center justify-center text-center px-4 py-6 sm:px-8 sm:py-10 rounded-3xl relative overflow-hidden"
                 style={{
                     background: 'rgba(255,255,255,0.04)',
                     border: '1px solid rgba(255,255,255,0.08)',
@@ -58,7 +58,7 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
 
                 {/* D-Day 숫자 — 골드 그라디언트 */}
                 <h1
-                    className="font-cinzel text-[6.5rem] md:text-[8.5rem] leading-none font-bold mb-4 relative z-10"
+                    className="font-cinzel text-[4rem] sm:text-[6.5rem] md:text-[8.5rem] leading-none font-bold mb-4 relative z-10"
                     style={{
                         background: 'linear-gradient(160deg, #EDD5A3 0%, #D4A373 40%, #B8845A 100%)',
                         WebkitBackgroundClip: 'text',

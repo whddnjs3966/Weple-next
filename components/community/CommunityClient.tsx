@@ -158,10 +158,10 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-100/50 bg-white/40">
-                            <th className="py-3.5 px-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-16">No</th>
+                            <th className="hidden sm:table-cell py-3.5 px-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-16">No</th>
                             <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-24">카테고리</th>
                             <th className="py-3.5 px-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">제목</th>
-                            <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-32">글쓴이</th>
+                            <th className="hidden sm:table-cell py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-32">글쓴이</th>
                             <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-24 hidden md:table-cell">작성시간</th>
                             <th className="py-3.5 px-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider w-16 hidden md:table-cell">조회</th>
                         </tr>
@@ -179,7 +179,7 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                                         className="border-b border-gray-50/50 transition-all cursor-pointer hover:bg-pink-50/30 group"
                                         onClick={() => window.location.href = `/community/${post.id}`}
                                     >
-                                        <td className="py-3.5 px-4 text-center">
+                                        <td className="hidden sm:table-cell py-3.5 px-4 text-center">
                                             <span className="text-sm text-gray-400">
                                                 {totalCount - ((currentPage - 1) * PAGE_SIZE) - index}
                                             </span>
@@ -194,7 +194,7 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                                                 {post.title}
                                             </span>
                                         </td>
-                                        <td className="py-3.5 px-3 text-center">
+                                        <td className="hidden sm:table-cell py-3.5 px-3 text-center">
                                             <span className="text-xs text-gray-500">{post.author?.username || '익명'}</span>
                                         </td>
                                         <td className="py-3.5 px-3 text-center hidden md:table-cell">

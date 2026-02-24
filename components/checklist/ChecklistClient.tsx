@@ -184,7 +184,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
     const dateModalTask = tasks.find(t => t.id === dateModalTaskId)
 
     return (
-        <div className="max-w-6xl mx-auto px-6 pb-20">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 pb-20">
             {/* Header */}
             <div className="text-center mb-6">
                 <h2 className="font-serif italic text-3xl md:text-4xl font-bold text-gray-800 tracking-tight mb-2">
@@ -280,7 +280,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                 <table className="w-full">
                                     <thead>
                                         <tr className="bg-gray-50/80 border-b-2 border-gray-200">
-                                            <th className="w-16 py-3 px-2 text-center">
+                                            <th className="w-10 sm:w-16 py-3 px-2 text-center">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectAll}
@@ -290,8 +290,8 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                             </th>
                                             <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '120px' }}>시기 (D-Day)</th>
                                             <th className="py-3 px-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">할 일 (TODO)</th>
-                                            <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '180px' }}>예상 예산</th>
-                                            <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '130px' }}>일정 등록</th>
+                                            <th className="hidden sm:table-cell py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '180px' }}>예상 예산</th>
+                                            <th className="hidden sm:table-cell py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '130px' }}>일정 등록</th>
                                             <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '100px' }}>완료</th>
                                         </tr>
                                     </thead>
@@ -328,7 +328,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                                             <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">{task.description}</p>
                                                         )}
                                                     </td>
-                                                    <td className="py-3 px-2">
+                                                    <td className="hidden sm:table-cell py-3 px-2">
                                                         <div className="flex items-center gap-1 justify-center">
                                                             <input
                                                                 type="text"
@@ -346,7 +346,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                                             </button>
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-2 text-center">
+                                                    <td className="hidden sm:table-cell py-3 px-2 text-center">
                                                         {task.scheduledDate ? (
                                                             <button
                                                                 onClick={() => openDateModal(task.id)}

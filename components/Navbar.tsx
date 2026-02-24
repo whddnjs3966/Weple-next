@@ -122,7 +122,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                     {/* Accent Line */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/5 h-[2px] bg-gradient-to-r from-transparent via-pink-300 to-transparent opacity-70 rounded-b-sm"></div>
 
-                    <div className="flex items-center justify-center gap-6 px-8 py-2">
+                    <div className="flex items-center justify-center gap-3 md:gap-6 px-4 md:px-8 py-2">
                         {/* Logo */}
                         <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105 shrink-0">
                             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-white shadow-sm shadow-pink-300/30 shrink-0">
@@ -198,6 +198,38 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                     </div>
                 </nav>
             </div>
+
+            {/* ─── Mobile Bottom Navigation ─── */}
+            {['/dashboard', '/schedule', '/checklist', '/places', '/community'].some(path => pathname.startsWith(path)) && (
+                <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/90 backdrop-blur-xl border-t border-pink-100/50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                    <div className="flex items-center justify-around px-2 py-2">
+                        {[
+                            { name: '일정표', href: '/schedule', icon: Calendar },
+                            { name: '체크리스트', href: '/checklist', icon: CheckSquare },
+                            { name: '장소', href: '/places', icon: MapPin },
+                            { name: '커뮤니티', href: '/community', icon: Users },
+                        ].map((item) => {
+                            const Icon = item.icon
+                            const isActive = pathname.startsWith(item.href)
+                            return (
+                                <Link
+                                    key={item.name}
+                                    href={item.href}
+                                    className={cn(
+                                        "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[60px]",
+                                        isActive
+                                            ? "text-pink-500"
+                                            : "text-gray-400"
+                                    )}
+                                >
+                                    <Icon size={20} />
+                                    <span className="text-[10px] font-bold">{item.name}</span>
+                                </Link>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* ─── Profile Modal (Spring Wedding Style) ─── */}
             {isProfileOpen && (
