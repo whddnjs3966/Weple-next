@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { Calendar, Users, Sparkles, Heart, MapPin, ArrowRight, ArrowLeft, Check } from 'lucide-react'
-import { WEDDING_LOCATIONS, SIDO_LIST } from '@/lib/constants/wedding-locations'
+import { SIDO_LIST } from '@/lib/constants/wedding-locations'
+import { joinByInviteCode, generateInviteCode } from '@/actions/invite'
 import Particles from '@/components/Particles'
 
 /* ─── 3D Tilt Card Wrapper ─── */
@@ -99,7 +100,6 @@ export default function OnboardingPage() {
         setLoading(true)
         setInviteError('')
         try {
-            const { joinByInviteCode } = await import('@/actions/invite')
             const result = await joinByInviteCode(inviteCode)
             if (result.error) {
                 setInviteError(result.error)
@@ -135,7 +135,6 @@ export default function OnboardingPage() {
 
             if (profileError) throw profileError
 
-            const { generateInviteCode } = await import('@/actions/invite')
             await generateInviteCode()
 
             router.push('/dashboard')
@@ -146,8 +145,6 @@ export default function OnboardingPage() {
             setLoading(false)
         }
     }
-
-    const sigunguList = formData.regionSido ? WEDDING_LOCATIONS[formData.regionSido] || [] : []
 
     const fadeSlide = {
         initial: { opacity: 0, x: 20 },
@@ -362,38 +359,10 @@ export default function OnboardingPage() {
                                     </div>
                                 </div>
 
-                                {/* 상세 도시 선택 */}
-                                {formData.regionSido && sigunguList.length > 0 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ duration: 0.3, type: "spring", stiffness: 200, damping: 20 }}
-                                    >
-                                        <p className="text-xs text-white/35 mb-3 font-semibold tracking-wider uppercase">상세 지역 선택</p>
-                                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                            {sigunguList.map((sigungu) => (
-                                                <button
-                                                    key={sigungu}
-                                                    onClick={() => setFormData(prev => ({ ...prev, regionSigungu: sigungu }))}
-                                                    className="py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all hover:-translate-y-0.5"
-                                                    style={formData.regionSigungu === sigungu
-                                                        ? { background: 'rgba(212,163,115,0.2)', border: '1px solid rgba(212,163,115,0.6)', color: '#D4A373', boxShadow: '0 4px 12px rgba(212,163,115,0.2), inset 0 1px 0 rgba(255,255,255,0.1)' }
-                                                        : { background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)' }
-                                                    }
-                                                    onMouseEnter={(e) => { if (formData.regionSigungu !== sigungu) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)' } }}
-                                                    onMouseLeave={(e) => { if (formData.regionSigungu !== sigungu) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(0,0,0,0.2)' } }}
-                                                >
-                                                    {sigungu}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                )}
-
-                                {formData.regionSido && formData.regionSigungu && (
+                                {formData.regionSido && (
                                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-2 text-sm text-[#A7C4A0] bg-[#A7C4A0]/10 px-4 py-2.5 rounded-xl border border-[#A7C4A0]/20 w-max">
                                         <Check size={16} />
-                                        <span className="font-bold">{formData.regionSido} {formData.regionSigungu}</span>
+                                        <span className="font-bold">{formData.regionSido}</span>
                                     </motion.div>
                                 )}
                                 {!formData.regionSido && (

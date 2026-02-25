@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, Calendar, X, Save, Sparkles } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useSchedule } from '@/contexts/ScheduleContext'
 import { Database } from '@/lib/types/database.types'
 import { toggleTaskCompletion, updateTaskBudget, updateTaskDate, deleteTasks, addTask } from '@/actions/checklist'
@@ -31,8 +30,6 @@ const TABS: { key: TabType; label: string; icon: string }[] = [
 ]
 
 export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask[] }) {
-    const router = useRouter()
-
     const mapDbTasks = (dbTasks: DbTask[]): Task[] => dbTasks.map(t => ({
         id: t.id,
         title: t.title,
@@ -52,6 +49,8 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
     const [dateInput, setDateInput] = useState('')
     const [selectAll, setSelectAll] = useState(false)
     const [addingItemId, setAddingItemId] = useState<string | null>(null)
+    const [isToggling, setIsToggling] = useState<string | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     useEffect(() => {
         setTasks(mapDbTasks(initialTasks))
@@ -66,10 +65,13 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
     const scheduleEvents = events.filter(e => e.type === 'schedule')
 
     const toggleStatus = async (id: string) => {
+        if (isToggling) return
         const task = tasks.find(t => t.id === id)
         if (!task) return
+        setIsToggling(id)
         setTasks(tasks.map(t => t.id === id ? { ...t, isDone: !t.isDone } : t))
         await toggleTaskCompletion(id, !task.isDone)
+        setIsToggling(null)
     }
 
     const toggleSelect = (id: string) => {
@@ -91,9 +93,10 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
     }
 
     const deleteSelected = async () => {
-        if (selectedIds.size === 0) return
+        if (selectedIds.size === 0 || isDeleting) return
         if (confirm(`${selectedIds.size}개 항목을 삭제하시겠습니까?`)) {
             const idsToDelete = Array.from(selectedIds)
+            setIsDeleting(true)
             setTasks(prev => prev.filter(t => !selectedIds.has(t.id)))
             setSelectedIds(new Set())
             setSelectAll(false)
@@ -103,10 +106,9 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                 if (res?.error) {
                     console.error('Failed to delete tasks:', res.error)
                     alert('삭제에 실패했습니다.')
-                } else {
-                    router.refresh()
                 }
             }
+            setIsDeleting(false)
         }
     }
 
@@ -176,7 +178,6 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
         if (result?.error) {
             alert('추가에 실패했습니다.')
         } else {
-            router.refresh()
             setActiveTab('my')
         }
     }
@@ -245,7 +246,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={deleteSelected}
-                                disabled={selectedIds.size === 0}
+                                disabled={selectedIds.size === 0 || isDeleting}
                                 className="h-8 px-3 rounded-lg bg-white border border-gray-200 flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 hover:border-red-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                             >
                                 <Trash2 size={13} />
@@ -368,7 +369,8 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                                     <td className="py-3 px-2 text-center">
                                                         <button
                                                             onClick={() => toggleStatus(task.id)}
-                                                            className="transition-all hover:scale-110"
+                                                            disabled={isToggling === task.id}
+                                                            className="transition-all hover:scale-110 disabled:opacity-50"
                                                         >
                                                             {task.isDone ? (
                                                                 <CheckCircle size={20} className="text-emerald-500" />
@@ -506,9 +508,9 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
             {/* Date Registration Modal */}
             {isDateModalOpen && dateModalTask && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                    <div className="absolute inset-0 bg-pink-900/20 backdrop-blur-sm" onClick={() => setIsDateModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" onClick={() => setIsDateModalOpen(false)}></div>
                     <div className="relative w-full max-w-sm bg-white rounded-[20px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #FB7185 0%, #FDA4AF 100%)', padding: '1.25rem 1.5rem' }}>
+                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)', padding: '1.25rem 1.5rem' }}>
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:20px_20px]"></div>
                             <div className="relative z-10">
                                 <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mb-0.5">일정 등록</p>
@@ -532,7 +534,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                     type="date"
                                     value={dateInput}
                                     onChange={(e) => setDateInput(e.target.value)}
-                                    className="w-full bg-pink-50/30 border-2 border-pink-100 rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:border-pink-400 focus:bg-white focus:ring-4 focus:ring-pink-100"
+                                    className="w-full bg-indigo-50/30 border-2 border-indigo-100 rounded-xl px-4 py-2.5 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                 />
                             </div>
                             <div className="text-[11px] text-gray-400 bg-blue-50 rounded-lg px-3 py-2 flex items-start gap-1.5">
@@ -544,8 +546,8 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                 disabled={!dateInput}
                                 className="w-full py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                                 style={{
-                                    background: 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)',
-                                    boxShadow: '0 4px 15px rgba(251, 113, 133, 0.3)',
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
+                                    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
                                 }}
                             >
                                 <Calendar size={15} />

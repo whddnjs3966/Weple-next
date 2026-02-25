@@ -83,19 +83,11 @@ export async function updateTask(id: string, updates: TaskUpdate) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    // Fetch group members just like getTasks
-    const { data: profile } = await supabase.from('profiles').select('wedding_group_id').eq('id', user.id).single()
-    let userIds = [user.id]
-    if (profile?.wedding_group_id) {
-        const { data: members } = await supabase.from('profiles').select('id').eq('wedding_group_id', profile.wedding_group_id)
-        if (members) userIds = members.map(m => m.id)
-    }
-
+    // RLS enforces user_id-based access, no need for group member lookup
     const { error } = await supabase
         .from('tasks')
         .update(updates)
         .eq('id', id)
-        .in('user_id', userIds)
 
     if (error) return { error: error.message }
 
@@ -110,19 +102,11 @@ export async function deleteTasks(ids: string[]) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    // Fetch group members just like getTasks
-    const { data: profile } = await supabase.from('profiles').select('wedding_group_id').eq('id', user.id).single()
-    let userIds = [user.id]
-    if (profile?.wedding_group_id) {
-        const { data: members } = await supabase.from('profiles').select('id').eq('wedding_group_id', profile.wedding_group_id)
-        if (members) userIds = members.map(m => m.id)
-    }
-
+    // RLS enforces user_id-based access, no need for group member lookup
     const { error } = await supabase
         .from('tasks')
         .delete()
         .in('id', ids)
-        .in('user_id', userIds)
 
     if (error) return { error: error.message }
 

@@ -85,7 +85,7 @@ export async function joinByInviteCode(inviteCode: string) {
 
         if (updateError) return { error: updateError.message }
 
-        revalidatePath('/', 'layout')
+        revalidatePath('/dashboard')
         return { success: true, message: '파트너와 연결되었습니다!' }
     }
 
@@ -108,7 +108,7 @@ export async function joinByInviteCode(inviteCode: string) {
 
     if (linkError) return { error: linkError.message }
 
-    revalidatePath('/', 'layout')
+    revalidatePath('/dashboard')
     return { success: true, message: '파트너와 연결되었습니다!' }
 }
 

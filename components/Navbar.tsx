@@ -4,15 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Flower2, Settings, LogOut, Calendar, CheckSquare, Store, Users, User, Copy, Check, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { signOutAction } from '@/actions/auth'
+import { updateWeddingDate } from '@/actions/profile'
 import { cn } from '@/lib/utils'
 import { WEDDING_LOCATIONS, SIDO_LIST } from '@/lib/constants/wedding-locations'
 
 export default function Navbar({ userEmail }: { userEmail?: string }) {
     const pathname = usePathname()
-    const router = useRouter()
     const supabase = createClient()
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [displayName, setDisplayName] = useState('') // 버튼에 표시할 이름
@@ -22,55 +21,34 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
     const [regionSigungu, setRegionSigungu] = useState('')
     const [inviteCode, setInviteCode] = useState('')
     const [isUpdating, setIsUpdating] = useState(false)
-    const [isLoadingProfile, setIsLoadingProfile] = useState(false)
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true)
     const [copied, setCopied] = useState(false)
 
-    // 마운트 시 display name 로드 (버튼 레이블용)
+    // 마운트 시 전체 프로필 로드 (버튼 레이블 + 모달 데이터)
     useEffect(() => {
-        const loadDisplayName = async () => {
+        const loadProfile = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return
 
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('full_name')
+                .select('full_name, invite_code, wedding_date, region_sido, region_sigungu')
                 .eq('id', user.id)
                 .single()
 
-            const name = profile?.full_name || userEmail?.split('@')[0] || ''
-            setDisplayName(name)
+            if (profile) {
+                const name = profile.full_name || userEmail?.split('@')[0] || ''
+                setDisplayName(name)
+                setNickname(profile.full_name || '')
+                setInviteCode(profile.invite_code || '')
+                if (profile.wedding_date) setNewWeddingDate(String(profile.wedding_date).slice(0, 10))
+                if (profile.region_sido) setRegionSido(profile.region_sido)
+                if (profile.region_sigungu) setRegionSigungu(profile.region_sigungu)
+            }
+            setIsLoadingProfile(false)
         }
-        loadDisplayName()
+        loadProfile()
     }, [])
-
-    // Load full profile data when modal opens
-    useEffect(() => {
-        if (isProfileOpen) {
-            loadProfileData()
-        }
-    }, [isProfileOpen])
-
-    const loadProfileData = async () => {
-        setIsLoadingProfile(true)
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { setIsLoadingProfile(false); return }
-
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name, invite_code, wedding_date, region_sido, region_sigungu')
-            .eq('id', user.id)
-            .single()
-
-        if (profile) {
-            setNickname(profile.full_name || '')
-            setInviteCode(profile.invite_code || '')
-            // wedding_date가 "2026-06-15T00:00:00+00:00" 형태일 수 있으므로 앞 10자만 사용
-            if (profile.wedding_date) setNewWeddingDate(String(profile.wedding_date).slice(0, 10))
-            if (profile.region_sido) setRegionSido(profile.region_sido)
-            if (profile.region_sigungu) setRegionSigungu(profile.region_sigungu)
-        }
-        setIsLoadingProfile(false)
-    }
 
     const handleLogout = async () => {
         await signOutAction()
@@ -94,7 +72,6 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                 setDisplayName(nickname || userEmail?.split('@')[0] || '')
             }
             if (newWeddingDate) {
-                const { updateWeddingDate } = await import('@/actions/profile')
                 await updateWeddingDate(newWeddingDate)
             }
         } catch (err) {
@@ -102,7 +79,6 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
         }
         setIsUpdating(false)
         setIsProfileOpen(false)
-        router.refresh()
     }
 
     const copyInviteCode = async () => {
@@ -234,12 +210,12 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
             {/* ─── Profile Modal (Spring Wedding Style) ─── */}
             {isProfileOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                    <div className="absolute inset-0 bg-pink-900/10 backdrop-blur-sm" onClick={() => setIsProfileOpen(false)}></div>
+                    <div className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" onClick={() => setIsProfileOpen(false)}></div>
                     <div className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
 
                         {/* Modal Header - Pastel Pink Gradient */}
-                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #F9A8D4 0%, #FBCFE8 100%)', padding: '2rem 2rem 1.8rem' }}>
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:24px_24px]"></div>
+                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)', padding: '1.5rem 1.5rem 1.3rem' }}>
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:24px_24px]"></div>
                             <div className="relative z-10 text-center">
                                 <div className="w-12 h-12 rounded-[14px] bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-3 text-white shadow-lg">
                                     <User size={22} />
@@ -256,17 +232,17 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-8">
+                        <div className="p-5 sm:p-8">
                             {isLoadingProfile ? (
                                 <div className="flex items-center justify-center py-12">
-                                    <div className="w-8 h-8 border-2 border-pink-200 border-t-pink-400 rounded-full animate-spin" />
+                                    <div className="w-8 h-8 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
                                 </div>
                             ) : null}
-                            <form onSubmit={handleUpdateProfile} className={`space-y-6 ${isLoadingProfile ? 'opacity-0 pointer-events-none' : ''}`}>
+                            <form onSubmit={handleUpdateProfile} className={`space-y-4 sm:space-y-6 ${isLoadingProfile ? 'opacity-0 pointer-events-none' : ''}`}>
                                 {/* Nickname */}
                                 <div>
                                     <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                        <User size={12} className="text-pink-400" />
+                                        <User size={12} className="text-indigo-400" />
                                         닉네임
                                     </label>
                                     <input
@@ -274,28 +250,28 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                         value={nickname}
                                         onChange={(e) => setNickname(e.target.value)}
                                         placeholder="닉네임을 입력하세요"
-                                        className="w-full bg-pink-50/50 border-2 border-pink-100 rounded-[14px] px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-100"
+                                        className="w-full bg-indigo-50/50 border-2 border-indigo-100 rounded-[14px] px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                     />
                                 </div>
 
                                 {/* Wedding Date */}
                                 <div>
                                     <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                        <Calendar size={12} className="text-pink-400" />
+                                        <Calendar size={12} className="text-indigo-400" />
                                         결혼 예정일
                                     </label>
                                     <input
                                         type="date"
                                         value={newWeddingDate}
                                         onChange={(e) => setNewWeddingDate(e.target.value)}
-                                        className="w-full bg-pink-50/50 border-2 border-pink-100 rounded-[14px] px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-100"
+                                        className="w-full bg-indigo-50/50 border-2 border-indigo-100 rounded-[14px] px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                     />
                                 </div>
 
                                 {/* Wedding Location */}
                                 <div>
                                     <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                        <MapPin size={12} className="text-pink-400" />
+                                        <MapPin size={12} className="text-indigo-400" />
                                         결혼 장소
                                     </label>
                                     <div className="flex gap-2">
@@ -305,7 +281,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                                 setRegionSido(e.target.value)
                                                 setRegionSigungu('')
                                             }}
-                                            className="flex-1 bg-pink-50/50 border-2 border-pink-100 rounded-[14px] px-3 py-3 text-sm text-gray-800 outline-none transition-all focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-100"
+                                            className="flex-1 bg-indigo-50/50 border-2 border-indigo-100 rounded-[14px] px-3 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                         >
                                             <option value="">시·도 선택</option>
                                             {SIDO_LIST.map(sido => (
@@ -316,7 +292,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                             value={regionSigungu}
                                             onChange={(e) => setRegionSigungu(e.target.value)}
                                             disabled={!regionSido}
-                                            className="flex-1 bg-pink-50/50 border-2 border-pink-100 rounded-[14px] px-3 py-3 text-sm text-gray-800 outline-none transition-all focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-100 disabled:opacity-50"
+                                            className="flex-1 bg-indigo-50/50 border-2 border-indigo-100 rounded-[14px] px-3 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 disabled:opacity-50"
                                         >
                                             <option value="">상세 지역</option>
                                             {sigunguList.map(sigungu => (
@@ -329,7 +305,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                 {/* Partner Invite Code */}
                                 <div>
                                     <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-                                        <Users size={12} className="text-pink-400" />
+                                        <Users size={12} className="text-indigo-400" />
                                         파트너 초대코드
                                     </label>
                                     <div className="flex gap-2 items-center">
@@ -337,13 +313,13 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                             type="text"
                                             readOnly
                                             value={inviteCode || '코드 없음'}
-                                            className="flex-1 bg-pink-50/50 border-2 border-pink-100 rounded-[14px] px-4 py-3 text-center text-sm font-bold text-gray-800 tracking-[3px] outline-none"
+                                            className="flex-1 bg-indigo-50/50 border-2 border-indigo-100 rounded-[14px] px-4 py-3 text-center text-sm font-bold text-gray-800 tracking-[3px] outline-none"
                                         />
                                         <button
                                             type="button"
                                             onClick={copyInviteCode}
                                             disabled={!inviteCode}
-                                            className="px-4 py-3 rounded-[14px] border-2 border-pink-100 bg-pink-50/50 text-gray-400 hover:border-pink-300 hover:text-pink-500 transition-all flex items-center gap-1 disabled:opacity-40"
+                                            className="px-4 py-3 rounded-[14px] border-2 border-indigo-100 bg-indigo-50/50 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 transition-all flex items-center gap-1 disabled:opacity-40"
                                         >
                                             {copied ? <Check size={16} /> : <Copy size={16} />}
                                         </button>
@@ -355,7 +331,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                 <button
                                     type="submit"
                                     disabled={isUpdating}
-                                    className="w-full py-3.5 rounded-[14px] border-none text-white font-bold text-sm cursor-pointer transition-all hover:-translate-y-0.5 disabled:opacity-70 bg-gradient-to-r from-pink-300 to-pink-400 shadow-lg shadow-pink-300/30"
+                                    className="w-full py-3.5 rounded-[14px] border-none text-white font-bold text-sm cursor-pointer transition-all hover:-translate-y-0.5 disabled:opacity-70 bg-gradient-to-r from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/30"
                                 >
                                     {isUpdating ? '저장 중...' : '✓ 저장하기'}
                                 </button>
