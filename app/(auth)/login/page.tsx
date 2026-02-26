@@ -1,74 +1,14 @@
 'use client'
 
-import { useState, useEffect, useRef, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams } from 'next/navigation'
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import { Heart, Sparkles, CalendarHeart, PiggyBank, Users } from 'lucide-react'
-import Particles from '@/components/Particles'
-import Link from 'next/link'
-
-/* ─── 3D Tilt Card Wrapper ─── */
-function TiltCardWrapper({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-    const ref = useRef<HTMLDivElement>(null)
-    const x = useMotionValue(0)
-    const y = useMotionValue(0)
-
-    const mouseXSpring = useSpring(x, { stiffness: 150, damping: 20 })
-    const mouseYSpring = useSpring(y, { stiffness: 150, damping: 20 })
-
-    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [3, -3])
-    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-3, 3])
-
-    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!ref.current) return
-        const rect = ref.current.getBoundingClientRect()
-        const width = rect.width
-        const height = rect.height
-        const mouseX = e.clientX - rect.left
-        const mouseY = e.clientY - rect.top
-        const xPct = mouseX / width - 0.5
-        const yPct = mouseY / height - 0.5
-        x.set(xPct)
-        y.set(yPct)
-    }
-
-    const handleMouseLeave = () => {
-        x.set(0)
-        y.set(0)
-    }
-
-    return (
-        <motion.div
-            ref={ref}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            style={{
-                rotateX,
-                rotateY,
-                transformStyle: 'preserve-3d',
-            }}
-            className={`w-full rounded-3xl relative ${className}`}
-        >
-            <div
-                className="absolute inset-0 rounded-3xl pointer-events-none"
-                style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    backdropFilter: 'blur(28px)',
-                    WebkitBackdropFilter: 'blur(28px)',
-                    boxShadow: '0 40px 100px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.1)',
-                }}
-            />
-            {children}
-        </motion.div>
-    )
-}
+import { motion } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
+import Image from 'next/image'
 
 function LoginPageContent() {
     const [loading, setLoading] = useState(false)
-    const [aurora, setAurora] = useState({ x: 40, y: 50 })
-    const pageRef = useRef<HTMLDivElement>(null)
     const supabase = createClient()
 
     const searchParams = useSearchParams()
@@ -101,176 +41,164 @@ function LoginPageContent() {
     }
 
     return (
-        <div
-            ref={pageRef}
-            className="relative min-h-screen w-full bg-[#0A0A14] flex items-center justify-center overflow-hidden font-sans"
-            onMouseMove={(e) => {
-                if (!pageRef.current) return
-                const r = pageRef.current.getBoundingClientRect()
-                setAurora({
-                    x: ((e.clientX - r.left) / r.width) * 100,
-                    y: ((e.clientY - r.top) / r.height) * 100,
-                })
-            }}
-        >
-            {/* Aurora gradient */}
-            <div
-                className="pointer-events-none absolute inset-0 z-0"
-                style={{
-                    background: `
-                        radial-gradient(ellipse 700px 500px at ${aurora.x * 0.5 + 10}% ${aurora.y * 0.5 + 8}%, rgba(139,92,246,0.15) 0%, transparent 65%),
-                        radial-gradient(ellipse 550px 400px at ${92 - aurora.x * 0.3}% ${85 - aurora.y * 0.3}%, rgba(212,163,115,0.12) 0%, transparent 60%)
-                    `,
-                    transition: 'background 0.6s ease',
-                }}
-            />
-            <Particles className="absolute inset-0 z-[1] opacity-40" quantity={60} />
-
-            {/* Content */}
-            <div className="relative z-10 w-full max-w-5xl mx-auto px-5 py-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-20">
-
-                {/* ── Left panel (desktop only) ── */}
-                <div className="hidden lg:flex flex-col flex-1 text-left">
-                    <Link href="/" className="flex items-center gap-2.5 mb-12 group w-fit">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4A373] to-[#B8845A] flex items-center justify-center shadow-[0_0_20px_rgba(212,163,115,0.4)] group-hover:shadow-[0_0_30px_rgba(212,163,115,0.6)] transition-all">
-                            <Heart size={16} className="text-white fill-white" />
-                        </div>
-                        <span className="text-white font-serif text-2xl font-bold tracking-tight">Wepln</span>
-                    </Link>
-
-                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.04] text-[#D4A373] text-xs font-semibold mb-5 tracking-widest w-fit">
-                        <Sparkles size={10} /> AI 웨딩 플래너
-                    </span>
-
-                    <h1 className="text-4xl xl:text-5xl font-bold text-white mb-5 tracking-tight leading-[1.18] drop-shadow-[0_2px_10px_rgba(255,255,255,0.15)]">
-                        결혼 준비의<br />
-                        <span className="bg-gradient-to-r from-[#D4A373] via-[#EDD5A3] to-[#A78BFA] bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(212,163,115,0.3)]">
-                            새로운 기준
-                        </span>
-                    </h1>
-                    <p className="text-white/40 text-sm leading-relaxed mb-10 font-medium">
-                        AI가 맞춤 플랜을 설계하고,<br />커플이 함께 준비하는 웨딩 플래너
-                    </p>
-
-                    <div className="space-y-3.5">
-                        {[
-                            { icon: CalendarHeart, label: 'D-Day 기반 일정 & 체크리스트', color: '#A78BFA' },
-                            { icon: PiggyBank, label: 'AI 예산 자동 배분', color: '#D4A373' },
-                            { icon: Users, label: '커플 데이터 실시간 공유', color: '#F9A8D4' },
-                            { icon: Sparkles, label: 'AI 장소 맞춤 추천', color: '#60A5FA' },
-                        ].map(({ icon: Icon, label, color }, i) => (
-                            <div key={i} className="flex items-center gap-3">
-                                <div
-                                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-inner"
-                                    style={{ background: `${color}18`, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.1)` }}
-                                >
-                                    <Icon size={14} style={{ color }} className="drop-shadow-[0_0_8px_currentColor]" />
-                                </div>
-                                <span className="text-white/60 text-sm font-medium">{label}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* ── Right panel — Login Card ── */}
-                <div className="w-full max-w-md lg:max-w-[360px] xl:max-w-md flex-shrink-0 perspective-[1000px]">
-
-                    {/* Mobile logo */}
-                    <div className="flex lg:hidden justify-center mb-8">
-                        <Link href="/" className="flex items-center gap-2.5 group">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#D4A373] to-[#B8845A] flex items-center justify-center shadow-[0_0_18px_rgba(212,163,115,0.35)]">
-                                <Heart size={16} className="text-white fill-white" />
-                            </div>
-                            <span className="text-white font-serif text-2xl font-bold">Wepln</span>
-                        </Link>
-                    </div>
-
-                    {/* Card */}
-                    <TiltCardWrapper>
-                        <div className="relative z-10 w-full p-7 sm:p-8 flex flex-col items-center">
-                            {/* Header */}
-                            <div className="text-center mb-7">
-                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D4A373]/20 to-[#A78BFA]/20 border border-white/10 mb-4">
-                                    <Heart size={22} className="text-[#D4A373] fill-[#D4A373]/40" />
-                                </div>
-                                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">환영합니다! 🎉</h2>
-                                <p className="text-white/40 text-[13px] leading-relaxed break-keep">WEPLN과 함께 기분 좋은<br />결혼 준비를 시작해볼까요?</p>
-                            </div>
-
-                            {/* Error */}
-                            {errorParam && (
-                                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-medium mb-5">
-                                    인증 중 오류가 발생했습니다. 다시 시도해 주세요.
-                                </div>
-                            )}
-
-                            {/* Social Buttons */}
-                            <div className="space-y-3 w-full">
-
-                                {/* Naver */}
-                                <button
-                                    onClick={() => handleSocialLogin('naver')}
-                                    disabled={loading}
-                                    className="w-full py-3.5 rounded-2xl bg-[#03C75A] hover:bg-[#02b351] flex items-center justify-center gap-3 text-white font-bold text-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(3,199,90,0.28)] disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <span className="font-extrabold text-base leading-none w-5 text-center">N</span>
-                                    네이버로 시작하기
-                                </button>
-
-                                {/* Kakao */}
-                                <button
-                                    onClick={() => handleSocialLogin('kakao')}
-                                    disabled={loading}
-                                    className="w-full py-3.5 rounded-2xl bg-[#FEE500] hover:bg-[#fdd800] flex items-center justify-center gap-3 text-[#191919] font-bold text-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(254,229,0,0.22)] disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <svg className="w-5 h-5 fill-[#191919]" viewBox="0 0 24 24">
-                                        <path d="M12 3c5.523 0 10 3.582 10 8 0 2.658-1.583 5.035-4.067 6.467.243.882.88 3.23.918 3.42.062.302-.27.462-.482.327-.266-.17-3.95-2.67-4.57-3.08-.6.082-1.216.126-1.847.126-5.522 0-10-3.582-10-8s4.478-8 10-8z" />
-                                    </svg>
-                                    카카오로 시작하기
-                                </button>
-
-                                {/* Google */}
-                                <button
-                                    onClick={() => handleSocialLogin('google')}
-                                    disabled={loading}
-                                    className="w-full py-3.5 rounded-2xl flex items-center justify-center gap-3 text-white/75 font-bold text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    style={{
-                                        background: 'rgba(255,255,255,0.06)',
-                                        border: '1px solid rgba(255,255,255,0.10)',
-                                    }}
-                                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = 'rgba(255,255,255,0.09)' }}
-                                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)' }}
-                                >
-                                    <svg className="w-4 h-4" viewBox="0 0 24 24">
-                                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                                    </svg>
-                                    Google로 시작하기
-                                </button>
-                            </div>
-
-                            {/* Footer */}
-                            <div className="mt-7 pt-6 border-t border-white/[0.06] text-center">
-                                <p className="text-white/18 text-xs">로그인 시 Wepln 이용약관에 동의하게 됩니다</p>
-                            </div>
-                        </div>
-                    </TiltCardWrapper>
-
-                    {/* Quote */}
-                    <p className="text-center text-white/12 text-sm font-cursive mt-6">
-                        &ldquo;Two souls with but a single thought, two hearts that beat as one.&rdquo;
-                    </p>
-                </div>
+        <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
+            {/* Background Elements */}
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-orange-100/30 blur-3xl" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-yellow-100/30 blur-3xl" />
             </div>
+
+            <main className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center z-10">
+
+                {/* Left Side — Image Card with Stack Effect */}
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className="relative hidden lg:block"
+                >
+                    {/* Card Stack Effect */}
+                    <div className="absolute inset-0 bg-[#f0efe9] rounded-2xl transform rotate-[-2deg] translate-x-[-10px] translate-y-[10px] shadow-sm z-0" />
+                    <div className="absolute inset-0 bg-[#e8e6df] rounded-2xl transform rotate-[-4deg] translate-x-[-20px] translate-y-[20px] shadow-sm z-[-1]" />
+
+                    {/* Main Image Card — Polaroid style */}
+                    <div className="relative bg-white p-3 pb-12 rounded-xl shadow-xl transform rotate-[2deg] transition-transform duration-500 hover:rotate-0 z-10">
+                        <div className="relative aspect-[3/4] overflow-hidden rounded-lg">
+                            <Image
+                                src="/images/login_bouquet.jpg"
+                                alt="Wedding Bouquet"
+                                fill
+                                className="object-cover hover:scale-105 transition-transform duration-700"
+                                priority
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60" />
+
+                            <div className="absolute bottom-6 left-6 text-white text-left">
+                                <h2 className="text-4xl font-serif mb-2 tracking-wide">
+                                    Beautiful Memories
+                                </h2>
+                                <p className="text-sm font-light opacity-90 tracking-wider font-pretendard">
+                                    당신의 가장 소중한 순간을 위해 WepIn이 함께합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Mobile Image — simplified */}
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="lg:hidden relative w-full max-w-sm mx-auto"
+                >
+                    <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
+                        <Image
+                            src="/images/login_bouquet.jpg"
+                            alt="Wedding Bouquet"
+                            fill
+                            className="object-cover"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                        <div className="absolute bottom-4 left-4 text-white">
+                            <h2 className="text-2xl font-serif tracking-wide">Beautiful Memories</h2>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Right Side — Login Form */}
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+                    className="flex flex-col items-center text-center max-w-md mx-auto lg:mx-0 lg:w-full"
+                >
+                    {/* Header */}
+                    <div className="mb-10">
+                        <div className="flex items-center justify-center gap-2 mb-3">
+                            <h1 className="text-5xl font-serif text-[#8B7355]">WepIn</h1>
+                            <Sparkles className="w-5 h-5 text-[#D4C4A8] animate-pulse" />
+                        </div>
+                        <h2 className="text-xl text-gray-700 mb-1 font-medium">반가워요, 예비 부부님!</h2>
+                        <p className="text-gray-400 text-sm font-light">로그인하여 결혼 준비를 이어가세요.</p>
+                    </div>
+
+                    {/* Login Card */}
+                    <div className="w-full bg-gradient-to-b from-white to-[#fcfcfc] p-8 rounded-3xl shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] border border-white/50 mb-10">
+
+                        {/* Error */}
+                        {errorParam && (
+                            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs text-center font-medium mb-5">
+                                인증 중 오류가 발생했습니다. 다시 시도해 주세요.
+                            </div>
+                        )}
+
+                        {/* Social Buttons */}
+                        <div className="space-y-4">
+
+                            {/* Naver */}
+                            <button
+                                onClick={() => handleSocialLogin('naver')}
+                                disabled={loading}
+                                className="w-full h-14 bg-[#03C75A] hover:bg-[#02b350] text-white rounded-xl flex items-center justify-center gap-3 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                            >
+                                <span className="font-extrabold text-lg leading-none w-5 text-center">N</span>
+                                <span className="font-medium text-[15px]">네이버로 시작하기</span>
+                            </button>
+
+                            {/* Kakao */}
+                            <button
+                                onClick={() => handleSocialLogin('kakao')}
+                                disabled={loading}
+                                className="w-full h-14 bg-[#FEE500] hover:bg-[#fddc00] text-[#191919] rounded-xl flex items-center justify-center gap-3 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                            >
+                                <svg className="w-6 h-6 fill-[#191919]" viewBox="0 0 24 24">
+                                    <path d="M12 3c5.523 0 10 3.582 10 8 0 2.658-1.583 5.035-4.067 6.467.243.882.88 3.23.918 3.42.062.302-.27.462-.482.327-.266-.17-3.95-2.67-4.57-3.08-.6.082-1.216.126-1.847.126-5.522 0-10-3.582-10-8s4.478-8 10-8z" />
+                                </svg>
+                                <span className="font-medium text-[15px]">카카오로 시작하기</span>
+                            </button>
+
+                            {/* Google */}
+                            <button
+                                onClick={() => handleSocialLogin('google')}
+                                disabled={loading}
+                                className="w-full h-14 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl flex items-center justify-center gap-3 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                            >
+                                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                                </svg>
+                                <span className="font-medium text-[15px]">Google로 시작하기</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Footer Quote */}
+                    <div className="space-y-1 opacity-70">
+                        <p className="font-serif italic text-lg text-gray-600">
+                            Two souls with but a single thought,
+                        </p>
+                        <p className="font-serif italic text-lg text-gray-600">
+                            two hearts that beat as one.
+                        </p>
+                    </div>
+                </motion.div>
+            </main>
+
+            {/* Copyright */}
+            <footer className="absolute bottom-4 text-center w-full text-[10px] text-gray-300 uppercase tracking-widest">
+                &copy; 2024 WepIn. All rights reserved.
+            </footer>
         </div>
     )
 }
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#0A0A14]" />}>
+        <Suspense fallback={<div className="min-h-screen bg-[#FCFAF6]" />}>
             <LoginPageContent />
         </Suspense>
     )
