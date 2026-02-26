@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, User, Clock, Eye, Trash2 } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
+import { format } from 'date-fns'
 
 export default async function PostDetailPage({
     params,
@@ -64,7 +65,7 @@ export default async function PostDetailPage({
                         <span className="w-px h-3 bg-gray-200"></span>
                         <span className="flex items-center gap-1">
                             <Clock size={12} />
-                            {new Date(post.created_at).toLocaleString()}
+                            {format(new Date(post.created_at), 'yyyy/MM/dd')}
                         </span>
                         <span className="w-px h-3 bg-gray-200"></span>
                         <span className="flex items-center gap-1">
@@ -74,9 +75,7 @@ export default async function PostDetailPage({
                     </div>
                 </div>
 
-                <div className="p-8 min-h-[300px] text-gray-700 leading-relaxed whitespace-pre-line">
-                    {post.content}
-                </div>
+                <div className="p-8 min-h-[300px] text-gray-700 leading-relaxed [&_p]:mb-4 [&_p:last-child]:mb-0" dangerouslySetInnerHTML={{ __html: post.content }} />
             </div>
 
             {/* Comments Section */}
@@ -95,7 +94,7 @@ export default async function PostDetailPage({
                             <div className="flex-1">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="font-bold text-xs text-gray-800">{comment.author?.username || '익명'}</span>
-                                    <span className="text-[10px] text-gray-400">{new Date(comment.created_at).toLocaleDateString()}</span>
+                                    <span className="text-[10px] text-gray-400">{format(new Date(comment.created_at), 'yyyy/MM/dd')}</span>
                                 </div>
                                 <p className="text-sm text-gray-600 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
                                     {comment.content}
