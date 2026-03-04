@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ArrowLeft, User, Clock, Eye, Trash2 } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
+import sanitizeHtml from 'sanitize-html'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function PostDetailPage({
     params,
@@ -11,10 +13,31 @@ export default async function PostDetailPage({
     params: Promise<{ id: string }>
 }) {
     const { id } = await params
-    const post = await getPost(id)
-    const comments = await getComments(id)
+    const [post, comments, supabase] = await Promise.all([
+        getPost(id),
+        getComments(id),
+        createClient(),
+    ])
 
     if (!post) notFound()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    const isAuthor = user?.id === post.user_id
+
+    const safeContent = sanitizeHtml(post.content, {
+        allowedTags: [
+            'p', 'br', 'strong', 'em', 'u', 's', 'blockquote',
+            'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'span',
+        ],
+        allowedAttributes: {
+            a: ['href', 'target', 'rel'],
+            img: ['src', 'alt', 'width', 'height'],
+            span: ['class', 'style'],
+            p: ['class'],
+        },
+        allowedSchemes: ['http', 'https'],
+        allowedSchemesByTag: { img: ['http', 'https', 'data'] },
+    })
 
     // Simplified Comment Action for inline use
     async function submitComment(formData: FormData) {
@@ -40,11 +63,13 @@ export default async function PostDetailPage({
                     목록으로
                 </Link>
 
-                <form action={removePost}>
-                    <button className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
-                        <Trash2 size={18} />
-                    </button>
-                </form>
+                {isAuthor && (
+                    <form action={removePost}>
+                        <button className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
+                            <Trash2 size={18} />
+                        </button>
+                    </form>
+                )}
             </div>
 
             {/* Post Content */}
@@ -75,7 +100,7 @@ export default async function PostDetailPage({
                     </div>
                 </div>
 
-                <div className="p-8 min-h-[300px] text-gray-700 leading-relaxed [&_p]:mb-4 [&_p:last-child]:mb-0" dangerouslySetInnerHTML={{ __html: post.content }} />
+                <div className="p-8 min-h-[300px] text-gray-700 leading-relaxed [&_p]:mb-4 [&_p:last-child]:mb-0" dangerouslySetInnerHTML={{ __html: safeContent }} />
             </div>
 
             {/* Comments Section */}

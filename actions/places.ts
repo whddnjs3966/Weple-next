@@ -23,6 +23,14 @@ export async function getPlaceCategories() {
     return data
 }
 
+function escapeLike(value: string): string {
+    return value
+        .replace(/\\/g, '\\\\')
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_')
+        .replace(/[(),']/g, '')
+}
+
 export async function getPlaces(params?: { category?: string; region?: string }) {
     const supabase = await createClient()
     let query = supabase
@@ -43,8 +51,8 @@ export async function getPlaces(params?: { category?: string; region?: string })
     }
 
     if (params?.region) {
-        // Basic search for region in address or region fields
-        query = query.or(`region_sido.ilike.%${params.region}%,region_sigungu.ilike.%${params.region}%,address.ilike.%${params.region}%`)
+        const escaped = escapeLike(params.region)
+        query = query.or(`region_sido.ilike.%${escaped}%,region_sigungu.ilike.%${escaped}%,address.ilike.%${escaped}%`)
     }
 
     const { data, error } = await query

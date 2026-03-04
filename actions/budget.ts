@@ -57,15 +57,20 @@ export async function getBudgetSummary() {
     // 3. 그룹 전체 태스크에서 예상/실제 비용 합계 조회
     const { data: tasks } = await supabase
         .from('tasks')
-        .select('estimated_budget, actual_cost')
+        .select('estimated_budget, actual_cost, is_completed')
         .in('user_id', userIds)
 
     const estimatedTotal = (tasks || []).reduce((sum, t) => sum + (t.estimated_budget || 0), 0)
     const actualTotal = (tasks || []).reduce((sum, t) => sum + (t.actual_cost || 0), 0)
+    // 완료된 항목의 예상 예산 합계 (actual_cost가 없을 때 사용 금액으로 활용)
+    const completedEstimatedTotal = (tasks || [])
+        .filter(t => t.is_completed)
+        .reduce((sum, t) => sum + (t.actual_cost || t.estimated_budget || 0), 0)
 
     return {
         totalBudget: profile?.budget_max || 0,
         estimatedTotal,
         actualTotal,
+        completedEstimatedTotal,
     }
 }

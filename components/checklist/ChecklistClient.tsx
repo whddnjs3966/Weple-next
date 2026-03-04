@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, Calendar, X, Save, Sparkles } from 'lucide-react'
+import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, Calendar, X, Save, Sparkles, CalendarDays, Clock, MapPin } from 'lucide-react'
+import { differenceInDays } from 'date-fns'
 import { useSchedule } from '@/contexts/ScheduleContext'
 import { Database } from '@/lib/types/database.types'
 import { toggleTaskCompletion, updateTaskBudget, updateTaskDate, deleteTasks, addTask } from '@/actions/checklist'
@@ -258,23 +259,69 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                         </div>
                     </div>
 
-                    {/* Schedule Events from Calendar */}
+                    {/* Schedule Events from Calendar — Card Style */}
                     {scheduleEvents.length > 0 && (
-                        <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-3 mb-4">
-                            <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-2">📅 달력에서 등록된 일정</p>
-                            <div className="space-y-1">
-                                {scheduleEvents.map(evt => (
-                                    <div key={evt.id} className="flex items-center gap-3 text-[12px] text-gray-600 bg-white rounded-lg px-3 py-1.5 border border-blue-50">
-                                        <span className="font-bold text-blue-500">{evt.date}</span>
-                                        <span>{evt.title}</span>
-                                        {evt.time && <span className="text-gray-400">{evt.time}</span>}
-                                    </div>
-                                ))}
+                        <div className="mb-6">
+                            <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                <CalendarDays size={12} /> 달력에서 등록된 일정
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {scheduleEvents.map(evt => {
+                                    const evtDate = new Date(evt.date + 'T00:00:00')
+                                    const diff = differenceInDays(evtDate, new Date())
+                                    const ddayLabel = diff === 0 ? 'D-Day' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`
+
+                                    return (
+                                        <div
+                                            key={evt.id}
+                                            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                                        >
+                                            <div className="h-px bg-gradient-to-r from-transparent via-blue-300/60 to-transparent" />
+                                            <div className="p-4">
+                                                <p
+                                                    className="font-cinzel text-2xl font-bold leading-none mb-2"
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #60A5FA, #3B82F6)',
+                                                        WebkitBackgroundClip: 'text',
+                                                        WebkitTextFillColor: 'transparent',
+                                                        backgroundClip: 'text',
+                                                    }}
+                                                >
+                                                    {ddayLabel}
+                                                </p>
+                                                <h4 className="font-bold text-gray-800 text-[14px] mb-3 leading-snug">{evt.title}</h4>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                        <CalendarDays size={11} className="text-gray-300 shrink-0" />
+                                                        {evt.date}
+                                                    </div>
+                                                    {evt.time && (
+                                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                            <Clock size={11} className="text-gray-300 shrink-0" />
+                                                            {evt.time}
+                                                        </div>
+                                                    )}
+                                                    {evt.location && (
+                                                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                            <MapPin size={11} className="text-gray-300 shrink-0" />
+                                                            {evt.location}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
                             </div>
                         </div>
                     )}
 
                     {/* Table */}
+                    {tasks.length > 0 && (
+                        <p className="text-[11px] font-bold text-pink-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <ClipboardCheck size={12} /> 내가 등록한 체크리스트
+                        </p>
+                    )}
                     {tasks.length > 0 && (
                         <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
                             <div className="overflow-x-auto">
@@ -318,7 +365,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                                     </td>
                                                     <td className="py-3 px-2 text-center">
                                                         <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold ${getDDayColor(task.dDayOffset)}`}>
-                                                            {task.dDayOffset === 0 ? 'D-Day' : `D${task.dDayOffset}`}
+                                                            {task.dDayOffset === 0 ? 'D-Day' : task.dDayOffset > 0 ? `D-${task.dDayOffset}` : `D+${Math.abs(task.dDayOffset)}`}
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-3">
@@ -455,47 +502,55 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                 <span className="text-[11px] text-gray-400">{section.items.length}개</span>
                             </div>
 
-                            {/* Items */}
-                            <div className="space-y-2">
+                            {/* Items — Card Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {section.items.map((item) => (
                                     <motion.div
                                         key={item.id}
                                         initial={{ opacity: 0, y: 4 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 hover:shadow-md hover:border-pink-100 transition-all group"
+                                        className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group flex flex-col h-full"
                                     >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                                    <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold ${getDDayColor(item.dDayOffset)}`}>
-                                                        {item.dDayOffset === 0 ? 'D-Day' : item.dDayOffset > 0 ? `D+${item.dDayOffset}` : `D${item.dDayOffset}`}
-                                                    </span>
-                                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${getCategoryColor(item.category)}`}>
-                                                        {getCategoryIcon(item.category)} {item.category}
-                                                    </span>
-                                                </div>
-                                                <h4 className="font-semibold text-[13px] text-gray-800 leading-snug">{item.title}</h4>
-                                                <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">{item.description}</p>
-                                                {item.estimatedBudget > 0 && (
-                                                    <p className="text-[11px] text-emerald-500 font-bold mt-1">
-                                                        예상 예산: {item.estimatedBudget.toLocaleString()}원
-                                                    </p>
-                                                )}
+                                        <div className="h-px bg-gradient-to-r from-transparent via-violet-300/60 to-transparent" />
+                                        <div className="p-4 flex-1 flex flex-col">
+                                            {/* Badges */}
+                                            <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold ${getDDayColor(item.dDayOffset)}`}>
+                                                    {item.dDayOffset === 0 ? 'D-Day' : item.dDayOffset > 0 ? `D+${item.dDayOffset}` : `D-${Math.abs(item.dDayOffset)}`}
+                                                </span>
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${getCategoryColor(item.category)}`}>
+                                                    {getCategoryIcon(item.category)} {item.category}
+                                                </span>
                                             </div>
-                                            <button
-                                                onClick={() => handleAddAiItem(item)}
-                                                disabled={addingItemId === item.id}
-                                                className="flex-shrink-0 h-8 px-3 rounded-lg bg-pink-50 border border-pink-200 text-pink-500 text-xs font-bold hover:bg-pink-100 hover:border-pink-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
-                                            >
-                                                {addingItemId === item.id ? (
-                                                    <span className="animate-pulse">추가중...</span>
+
+                                            {/* Title & Description */}
+                                            <h4 className="font-bold text-[14px] text-gray-800 leading-snug mb-1">{item.title}</h4>
+                                            <p className="text-[11px] text-gray-400 leading-relaxed mb-4 flex-1">{item.description}</p>
+
+                                            {/* Footer: Budget + Add Button */}
+                                            <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                                                {item.estimatedBudget > 0 ? (
+                                                    <span className="text-[11px] text-emerald-500 font-bold">
+                                                        {item.estimatedBudget.toLocaleString()}원
+                                                    </span>
                                                 ) : (
-                                                    <>
-                                                        <Plus size={12} />
-                                                        추가
-                                                    </>
+                                                    <span />
                                                 )}
-                                            </button>
+                                                <button
+                                                    onClick={() => handleAddAiItem(item)}
+                                                    disabled={addingItemId === item.id}
+                                                    className="h-7 px-3 rounded-lg bg-pink-50 border border-pink-200 text-pink-500 text-[11px] font-bold hover:bg-pink-100 hover:border-pink-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1"
+                                                >
+                                                    {addingItemId === item.id ? (
+                                                        <span className="animate-pulse">추가중...</span>
+                                                    ) : (
+                                                        <>
+                                                            <Plus size={11} />
+                                                            추가
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 ))}

@@ -6,6 +6,14 @@ import { Plus, Calendar, Edit2, Wallet, FileText, X } from 'lucide-react'
 
 export default function AddTaskModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [budgetDisplay, setBudgetDisplay] = useState('')
+    const [budgetRaw, setBudgetRaw] = useState('')
+
+    const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const raw = e.target.value.replace(/[^0-9]/g, '')
+        setBudgetRaw(raw)
+        setBudgetDisplay(raw ? Number(raw).toLocaleString() : '')
+    }
 
     if (!isOpen) return null
 
@@ -86,9 +94,12 @@ export default function AddTaskModal({ isOpen, onClose }: { isOpen: boolean; onC
                             <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                                 <Wallet size={12} className="text-indigo-400" /> 예상 예산 (원)
                             </label>
+                            <input type="hidden" name="budget" value={budgetRaw} />
                             <input
-                                type="number"
-                                name="budget"
+                                type="text"
+                                inputMode="numeric"
+                                value={budgetDisplay}
+                                onChange={handleBudgetChange}
                                 className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl py-3 px-4 text-sm text-gray-700 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-400/10 placeholder:text-gray-300"
                                 placeholder="0"
                             />

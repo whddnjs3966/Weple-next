@@ -13,6 +13,20 @@ export type Comment = Database['public']['Tables']['comments']['Row'] & {
     author: { username: string | null } | null
 }
 
+/**
+ * ILIKE 쿼리에 사용되는 특수문자 이스케이프
+ * %, _ : PostgreSQL 와일드카드
+ * \ : 이스케이프 문자
+ * (, ), ' : PostgREST .or() 필터 구문 문자
+ */
+function escapeLike(value: string): string {
+    return value
+        .replace(/\\/g, '\\\\')
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_')
+        .replace(/[(),']/g, '')
+}
+
 export async function getPosts(category: string = 'free', page = 1, limit = 10, search?: string) {
     const supabase = await createClient()
     const from = (page - 1) * limit
@@ -32,7 +46,8 @@ export async function getPosts(category: string = 'free', page = 1, limit = 10, 
     }
 
     if (search && search.trim()) {
-        query = query.or(`title.ilike.%${search.trim()}%,content.ilike.%${search.trim()}%`)
+        const escaped = escapeLike(search.trim())
+        query = query.or(`title.ilike.%${escaped}%,content.ilike.%${escaped}%`)
     }
 
     const { data, error, count } = await query
@@ -135,7 +150,16 @@ export async function createComment(formData: FormData) {
 
 export async function deletePost(id: string) {
     const supabase = await createClient()
-    const { error } = await supabase.from('posts').delete().eq('id', id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    // user_id 조건을 추가해 본인 게시글만 삭제 가능하도록 강제
+    const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id)
+
     if (error) return { error: error.message }
     revalidatePath('/community')
     return { success: true }

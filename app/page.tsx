@@ -471,6 +471,91 @@ export default function LandingPage() {
               {/* Decorative gradient blob */}
               <div className="absolute -bottom-10 -right-10 w-44 h-44 bg-amber-100/40 rounded-full blur-[35px]" />
             </motion.div>
+
+            {/* Card 3: AI 장소 추천 — spans 2 columns */}
+            <motion.div
+              whileHover={{ y: -6 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              className="relative group bg-gradient-to-br from-white/90 via-white/80 to-[#F3F9F4]/90 backdrop-blur-md rounded-[1.5rem] p-8 border border-white/60 overflow-hidden md:col-span-2"
+              style={{
+                boxShadow: '0 15px 40px rgba(0,0,0,0.04), 0 1px 2px rgba(186,151,118,0.08), inset 0 1px 0 rgba(255,255,255,0.8)',
+              }}
+            >
+              {/* Hover glow */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[1.5rem] bg-gradient-to-br from-[#A7C4A0]/10 to-amber-50/20 pointer-events-none" />
+              <div className="absolute inset-0 rounded-[1.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ boxShadow: 'inset 0 0 0 1.5px rgba(167,196,160,0.25)' }} />
+
+              <StarSparkle className="w-6 h-6 top-6 right-6 text-amber-300" delay={1.8} />
+              <DiamondSparkle className="w-3 h-3 top-16 right-20 text-[#A7C4A0]" delay={3.2} />
+
+              <div className="flex flex-col md:flex-row gap-8 relative z-10">
+                {/* Left: text */}
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="relative w-11 h-11 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#EAF4E8] to-white border border-[#A7C4A0]/30 shadow-[0_2px_8px_rgba(167,196,160,0.15)]">
+                      <span className="text-xl">📍</span>
+                    </div>
+                    <h3 className="text-[22px] font-bold text-gray-800">AI 장소 추천</h3>
+                  </div>
+
+                  <p className="text-[13px] text-gray-600 font-semibold mb-6 break-keep leading-[1.6]">
+                    지역과 예산, 취향을 입력하면 AI가
+                    <br />
+                    최적의 웨딩홀·스드메 업체를 추천해드려요.
+                    <br />
+                    수백 개의 업체 중 나에게 맞는 곳을
+                    <br />
+                    한눈에 비교하고 바로 찜해보세요.
+                  </p>
+
+                  {/* Category tags */}
+                  <div className="flex flex-wrap gap-2">
+                    {['웨딩홀', '스튜디오', '드레스', '메이크업', '허니문'].map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-3 py-1 rounded-full text-[12px] font-bold text-[#7DAA78] bg-[#EAF4E8] border border-[#A7C4A0]/30"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: mock AI recommendation cards */}
+                <div className="flex-1 space-y-3">
+                  {[
+                    { name: '그랜드 블룸 웨딩홀', region: '서울 강남구', category: '웨딩홀', score: 98, emoji: '🏛️', grad: 'from-amber-50 to-white' },
+                    { name: '마리아쥬 스튜디오', region: '서울 마포구', category: '스튜디오', score: 95, emoji: '📸', grad: 'from-rose-50 to-white' },
+                    { name: '벨르 드레스 아틀리에', region: '서울 용산구', category: '드레스', score: 92, emoji: '👗', grad: 'from-[#EAF4E8] to-white' },
+                  ].map((venue, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: 20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: idx * 0.12 }}
+                      className={clsx('flex items-center gap-3 p-3.5 rounded-2xl bg-gradient-to-r border border-white/80', venue.grad)}
+                      style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-lg shadow-sm flex-shrink-0">
+                        {venue.emoji}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-bold text-gray-800 truncate">{venue.name}</div>
+                        <div className="text-[11px] text-gray-500 font-medium">{venue.region} · {venue.category}</div>
+                      </div>
+                      <span className="text-[10px] font-bold text-white bg-gradient-to-r from-[#A7C4A0] to-[#7DAA78] px-2.5 py-1 rounded-full flex-shrink-0">
+                        AI {venue.score}%
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Decorative blobs */}
+              <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-[#A7C4A0]/15 rounded-full blur-[35px]" />
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-amber-100/20 rounded-full blur-[35px]" />
+            </motion.div>
           </div>
         </div>
       </section>

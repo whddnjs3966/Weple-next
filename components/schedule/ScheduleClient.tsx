@@ -401,7 +401,7 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {(() => {
                         // 1. Calculate D-Day for AI Recommendations
                         let currentDDay = 999;
@@ -423,86 +423,57 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                             recMinDDay = match.minDDay;
                             recMaxDDay = match.maxDDay;
                         } else if (currentDDay > 1000) {
-                            // Too far in the future
                             recommendedTasks = WEDDING_RECOMMENDATIONS[0].tasks;
                             recMinDDay = WEDDING_RECOMMENDATIONS[0].minDDay;
                             recMaxDDay = WEDDING_RECOMMENDATIONS[0].maxDDay;
                         } else {
-                            // Past wedding
                             recommendedTasks = WEDDING_RECOMMENDATIONS[WEDDING_RECOMMENDATIONS.length - 1].tasks;
                             recMinDDay = WEDDING_RECOMMENDATIONS[WEDDING_RECOMMENDATIONS.length - 1].minDDay;
                             recMaxDDay = WEDDING_RECOMMENDATIONS[WEDDING_RECOMMENDATIONS.length - 1].maxDDay;
                         }
 
-                        // Get exactly 4 tasks (or fewer if that's all there is)
-                        const displayTasks = recommendedTasks.slice(0, 4);
-
-                        const themes = [
-                            {
-                                accent: 'via-emerald-300/60',
-                                iconBg: 'bg-emerald-50',
-                                iconBorder: 'border-emerald-100',
-                                iconText: 'text-emerald-500',
-                            },
-                            {
-                                accent: 'via-teal-300/60',
-                                iconBg: 'bg-teal-50',
-                                iconBorder: 'border-teal-100',
-                                iconText: 'text-teal-500',
-                            },
-                            {
-                                accent: 'via-cyan-300/60',
-                                iconBg: 'bg-cyan-50',
-                                iconBorder: 'border-cyan-100',
-                                iconText: 'text-cyan-500',
-                            },
-                            {
-                                accent: 'via-indigo-300/60',
-                                iconBg: 'bg-indigo-50',
-                                iconBorder: 'border-indigo-100',
-                                iconText: 'text-indigo-500',
-                            }
-                        ]
-                        const icons = [CheckCircle, CalendarDays, Clock, MapPin]
+                        const displayTasks = recommendedTasks.slice(0, 3);
+                        const ddayLabel = currentDDay === 0 ? 'D-Day' : (currentDDay > 0 ? `D-${currentDDay}` : `D+${Math.abs(currentDDay)}`);
+                        const recPeriod = recMaxDDay === 1000 ? 'D-300 이전' : recMinDDay === -999 ? '예식 후' : recMinDDay === 0 ? `D-${recMaxDDay} ~ D-Day` : `D-${recMaxDDay} ~ D-${recMinDDay}`;
+                        const icons = [CheckCircle, Gift, Shirt]
 
                         return displayTasks.map((taskItem, i) => {
                             const Icon = icons[i % icons.length]
-                            const theme = themes[i % themes.length]
-                            const ddayLabel = currentDDay === 0 ? 'D-Day' : (currentDDay > 0 ? `D-${currentDDay}` : `D+${Math.abs(currentDDay)}`);
 
                             return (
                                 <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col h-full">
-                                    {/* 상단 액센트 라인 */}
-                                    <div className={`h-px bg-gradient-to-r from-transparent ${theme.accent} to-transparent`} />
+                                    {/* 상단 골드 액센트 라인 — 다가오는 일정과 동일 */}
+                                    <div className="h-px bg-gradient-to-r from-transparent via-emerald-300/60 to-transparent" />
                                     <div className="p-5 flex-1 flex flex-col">
-                                        <div className="flex items-start justify-between mb-4">
-                                            <div className="flex flex-col gap-2">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span className="text-[10px] font-extrabold text-emerald-500 bg-emerald-50 px-1.5 py-0.5 rounded uppercase tracking-wider">나의 일정</span>
-                                                    <p
-                                                        className="font-cinzel text-xl font-bold leading-none"
-                                                        style={{
-                                                            background: 'linear-gradient(135deg, #10B981, #059669)',
-                                                            WebkitBackgroundClip: 'text',
-                                                            WebkitTextFillColor: 'transparent',
-                                                            backgroundClip: 'text',
-                                                        }}
-                                                    >
-                                                        {weddingDate ? ddayLabel : '미정'}
-                                                    </p>
-                                                </div>
-                                                <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded border border-gray-100 flex items-center w-fit">
-                                                    추천 시기: {recMaxDDay === 1000 ? 'D-300 이전' : recMinDDay === -999 ? '예식 후' : recMinDDay === 0 ? `D-${recMaxDDay} ~ D-Day` : `D-${recMaxDDay} ~ D-${recMinDDay}`}
-                                                </span>
-                                            </div>
-                                            <div className={`w-8 h-8 rounded-full ${theme.iconBg} flex items-center justify-center ${theme.iconText} shadow-sm border ${theme.iconBorder} shrink-0`}>
-                                                <Icon size={14} />
-                                            </div>
+                                        {/* 추천시기 — 강조 배지 */}
+                                        <div
+                                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-extrabold mb-4 w-fit shadow-sm"
+                                            style={{
+                                                background: 'linear-gradient(135deg, #059669, #10B981)',
+                                                color: '#fff',
+                                            }}
+                                        >
+                                            <Sparkles size={12} />
+                                            추천시기 {recPeriod}
                                         </div>
+
+                                        {/* 타이틀 — 다가오는 일정과 유사한 크기감 */}
                                         <h4 className="font-bold text-gray-800 text-[15px] mb-2 leading-snug">{taskItem.title}</h4>
-                                        <p className="text-xs text-gray-400 leading-relaxed pb-1">
+                                        <p className="text-xs text-gray-400 leading-relaxed mb-5 flex-1">
                                             {taskItem.description}
                                         </p>
+
+                                        {/* 나의 일정 참고 영역 */}
+                                        <div className="space-y-1.5 pt-4 border-t border-gray-50">
+                                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                <CalendarDays size={11} className="text-gray-300 shrink-0" />
+                                                나의 웨딩 D-day: <span className="font-bold text-gray-500">{weddingDate ? ddayLabel : '미정'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                <Icon size={11} className="text-gray-300 shrink-0" />
+                                                {taskItem.title}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )
@@ -514,15 +485,18 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
             {/* ─── 날짜 클릭 모달: 일정/메모 등록 ─── */}
             {isModalOpen && selectedDate && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                    <div className="absolute inset-0 bg-pink-900/20 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
+                    <div className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
                     <div className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                         {/* Modal Header */}
-                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #F9A8D4 0%, #FBCFE8 100%)', padding: '1.5rem 2rem' }}>
+                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)', padding: '1.5rem 2rem' }}>
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:20px_20px]"></div>
                             <div className="relative z-10">
+                                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 text-white shadow-sm border border-white/20">
+                                    <CalendarDays size={20} />
+                                </div>
                                 <p className="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-1">일정 등록</p>
-                                <h3 className="font-bold text-xl text-white" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                                <h3 className="font-bold text-xl text-white">
                                     {format(selectedDate, 'yyyy년 M월 d일')}
                                 </h3>
                             </div>
@@ -539,7 +513,7 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                             <button
                                 onClick={() => setModalTab('schedule')}
                                 className={`flex-1 py-3.5 text-sm font-bold flex items-center justify-center gap-2 transition-colors
-                                    ${modalTab === 'schedule' ? 'text-pink-300 border-b-2 border-pink-400 bg-pink-50/30' : 'text-gray-400 hover:text-gray-600'}
+                                    ${modalTab === 'schedule' ? 'text-indigo-500 border-b-2 border-indigo-500 bg-indigo-50/30' : 'text-gray-400 hover:text-gray-600'}
                                 `}
                             >
                                 <Calendar size={15} />
@@ -548,7 +522,7 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                             <button
                                 onClick={() => setModalTab('memo')}
                                 className={`flex-1 py-3.5 text-sm font-bold flex items-center justify-center gap-2 transition-colors
-                                    ${modalTab === 'memo' ? 'text-pink-300 border-b-2 border-pink-400 bg-pink-50/30' : 'text-gray-400 hover:text-gray-600'}
+                                    ${modalTab === 'memo' ? 'text-indigo-500 border-b-2 border-indigo-500 bg-indigo-50/30' : 'text-gray-400 hover:text-gray-600'}
                                 `}
                             >
                                 <FileText size={15} />
@@ -561,40 +535,46 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                             {modalTab === 'schedule' ? (
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">일정 제목</label>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                            <CalendarDays size={12} className="text-indigo-400" /> 일정 제목
+                                        </label>
                                         <input
                                             type="text"
                                             value={scheduleTitle}
                                             onChange={(e) => setScheduleTitle(e.target.value)}
                                             placeholder="예: 드레스 피팅, 스튜디오 촬영"
-                                            className="w-full bg-pink-50/30 border-2 border-pink-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-pink-400 focus:bg-white focus:ring-4 focus:ring-pink-100"
+                                            className="w-full bg-indigo-50/30 border-2 border-indigo-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">시간</label>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                            <Clock size={12} className="text-indigo-400" /> 시간
+                                        </label>
                                         <input
                                             type="time"
                                             value={scheduleTime}
                                             onChange={(e) => setScheduleTime(e.target.value)}
-                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-pink-400 focus:bg-white focus:ring-4 focus:ring-pink-400/10"
+                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">장소</label>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                            <MapPin size={12} className="text-indigo-400" /> 장소
+                                        </label>
                                         <input
                                             type="text"
                                             value={scheduleLocation}
                                             onChange={(e) => setScheduleLocation(e.target.value)}
                                             placeholder="예: 강남 드레스샵"
-                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-pink-400 focus:bg-white focus:ring-4 focus:ring-pink-400/10"
+                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                         />
                                     </div>
                                     <button
                                         onClick={handleSaveSchedule}
                                         className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
                                         style={{
-                                            background: 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)',
-                                            boxShadow: '0 4px 15px rgba(251, 113, 133, 0.3)',
+                                            background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
+                                            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
                                         }}
                                     >
                                         <Calendar size={16} />
@@ -604,21 +584,23 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                             ) : (
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 block">메모 내용</label>
+                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                            <FileText size={12} className="text-indigo-400" /> 메모 내용
+                                        </label>
                                         <textarea
                                             value={memoContent}
                                             onChange={(e) => setMemoContent(e.target.value)}
                                             placeholder="이 날짜에 대한 메모를 작성하세요..."
                                             rows={5}
-                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-pink-400 focus:bg-white focus:ring-4 focus:ring-pink-400/10 resize-none"
+                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 resize-none"
                                         />
                                     </div>
                                     <button
                                         onClick={handleSaveMemo}
                                         className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
                                         style={{
-                                            background: 'linear-gradient(135deg, #FB7185 0%, #F43F5E 100%)',
-                                            boxShadow: '0 4px 15px rgba(251, 113, 133, 0.3)',
+                                            background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
+                                            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
                                         }}
                                     >
                                         <FileText size={16} />

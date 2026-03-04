@@ -78,6 +78,7 @@ export default function OnboardingPage() {
     const [step, setStep] = useState(0)
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
+        nickname: '',
         weddingDate: '',
         regionSido: '',
         regionSigungu: '',
@@ -88,7 +89,7 @@ export default function OnboardingPage() {
     const [inviteError, setInviteError] = useState('')
     const [inviteSuccess, setInviteSuccess] = useState('')
 
-    const totalSteps = 5
+    const totalSteps = 6
     const handleNext = () => setStep(prev => prev + 1)
     const handleBack = () => setStep(prev => prev - 1)
 
@@ -125,6 +126,7 @@ export default function OnboardingPage() {
             const { error: profileError } = await supabase
                 .from('profiles')
                 .update({
+                    username: formData.nickname.trim() || null,
                     wedding_date: formData.weddingDate,
                     region_sido: formData.regionSido || null,
                     region_sigungu: formData.regionSigungu || null,
@@ -287,10 +289,48 @@ export default function OnboardingPage() {
                             </motion.div>
                         )}
 
-                        {/* ── Step 1: 결혼 예정일 ── */}
+                        {/* ── Step 1: 닉네임 ── */}
                         {step === 1 && (
                             <motion.div
                                 key="step1"
+                                {...fadeSlide}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                className="space-y-6 flex-1 relative z-10"
+                            >
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="w-10 h-10 rounded-xl bg-[#D4A373]/15 border border-[#D4A373]/20 flex items-center justify-center text-[#D4A373] flex-shrink-0 shadow-[0_0_15px_rgba(212,163,115,0.3)]">
+                                        <Users size={18} />
+                                    </div>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">어떻게 불러드릴까요?</h2>
+                                </div>
+                                <p className="text-white/40 text-sm -mt-3 font-medium">커뮤니티에서 사용할 닉네임을 입력해 주세요.</p>
+                                <input
+                                    type="text"
+                                    placeholder="닉네임 (2자 이상)"
+                                    className="w-full rounded-xl p-5 text-lg sm:text-xl outline-none transition-all text-white font-medium placeholder:text-white/20"
+                                    style={{
+                                        background: 'rgba(0,0,0,0.2)',
+                                        border: '1px solid rgba(255,255,255,0.15)',
+                                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)'
+                                    }}
+                                    onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(212,163,115,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(212,163,115,0.2), inset 0 2px 4px rgba(0,0,0,0.2)' }}
+                                    onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.2)' }}
+                                    value={formData.nickname}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, nickname: e.target.value }))}
+                                    maxLength={20}
+                                />
+                                {formData.nickname.trim().length > 0 && formData.nickname.trim().length < 2 && (
+                                    <p className="text-red-400/80 text-xs font-medium">닉네임은 2자 이상이어야 합니다.</p>
+                                )}
+                            </motion.div>
+                        )}
+
+                        {/* ── Step 2: 결혼 예정일 ── */}
+                        {step === 2 && (
+                            <motion.div
+                                key="step2"
                                 {...fadeSlide}
                                 initial="initial"
                                 animate="animate"
@@ -320,10 +360,10 @@ export default function OnboardingPage() {
                             </motion.div>
                         )}
 
-                        {/* ── Step 2: 결혼 장소 ── */}
-                        {step === 2 && (
+                        {/* ── Step 3: 결혼 장소 ── */}
+                        {step === 3 && (
                             <motion.div
-                                key="step2"
+                                key="step3"
                                 {...fadeSlide}
                                 initial="initial"
                                 animate="animate"
@@ -371,10 +411,10 @@ export default function OnboardingPage() {
                             </motion.div>
                         )}
 
-                        {/* ── Step 3: 예산 범위 ── */}
-                        {step === 3 && (
+                        {/* ── Step 4: 예산 범위 ── */}
+                        {step === 4 && (
                             <motion.div
-                                key="step3"
+                                key="step4"
                                 {...fadeSlide}
                                 initial="initial"
                                 animate="animate"
@@ -444,10 +484,10 @@ export default function OnboardingPage() {
                             </motion.div>
                         )}
 
-                        {/* ── Step 4: 웨딩 스타일 ── */}
-                        {step === 4 && (
+                        {/* ── Step 5: 웨딩 스타일 ── */}
+                        {step === 5 && (
                             <motion.div
-                                key="step4"
+                                key="step5"
                                 {...fadeSlide}
                                 initial="initial"
                                 animate="animate"
@@ -519,7 +559,7 @@ export default function OnboardingPage() {
                         </button>
 
                         <div className="flex gap-2">
-                            {step === 2 && (
+                            {step === 3 && (
                                 <button
                                     onClick={handleNext}
                                     className="px-5 py-3 rounded-xl text-white/40 text-sm font-medium transition-all hover:text-white/60"
@@ -529,10 +569,11 @@ export default function OnboardingPage() {
                                 </button>
                             )}
 
-                            {step < 4 ? (
+                            {step < 5 ? (
                                 <button
                                     onClick={handleNext}
-                                    className="flex items-center gap-2 px-7 py-3 rounded-xl font-semibold text-white text-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(212,163,115,0.3)]"
+                                    disabled={step === 1 && formData.nickname.trim().length < 2}
+                                    className="flex items-center gap-2 px-7 py-3 rounded-xl font-semibold text-white text-sm transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(212,163,115,0.3)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                                     style={{ background: 'linear-gradient(135deg, #D4A373, #B8845A)' }}
                                 >
                                     다음 <ArrowRight size={15} />

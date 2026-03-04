@@ -59,11 +59,11 @@ export default async function Dashboard() {
         completed: tasks.filter((t) => t.is_completed).length
     }
 
-    // 예산 정보: profiles.budget_max (총 예산) + tasks 합계
+    // 예산 정보: profiles.budget_max (총 예산) + 완료 항목의 예산 합계
     const budgetSummary = await getBudgetSummary()
     const budgetStats = {
         total: budgetSummary.totalBudget || tasks.reduce((acc: number, t) => acc + (t.estimated_budget || 0), 0),
-        used: budgetSummary.actualTotal || tasks.reduce((acc: number, t) => acc + (t.actual_cost || 0), 0)
+        used: budgetSummary.completedEstimatedTotal || 0,
     }
 
     return (
