@@ -123,10 +123,12 @@ export default function OnboardingPage() {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) throw new Error('No user found')
 
+            const trimmedNickname = formData.nickname.trim() || null
             const { error: profileError } = await supabase
                 .from('profiles')
                 .update({
-                    username: formData.nickname.trim() || null,
+                    username: trimmedNickname,
+                    full_name: trimmedNickname,
                     wedding_date: formData.weddingDate,
                     region_sido: formData.regionSido || null,
                     region_sigungu: formData.regionSigungu || null,

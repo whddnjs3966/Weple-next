@@ -33,14 +33,14 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('full_name, invite_code, wedding_date, region_sido, region_sigungu, role')
+                .select('full_name, username, invite_code, wedding_date, region_sido, region_sigungu, role')
                 .eq('id', user.id)
                 .single()
 
             if (profile) {
                 const isAdmin = profile.role === 'admin'
                 setUserRole(profile.role)
-                const name = isAdmin ? '👑관리자' : (profile.full_name || userEmail?.split('@')[0] || '')
+                const name = isAdmin ? '👑관리자' : (profile.full_name || profile.username || '')
                 setDisplayName(name)
                 setNickname(profile.full_name || '')
                 setInviteCode(profile.invite_code || '')
@@ -74,13 +74,14 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                     .from('profiles')
                     .update({
                         full_name: nickname,
+                        username: nickname,
                         region_sido: regionSido || null,
                         region_sigungu: regionSigungu || null,
                     })
                     .eq('id', user.id)
 
                 const isAdmin = userRole === 'admin'
-                setDisplayName(isAdmin ? '👑관리자' : (nickname || userEmail?.split('@')[0] || ''))
+                setDisplayName(isAdmin ? '👑관리자' : (nickname || ''))
             }
             if (newWeddingDate) {
                 await updateWeddingDate(newWeddingDate)
