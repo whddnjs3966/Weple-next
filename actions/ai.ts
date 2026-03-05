@@ -230,8 +230,7 @@ export async function generateWeddingPlan(planData: WeddingPlanData) {
         return { error: error.message }
     }
 
-    revalidatePath('/dashboard')
-    revalidatePath('/checklist')
+    revalidatePath('/', 'layout')
 
     return { success: true }
 }

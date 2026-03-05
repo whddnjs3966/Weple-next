@@ -19,7 +19,8 @@ export default function SessionGuard() {
         return () => {
             subscription.unsubscribe()
         }
-    }, [supabase, router])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     return null
 }

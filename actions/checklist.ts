@@ -77,8 +77,7 @@ export async function addTask(formData: FormData) {
         return { error: error.message }
     }
 
-    revalidatePath('/checklist')
-    revalidatePath('/schedule')
+    revalidatePath('/', 'layout')
     return { success: true }
 }
 
@@ -117,8 +116,7 @@ export async function updateTask(id: string, updates: TaskUpdate) {
 
     if (error) return { error: error.message }
 
-    revalidatePath('/checklist')
-    revalidatePath('/schedule')
+    revalidatePath('/', 'layout')
     return { success: true }
 }
 
@@ -138,8 +136,7 @@ export async function deleteTasks(ids: string[]) {
 
     if (error) return { error: error.message }
 
-    revalidatePath('/checklist')
-    revalidatePath('/schedule')
+    revalidatePath('/', 'layout')
     return { success: true }
 }
 
@@ -179,7 +176,6 @@ export async function seedDefaultTasks(tasksToInsert: Pick<TaskInsert, 'title' |
         return { error: error.message }
     }
 
-    revalidatePath('/checklist')
-    revalidatePath('/schedule')
+    revalidatePath('/', 'layout')
     return { success: true }
 }

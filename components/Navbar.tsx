@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Flower2, Settings, LogOut, Calendar, CheckSquare, Store, Users, User, Copy, Check, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { signOutAction } from '@/actions/auth'
 import { updateWeddingDate } from '@/actions/profile'
 import { cn } from '@/lib/utils'
@@ -12,7 +12,8 @@ import { WEDDING_LOCATIONS, SIDO_LIST } from '@/lib/constants/wedding-locations'
 
 export default function Navbar({ userEmail }: { userEmail?: string }) {
     const pathname = usePathname()
-    const supabase = createClient()
+    const supabaseRef = useRef(createClient())
+    const supabase = supabaseRef.current
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [displayName, setDisplayName] = useState('') // 버튼에 표시할 이름
     const [nickname, setNickname] = useState('')

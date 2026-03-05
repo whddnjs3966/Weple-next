@@ -16,7 +16,6 @@ export async function updateWeddingDate(date: string) {
 
     if (error) return { error: error.message }
 
-    revalidatePath('/dashboard')
-    revalidatePath('/schedule')
+    revalidatePath('/', 'layout')
     return { success: true }
 }

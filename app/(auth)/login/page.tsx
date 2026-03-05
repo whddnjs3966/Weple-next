@@ -190,7 +190,7 @@ function LoginPageContent() {
 
             {/* Copyright */}
             <footer className="absolute bottom-4 text-center w-full text-[10px] text-gray-300 uppercase tracking-widest">
-                &copy; 2024 WepIn. All rights reserved.
+                &copy; 2026 Wepln. All rights reserved.
             </footer>
         </div>
     )

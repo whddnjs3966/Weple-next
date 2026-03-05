@@ -50,9 +50,12 @@ export default async function Dashboard() {
     }
 
 
-    // 3. Fetch Tasks & Budget Data
+    // 3. Fetch Tasks & Budget Data (병렬 조회)
     const { getTasks } = await import("@/actions/checklist")
-    const tasks = await getTasks()
+    const [tasks, budgetSummary] = await Promise.all([
+        getTasks(),
+        getBudgetSummary(),
+    ])
 
     const taskStats = {
         total: tasks.length,
@@ -87,7 +90,6 @@ export default async function Dashboard() {
     }, {})
 
     // 예산 정보: profiles.budget_max (총 예산) + 완료 항목의 예산 합계
-    const budgetSummary = await getBudgetSummary()
     const budgetStats = {
         total: budgetSummary.totalBudget || tasks.reduce((acc: number, t) => acc + (t.estimated_budget || 0), 0),
         used: budgetSummary.completedEstimatedTotal || 0,

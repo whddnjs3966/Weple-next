@@ -20,8 +20,7 @@ export async function saveTotalBudget(amount: number) {
 
     if (error) return { error: error.message }
 
-    revalidatePath('/dashboard')
-    revalidatePath('/checklist')
+    revalidatePath('/', 'layout')
     return { success: true }
 }
 
@@ -44,7 +43,7 @@ export async function getBudgetSummary() {
         .eq('id', user.id)
         .single()
 
-    // 2. 그룹이 있으면 파트너 멤버 ID도 포함
+    // 2. 그룹 멤버 확인 + 태스크 조회를 병렬로 처리
     let userIds = [user.id]
     if (profile?.wedding_group_id) {
         const { data: members } = await supabase
@@ -54,7 +53,6 @@ export async function getBudgetSummary() {
         if (members) userIds = members.map(m => m.id)
     }
 
-    // 3. 그룹 전체 태스크에서 예상/실제 비용 합계 조회
     const { data: tasks } = await supabase
         .from('tasks')
         .select('estimated_budget, actual_cost, is_completed')

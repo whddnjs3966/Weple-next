@@ -50,8 +50,7 @@ export async function updateProfile(formData: FormData) {
 
         if (profileError) throw profileError
 
-        revalidatePath('/dashboard')
-        revalidatePath('/', 'layout') // Revalidate global layout if name is in navbar
+        revalidatePath('/', 'layout')
 
         return { success: true }
     } catch (error) {
