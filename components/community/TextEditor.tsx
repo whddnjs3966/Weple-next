@@ -37,6 +37,21 @@ export default function TextEditor({ value, onChange, placeholder }: TextEditorP
         input.onchange = async () => {
             if (input.files && input.files[0]) {
                 const file = input.files[0]
+
+                // 파일 크기 제한 (5MB)
+                const MAX_SIZE = 5 * 1024 * 1024
+                if (file.size > MAX_SIZE) {
+                    alert('이미지 크기는 5MB 이하만 가능합니다.')
+                    return
+                }
+
+                // MIME 타입 검증
+                const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+                if (!ALLOWED_TYPES.includes(file.type)) {
+                    alert('지원하지 않는 이미지 형식입니다. (JPG, PNG, GIF, WebP만 가능)')
+                    return
+                }
+
                 setIsUploading(true)
 
                 try {

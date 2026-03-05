@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 import { google } from '@ai-sdk/google'
@@ -71,6 +72,13 @@ function getAIModels() {
 }
 
 export async function GET(request: NextRequest) {
+    // 인증 확인
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const name = searchParams.get('name') || ''
     const categorySlug = searchParams.get('category') || ''

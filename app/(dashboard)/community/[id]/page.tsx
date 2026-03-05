@@ -32,11 +32,10 @@ export default async function PostDetailPage({
         allowedAttributes: {
             a: ['href', 'target', 'rel'],
             img: ['src', 'alt', 'width', 'height'],
-            span: ['class', 'style'],
+            span: ['class'],
             p: ['class'],
         },
         allowedSchemes: ['http', 'https'],
-        allowedSchemesByTag: { img: ['http', 'https', 'data'] },
     })
 
     // Simplified Comment Action for inline use
@@ -65,7 +64,7 @@ export default async function PostDetailPage({
 
                 {isAuthor && (
                     <form action={removePost}>
-                        <button className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
+                        <button aria-label="게시글 삭제" className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
                             <Trash2 size={18} />
                         </button>
                     </form>
@@ -85,7 +84,7 @@ export default async function PostDetailPage({
                             <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200">
                                 <User size={12} />
                             </div>
-                            {post.author?.username || '익명'}
+                            {post.author?.role === 'admin' ? '👑관리자' : (post.author?.username || post.author?.full_name || '익명')}
                         </span>
                         <span className="w-px h-3 bg-gray-200"></span>
                         <span className="flex items-center gap-1">
@@ -118,7 +117,7 @@ export default async function PostDetailPage({
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center justify-between mb-1">
-                                    <span className="font-bold text-xs text-gray-800">{comment.author?.username || '익명'}</span>
+                                    <span className="font-bold text-xs text-gray-800">{comment.author?.role === 'admin' ? '👑관리자' : (comment.author?.username || comment.author?.full_name || '익명')}</span>
                                     <span className="text-[10px] text-gray-400">{format(new Date(comment.created_at), 'yyyy/MM/dd')}</span>
                                 </div>
                                 <p className="text-sm text-gray-600 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">

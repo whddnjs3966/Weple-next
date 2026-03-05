@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 // ──────────────────────────────────────────────────────────────
 // 카테고리별 검색 키워드
@@ -128,6 +129,13 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export async function GET(request: NextRequest) {
+    // 인증 확인
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category') || 'wedding-hall'
     const sido = searchParams.get('sido') || '서울'

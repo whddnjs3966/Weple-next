@@ -1,16 +1,16 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { Database } from '@/lib/types/database.types'
 import { revalidatePath } from 'next/cache'
 
 export type Post = Database['public']['Tables']['posts']['Row'] & {
-    author: { username: string | null } | null
+    author: { username: string | null; full_name: string | null; role: string | null } | null
     _count?: { comments: number }
 }
 
 export type Comment = Database['public']['Tables']['comments']['Row'] & {
-    author: { username: string | null } | null
+    author: { username: string | null; full_name: string | null; role: string | null } | null
 }
 
 /**
@@ -29,6 +29,9 @@ function escapeLike(value: string): string {
 
 export async function getPosts(category: string = 'free', page = 1, limit = 10, search?: string) {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { posts: [], count: 0 }
+
     const from = (page - 1) * limit
     const to = from + limit - 1
 
@@ -36,7 +39,7 @@ export async function getPosts(category: string = 'free', page = 1, limit = 10, 
         .from('posts')
         .select(`
       *,
-      author:profiles(username)
+      author:profiles(username, full_name, role)
     `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to)
@@ -62,21 +65,25 @@ export async function getPosts(category: string = 'free', page = 1, limit = 10, 
 
 export async function getPost(id: string) {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
     const { data, error } = await supabase
         .from('posts')
         .select(`
       *,
-      author:profiles(username)
+      author:profiles(username, full_name, role)
     `)
         .eq('id', id)
         .single()
 
     if (error) return null
 
-    // view_count 증가 (race condition 방지를 위해 직접 SQL 사용이 best이지만, 일단 단순 증가로 처리)
-    await supabase
+    // view_count 증가 — RLS를 우회하기 위해 admin client 사용 (타인 글도 조회수 증가 가능)
+    const adminClient = createAdminClient()
+    await adminClient
         .from('posts')
-        .update({ view_count: ((data.view_count ?? 0) + 1) })
+        .update({ view_count: (data.view_count ?? 0) + 1 })
         .eq('id', id)
 
     return data as Post
@@ -84,11 +91,14 @@ export async function getPost(id: string) {
 
 export async function getComments(postId: string) {
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
     const { data, error } = await supabase
         .from('comments')
         .select(`
             *,
-            author:profiles(username)
+            author:profiles(username, full_name, role)
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true })

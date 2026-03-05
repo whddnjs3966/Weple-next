@@ -7,7 +7,12 @@ import crypto from 'crypto'
  */
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
-    const next = searchParams.get('next') || '/dashboard'
+    let next = searchParams.get('next') || '/dashboard'
+
+    // Open Redirect 방지: 상대 경로만 허용, 프로토콜 상대 URL 차단
+    if (!next.startsWith('/') || next.startsWith('//')) {
+        next = '/dashboard'
+    }
 
     const clientId = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID
     if (!clientId) {

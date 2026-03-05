@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, Calendar, X, Save, Sparkles, CalendarDays, Clock, MapPin } from 'lucide-react'
+import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, Calendar, X, Save, Sparkles, CalendarDays, Clock, MapPin, Heart } from 'lucide-react'
 import { differenceInDays } from 'date-fns'
 import { useSchedule } from '@/contexts/ScheduleContext'
 import { Database } from '@/lib/types/database.types'
@@ -21,6 +21,7 @@ interface Task {
     estimatedBudget: number
     scheduledDate: string | null
     isDone: boolean
+    userId?: string
 }
 
 type TabType = 'my' | 'ai'
@@ -30,7 +31,7 @@ const TABS: { key: TabType; label: string; icon: string }[] = [
     { key: 'ai', label: 'AI 추천 체크리스트', icon: '✨' },
 ]
 
-export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask[] }) {
+export default function ChecklistClient({ initialTasks, currentUserId = '' }: { initialTasks: DbTask[], currentUserId?: string }) {
     const mapDbTasks = (dbTasks: DbTask[]): Task[] => dbTasks.map(t => ({
         id: t.id,
         title: t.title,
@@ -39,6 +40,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
         estimatedBudget: t.estimated_budget || 0,
         scheduledDate: t.due_date,
         isDone: t.is_completed || false,
+        userId: t.user_id,
     }))
 
     const [activeTab, setActiveTab] = useState<TabType>('my')
@@ -369,8 +371,13 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
                                                         </span>
                                                     </td>
                                                     <td className="py-3 px-3">
-                                                        <div className={`font-semibold text-[13px] leading-snug ${task.isDone ? 'line-through text-gray-300' : 'text-gray-800'}`}>
+                                                        <div className={`font-semibold text-[13px] leading-snug flex items-center gap-1.5 ${task.isDone ? 'line-through text-gray-300' : 'text-gray-800'}`}>
                                                             {task.title}
+                                                            {currentUserId && task.userId && task.userId !== currentUserId && (
+                                                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-pink-50 text-pink-400 text-[9px] font-bold border border-pink-100" title="파트너의 할 일">
+                                                                    <Heart size={8} fill="currentColor" /> 파트너
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         {task.description && (
                                                             <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">{task.description}</p>
@@ -562,7 +569,7 @@ export default function ChecklistClient({ initialTasks }: { initialTasks: DbTask
 
             {/* Date Registration Modal */}
             {isDateModalOpen && dateModalTask && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4" role="dialog" aria-modal="true" aria-label="일정 등록">
                     <div className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" onClick={() => setIsDateModalOpen(false)}></div>
                     <div className="relative w-full max-w-sm bg-white rounded-[20px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                         <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)', padding: '1.25rem 1.5rem' }}>

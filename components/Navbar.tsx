@@ -23,6 +23,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
     const [isUpdating, setIsUpdating] = useState(false)
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
     const [copied, setCopied] = useState(false)
+    const [userRole, setUserRole] = useState<string | null>(null)
 
     // 마운트 시 전체 프로필 로드 (버튼 레이블 + 모달 데이터)
     useEffect(() => {
@@ -32,12 +33,14 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('full_name, invite_code, wedding_date, region_sido, region_sigungu')
+                .select('full_name, invite_code, wedding_date, region_sido, region_sigungu, role')
                 .eq('id', user.id)
                 .single()
 
             if (profile) {
-                const name = profile.full_name || userEmail?.split('@')[0] || ''
+                const isAdmin = profile.role === 'admin'
+                setUserRole(profile.role)
+                const name = isAdmin ? '👑관리자' : (profile.full_name || userEmail?.split('@')[0] || '')
                 setDisplayName(name)
                 setNickname(profile.full_name || '')
                 setInviteCode(profile.invite_code || '')
@@ -56,6 +59,13 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // 일반 사용자가 "관리자"로 이름 변경 차단
+        if (nickname.trim() === '관리자' && userRole !== 'admin') {
+            alert("'관리자'라는 닉네임은 사용할 수 없습니다.")
+            return
+        }
+
         setIsUpdating(true)
         try {
             const { data: { user } } = await supabase.auth.getUser()
@@ -69,7 +79,8 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                     })
                     .eq('id', user.id)
 
-                setDisplayName(nickname || userEmail?.split('@')[0] || '')
+                const isAdmin = userRole === 'admin'
+                setDisplayName(isAdmin ? '👑관리자' : (nickname || userEmail?.split('@')[0] || ''))
             }
             if (newWeddingDate) {
                 await updateWeddingDate(newWeddingDate)

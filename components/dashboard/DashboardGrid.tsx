@@ -3,7 +3,15 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Calendar, CheckSquare, Store, Users } from 'lucide-react'
+import { Calendar, CheckSquare, Store, Users, ArrowRight } from 'lucide-react'
+
+interface UpcomingTask {
+    title: string
+    dDay: number
+    description: string | null
+    category: string | null
+    estimatedBudget: number | null
+}
 
 interface DashboardGridProps {
     user: any
@@ -11,9 +19,11 @@ interface DashboardGridProps {
     budget: { total: number; used: number }
     tasks: { total: number; completed: number }
     dDayText: string
+    upcomingTasks?: UpcomingTask[]
+    categoryBudgets?: Record<string, number>
 }
 
-export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayText }: DashboardGridProps) {
+export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayText, upcomingTasks = [], categoryBudgets = {} }: DashboardGridProps) {
     const budgetPct = budget.total > 0 ? Math.round((budget.used / budget.total) * 100) : 0
     const taskPct = tasks.total > 0 ? Math.round((tasks.completed / tasks.total) * 100) : 0
 
@@ -52,7 +62,7 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
                     style={{ background: 'linear-gradient(90deg, transparent, rgba(212,163,115,0.6), transparent)' }}
                 />
 
-                <p className="text-white/35 text-[10px] tracking-[0.35em] uppercase mb-3 font-semibold relative z-10">
+                <p className="text-white/50 text-[10px] tracking-[0.35em] uppercase mb-3 font-semibold relative z-10">
                     Your Beautiful Journey
                 </p>
 
@@ -91,7 +101,7 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
 
                 {/* Budget Card */}
                 <motion.div
-                    className="rounded-2xl p-6 flex-1 relative overflow-hidden"
+                    className="rounded-2xl p-6 relative"
                     style={{
                         background: 'rgba(255,255,255,0.04)',
                         border: '1px solid rgba(212,163,115,0.15)',
@@ -124,9 +134,9 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
                         >
                             {budgetPct}%
                         </span>
-                        <span className="text-white/35 text-xs text-right leading-relaxed">
-                            {budget.used.toLocaleString()}만 ₩<br />
-                            <span className="text-white/20">/ {budget.total.toLocaleString()}만 ₩</span>
+                        <span className="text-white/50 text-xs text-right leading-relaxed">
+                            {budget.used.toLocaleString()}원<br />
+                            <span className="text-white/20">/ {budget.total.toLocaleString()}원</span>
                         </span>
                     </div>
 
@@ -140,6 +150,40 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
                         />
                     </div>
                     <p className="text-white/25 text-[10px] mt-2">사용됨</p>
+
+                    {/* 카테고리별 예산 분류 바 */}
+                    {Object.keys(categoryBudgets).length > 0 && budget.total > 0 && (
+                        <div className="mt-3 space-y-1.5">
+                            <p className="text-white/30 text-[9px] uppercase tracking-widest font-semibold">카테고리별</p>
+                            <div className="w-full h-2 rounded-full overflow-hidden flex" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                                {(() => {
+                                    const COLORS = ['#D4A373', '#E8B98A', '#C49362', '#B07D4F', '#A06A3C']
+                                    const entries = Object.entries(categoryBudgets)
+                                    return entries.map(([, amount], i) => (
+                                        <div
+                                            key={i}
+                                            className="h-full"
+                                            style={{
+                                                width: `${Math.round((amount / budget.total) * 100)}%`,
+                                                background: COLORS[i % COLORS.length],
+                                            }}
+                                        />
+                                    ))
+                                })()}
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                                {(() => {
+                                    const COLORS = ['#D4A373', '#E8B98A', '#C49362', '#B07D4F', '#A06A3C']
+                                    return Object.entries(categoryBudgets).map(([cat, amount], i) => (
+                                        <span key={cat} className="flex items-center gap-1 text-[9px] text-white/40">
+                                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
+                                            {cat} {Math.round((amount / budget.total) * 100)}%
+                                        </span>
+                                    ))
+                                })()}
+                            </div>
+                        </div>
+                    )}
                 </motion.div>
 
                 {/* Task Card */}
@@ -195,6 +239,63 @@ export default function DashboardGrid({ user, weddingDate, budget, tasks, dDayTe
                     <p className="text-white/25 text-[10px] mt-2">할 일 완료</p>
                 </motion.div>
             </div>
+
+            {/* ── 다음 할 일 카드 ── */}
+            {upcomingTasks.length > 0 && (
+                <motion.div
+                    className="lg:col-span-3 rounded-2xl p-5 relative overflow-hidden"
+                    style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(249,168,212,0.15)',
+                        backdropFilter: 'blur(16px)',
+                    }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.25 }}
+                >
+                    <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(249,168,212,0.4), transparent)' }} />
+
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[#F9A8D4]" />
+                            <p className="text-[#F9A8D4]/70 text-[10px] uppercase tracking-widest font-semibold">Next To-Do</p>
+                        </div>
+                        <Link href="/checklist" className="flex items-center gap-1 text-[10px] text-white/30 hover:text-white/50 transition-colors">
+                            전체 보기 <ArrowRight size={10} />
+                        </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {upcomingTasks.map((task, i) => (
+                            <div
+                                key={i}
+                                className="rounded-xl px-4 py-3.5"
+                                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                            >
+                                <div className="flex items-center gap-2.5 mb-2">
+                                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-pink-500/20 text-pink-300 whitespace-nowrap">
+                                        D-{task.dDay}
+                                    </span>
+                                    {task.category && (
+                                        <span className="text-[9px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded-full truncate">
+                                            {task.category}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-white/80 text-sm font-semibold mb-1 truncate">{task.title}</p>
+                                {task.description && (
+                                    <p className="text-white/35 text-xs leading-relaxed line-clamp-2 mb-2">{task.description}</p>
+                                )}
+                                {task.estimatedBudget && task.estimatedBudget > 0 && (
+                                    <p className="text-[10px] text-[#D4A373]/70 font-medium">
+                                        💰 {task.estimatedBudget.toLocaleString()}원
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
 
             {/* ── 하단 빠른 이동 ── */}
             <motion.div

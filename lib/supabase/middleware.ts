@@ -58,14 +58,22 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
-    // ── 인증된 유저: 로그인/회원가입/랜딩 접근 시 프로필 존재 여부에 따라 분기 ──
+    // ── 인증된 유저 분기 ──
     if (user) {
-        if (
+        // 로그인/회원가입/랜딩 → 프로필 확인 후 적절한 페이지로 리다이렉트
+        const isPublicPage =
             pathname.startsWith('/login') ||
             pathname.startsWith('/signup') ||
             pathname === '/'
-            // /onboarding은 인증된 유저가 접근해야 하므로 여기서 제외
-        ) {
+
+        // 대시보드 등 보호된 라우트 → 온보딩 미완료 시 /onboarding으로 리다이렉트
+        const isProtectedPage =
+            !isPublicPage &&
+            !pathname.startsWith('/onboarding') &&
+            !pathname.startsWith('/api') &&
+            !pathname.startsWith('/auth')
+
+        if (isPublicPage || isProtectedPage) {
             // DB에서 프로필 존재 여부 + wedding_date 확인
             const { data: profile } = await (supabase as any)
                 .from('profiles')
@@ -73,26 +81,42 @@ export async function updateSession(request: NextRequest) {
                 .eq('id', user.id)
                 .single()
 
-            // wedding_date가 있으면 dashboard, 없거나 profile이 없으면 onboarding
-            const targetPath = (profile && profile.wedding_date) ? '/dashboard' : '/onboarding'
+            const hasCompletedOnboarding = profile && profile.wedding_date
 
-            // 가드: 현재 URL이 이미 대상과 같으면 리다이렉트 중단
-            if (pathname === targetPath) return supabaseResponse
+            if (isPublicPage) {
+                // wedding_date가 있으면 dashboard, 없거나 profile이 없으면 onboarding
+                const targetPath = hasCompletedOnboarding ? '/dashboard' : '/onboarding'
 
-            const url = request.nextUrl.clone()
-            url.pathname = targetPath
+                // 가드: 현재 URL이 이미 대상과 같으면 리다이렉트 중단
+                if (pathname === targetPath) return supabaseResponse
 
-            // 리다이렉트 응답 생성 및 쿠키 복사
-            const redirectResponse = NextResponse.redirect(url)
-            const allCookies = supabaseResponse.cookies.getAll()
-            allCookies.forEach(cookie => {
-                redirectResponse.cookies.set(cookie.name, cookie.value, {
-                    ...cookie,
-                    // Supabase SDK 기본 maxAge 유지 (영구 쿠키)
+                const url = request.nextUrl.clone()
+                url.pathname = targetPath
+
+                const redirectResponse = NextResponse.redirect(url)
+                const allCookies = supabaseResponse.cookies.getAll()
+                allCookies.forEach(cookie => {
+                    redirectResponse.cookies.set(cookie.name, cookie.value, {
+                        ...cookie,
+                    })
                 })
-            })
+                return redirectResponse
+            }
 
-            return redirectResponse
+            // 보호된 페이지인데 온보딩 미완료 → /onboarding으로 리다이렉트
+            if (isProtectedPage && !hasCompletedOnboarding) {
+                const url = request.nextUrl.clone()
+                url.pathname = '/onboarding'
+
+                const redirectResponse = NextResponse.redirect(url)
+                const allCookies = supabaseResponse.cookies.getAll()
+                allCookies.forEach(cookie => {
+                    redirectResponse.cookies.set(cookie.name, cookie.value, {
+                        ...cookie,
+                    })
+                })
+                return redirectResponse
+            }
         }
     }
 

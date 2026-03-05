@@ -160,6 +160,18 @@ export async function generateWeddingPlan(planData: WeddingPlanData) {
         return { error: 'Unauthorized' }
     }
 
+    // 기존 AI 생성 태스크 존재 여부 확인 (중복 생성 방지)
+    const { data: existingTasks } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('user_id', user.id)
+        .like('title', '[예산]%')
+        .limit(1)
+
+    if (existingTasks && existingTasks.length > 0) {
+        return { error: '이미 AI 플랜이 생성되어 있습니다. 기존 체크리스트를 삭제한 후 다시 시도해주세요.' }
+    }
+
     const totalBudget = planData.budgetRange
 
     const breakdown = [

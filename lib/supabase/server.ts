@@ -1,6 +1,23 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { Database } from '@/lib/types/database.types'
+
+/**
+ * RLS를 우회하는 Admin Client (service_role key 사용)
+ * 조회수 증가 등 현재 사용자 소유가 아닌 row 업데이트에 사용
+ */
+export function createAdminClient() {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        throw new Error('Missing Supabase Admin Environment Variables')
+    }
+
+    return createSupabaseClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+}
 
 export async function createClient() {
     const cookieStore = await cookies()

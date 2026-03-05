@@ -68,7 +68,8 @@ export async function getBudgetSummary() {
         .reduce((sum, t) => sum + (t.actual_cost || t.estimated_budget || 0), 0)
 
     return {
-        totalBudget: profile?.budget_max || 0,
+        // budget_max는 만원 단위로 저장 → 원 단위로 통일하여 반환
+        totalBudget: (profile?.budget_max || 0) * 10000,
         estimatedTotal,
         actualTotal,
         completedEstimatedTotal,

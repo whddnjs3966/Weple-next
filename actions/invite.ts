@@ -60,6 +60,18 @@ export async function joinByInviteCode(inviteCode: string) {
 
     const code = inviteCode.trim().toUpperCase()
 
+    // 현재 유저의 프로필 확인 (기존 그룹 소속 여부)
+    const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('wedding_group_id')
+        .eq('id', user.id)
+        .single()
+
+    // 이미 그룹에 속한 유저가 다른 그룹에 참여 시 차단
+    if (myProfile?.wedding_group_id) {
+        return { error: '이미 파트너와 연결되어 있습니다. 기존 연결을 해제한 후 다시 시도해주세요.' }
+    }
+
     // 1. 초대 코드 소유자 찾기
     const { data: inviter, error: findError } = await supabase
         .from('profiles')
@@ -76,8 +88,18 @@ export async function joinByInviteCode(inviteCode: string) {
         return { error: '본인의 초대 코드는 사용할 수 없습니다.' }
     }
 
-    // 2. 초대자의 wedding_group_id가 있으면 같은 그룹으로 연결
+    // 2. 초대자의 wedding_group_id가 있으면 그룹 인원 확인 후 연결
     if (inviter.wedding_group_id) {
+        // 그룹 최대 인원 2명 제한
+        const { count } = await supabase
+            .from('profiles')
+            .select('id', { count: 'exact', head: true })
+            .eq('wedding_group_id', inviter.wedding_group_id)
+
+        if (count && count >= 2) {
+            return { error: '해당 그룹은 이미 최대 인원(2명)에 도달했습니다.' }
+        }
+
         const { error: updateError } = await supabase
             .from('profiles')
             .update({ wedding_group_id: inviter.wedding_group_id })
@@ -138,9 +160,15 @@ export async function validateInviteCode(inviteCode: string) {
         return { valid: false, message: '본인의 초대 코드입니다.' }
     }
 
+    // 이름 마스킹 (예: "김민수" → "김*수", "이아름" → "이*름")
+    const rawName = inviter.full_name || '파트너'
+    const maskedName = rawName.length >= 2
+        ? rawName[0] + '*'.repeat(rawName.length - 2) + rawName[rawName.length - 1]
+        : rawName
+
     return {
         valid: true,
-        inviterName: inviter.full_name || '파트너',
-        message: `${inviter.full_name || '파트너'}님의 초대 코드입니다.`,
+        inviterName: maskedName,
+        message: `${maskedName}님의 초대 코드입니다.`,
     }
 }

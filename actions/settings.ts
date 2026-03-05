@@ -14,9 +14,21 @@ export async function updateProfile(formData: FormData) {
     const firstName = formData.get('first_name') as string
     const weddingDate = formData.get('wedding_date') as string
 
+    // 서버 사이드 "관리자" 닉네임 차단 (admin role이 아닌 경우)
+    if (firstName?.trim() === '관리자') {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        if (profile?.role !== 'admin') {
+            return { error: "'관리자'라는 닉네임은 사용할 수 없습니다." }
+        }
+    }
+
     try {
         // 1. Update Auth Metadata (User's Name)
-        // Typically Supabase Auth metadata is used for user name
         const { error: authError } = await supabase.auth.updateUser({
             data: { first_name: firstName }
         })
@@ -55,30 +67,18 @@ export async function getInviteCode() {
     if (!user) return { error: 'Not authenticated' }
 
     try {
-        // Fetch invite code from 'wedding_groups' or 'profiles'
-        // Assuming profiles -> group_id -> wedding_groups -> invite_code
-        // Or specific logic. For now, let's look for it in profiles or a related join.
-
-        // Based on base.html: user.wedding_profile.group.invite_code
-        // This implies profiles (join) wedding_groups.
-
+        // profiles.invite_code를 우선 반환 (invite.ts와 통일)
         const { data: profile } = await supabase
             .from('profiles')
-            .select(`
-                wedding_group_id,
-                wedding_groups:wedding_group_id (
-                    invite_code
-                )
-            `)
+            .select('invite_code')
             .eq('id', user.id)
             .single()
 
-        const weddingGroup = profile?.wedding_groups as unknown as { invite_code: string | null } | null
-        if (weddingGroup?.invite_code) {
-            return { inviteCode: weddingGroup.invite_code }
+        if (profile?.invite_code) {
+            return { inviteCode: profile.invite_code }
         }
 
-        return { inviteCode: 'CODE-NOT-FOUND' }
+        return { inviteCode: '' }
     } catch (error) {
         console.error('Get Invite Code Error:', error)
         return { error: 'Failed to fetch invite code' }

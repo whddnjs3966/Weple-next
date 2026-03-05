@@ -429,8 +429,8 @@ export default function OnboardingPage() {
                                 >
                                     {formData.budgetRange >= 10000
                                         ? '1억 원 이상'
-                                        : `${formData.budgetRange.toLocaleString()}`}
-                                    {formData.budgetRange < 10000 && <span className="text-2xl sm:text-3xl font-medium text-white/40 ml-1">만 원</span>}
+                                        : `${(formData.budgetRange * 10000).toLocaleString()}`}
+                                    {formData.budgetRange < 10000 && <span className="text-2xl sm:text-3xl font-medium text-white/40 ml-1">원</span>}
                                 </div>
 
                                 {/* Custom range slider */}
@@ -451,8 +451,8 @@ export default function OnboardingPage() {
                                 </div>
 
                                 <div className="flex justify-between text-xs text-white/40 font-bold uppercase tracking-widest">
-                                    <span>1,000만 원</span>
-                                    <span>1억 원+</span>
+                                    <span>10,000,000원</span>
+                                    <span>100,000,000원+</span>
                                 </div>
 
                                 {/* Budget breakdown preview */}
@@ -476,7 +476,7 @@ export default function OnboardingPage() {
                                                 <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
                                                     <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${b.pct}%`, background: b.color, boxShadow: `0 0 10px ${b.color}` }} />
                                                 </div>
-                                                <span className="text-sm font-bold w-24 text-right" style={{ color: b.color }}>{amount.toLocaleString()}만 원</span>
+                                                <span className="text-sm font-bold w-28 text-right" style={{ color: b.color }}>{(amount * 10000).toLocaleString()}원</span>
                                             </div>
                                         )
                                     })}

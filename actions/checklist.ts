@@ -49,10 +49,15 @@ export async function addTask(formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    const title = formData.get('title') as string
+    const title = (formData.get('title') as string || '').trim()
     const d_day = parseInt(formData.get('d_day') as string)
     const budget = parseInt(formData.get('budget') as string) || 0
     const memo = formData.get('memo') as string
+
+    // 서버사이드 유효성 검증
+    if (!title || title.length === 0) return { error: '할 일 제목을 입력해주세요.' }
+    if (title.length > 200) return { error: '제목은 200자 이내로 입력해주세요.' }
+    if (isNaN(d_day)) return { error: '유효한 D-Day 값을 입력해주세요.' }
 
     const newTask: TaskInsert = {
         user_id: user.id,
@@ -77,17 +82,38 @@ export async function addTask(formData: FormData) {
     return { success: true }
 }
 
+// 그룹 멤버 ID 목록 조회 헬퍼
+async function getGroupMemberIds(supabase: any, userId: string): Promise<string[]> {
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('wedding_group_id')
+        .eq('id', userId)
+        .single()
+
+    let userIds = [userId]
+    if (profile?.wedding_group_id) {
+        const { data: members } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('wedding_group_id', profile.wedding_group_id)
+        if (members) userIds = members.map((m: { id: string }) => m.id)
+    }
+    return userIds
+}
+
 export async function updateTask(id: string, updates: TaskUpdate) {
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    // RLS enforces user_id-based access, no need for group member lookup
+    // 소유권 검증: 본인 또는 그룹 파트너의 태스크만 수정 가능
+    const userIds = await getGroupMemberIds(supabase, user.id)
     const { error } = await supabase
         .from('tasks')
         .update(updates)
         .eq('id', id)
+        .in('user_id', userIds)
 
     if (error) return { error: error.message }
 
@@ -102,11 +128,13 @@ export async function deleteTasks(ids: string[]) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    // RLS enforces user_id-based access, no need for group member lookup
+    // 소유권 검증: 본인 또는 그룹 파트너의 태스크만 삭제 가능
+    const userIds = await getGroupMemberIds(supabase, user.id)
     const { error } = await supabase
         .from('tasks')
         .delete()
         .in('id', ids)
+        .in('user_id', userIds)
 
     if (error) return { error: error.message }
 

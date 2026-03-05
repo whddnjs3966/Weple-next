@@ -59,6 +59,33 @@ export default async function Dashboard() {
         completed: tasks.filter((t) => t.is_completed).length
     }
 
+    // 다음 할 일: 미완료 태스크 중 d_day 기준 가장 임박한 3개 (d_day 오름차순 = 작은 값이 가장 가까움)
+    const upcomingTasks = tasks
+        .filter((t) => !t.is_completed)
+        .sort((a, b) => (a.d_day ?? 9999) - (b.d_day ?? 9999))
+        .slice(0, 3)
+        .map((t) => ({
+            title: t.title,
+            dDay: t.d_day ?? 0,
+            description: t.description || null,
+            category: t.category || null,
+            estimatedBudget: t.estimated_budget || null,
+        }))
+
+    // 예산 카테고리별 분류
+    const categoryBudgets = tasks.reduce((acc: Record<string, number>, t) => {
+        const budget = t.estimated_budget || 0
+        if (budget <= 0) return acc
+        const title = t.title || ''
+        let category = '기타'
+        if (title.includes('웨딩홀') || title.includes('예식') || title.includes('식대')) category = '웨딩홀/식대'
+        else if (title.includes('스드메') || title.includes('스튜디오') || title.includes('드레스') || title.includes('메이크업')) category = '스드메'
+        else if (title.includes('신혼여행') || title.includes('허니문')) category = '신혼여행'
+        else if (title.includes('예물') || title.includes('예단') || title.includes('반지')) category = '예물/예단'
+        acc[category] = (acc[category] || 0) + budget
+        return acc
+    }, {})
+
     // 예산 정보: profiles.budget_max (총 예산) + 완료 항목의 예산 합계
     const budgetSummary = await getBudgetSummary()
     const budgetStats = {
@@ -100,6 +127,8 @@ export default async function Dashboard() {
                             budget={budgetStats}
                             tasks={taskStats}
                             dDayText={dDayText}
+                            upcomingTasks={upcomingTasks}
+                            categoryBudgets={categoryBudgets}
                         />
                     ) : (
                         <div className="spring-card p-10 text-center animate-fade-in-up max-w-2xl mx-auto shadow-petal">

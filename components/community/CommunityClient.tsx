@@ -8,7 +8,7 @@ import { getPosts, type Post as DBPost } from '@/actions/community'
 import { format } from 'date-fns'
 
 interface PostWithAuthor extends DBPost {
-    author: { username: string | null } | null
+    author: { username: string | null; full_name: string | null; role: string | null } | null
 }
 
 const CATEGORIES = [
@@ -195,7 +195,7 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                                             </span>
                                         </td>
                                         <td className="hidden sm:table-cell py-3.5 px-3 text-center">
-                                            <span className="text-xs text-gray-500">{post.author?.username || '익명'}</span>
+                                            <span className="text-xs text-gray-500">{post.author?.role === 'admin' ? '👑관리자' : (post.author?.username || post.author?.full_name || '익명')}</span>
                                         </td>
                                         <td className="py-3.5 px-3 text-center hidden md:table-cell">
                                             <span className="text-xs text-gray-400">{formatDate(post.created_at)}</span>

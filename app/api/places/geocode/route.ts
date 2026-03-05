@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 interface NominatimResult {
     lat: string
@@ -58,6 +59,13 @@ async function geocodeWithNominatim(query: string): Promise<NominatimResult | nu
 }
 
 export async function GET(request: NextRequest) {
+    // 인증 확인
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const address = searchParams.get('address') || ''
 

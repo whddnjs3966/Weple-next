@@ -34,7 +34,11 @@ export async function GET(request: Request) {
     // CSRF 검증
     const cookieStore = await cookies()
     const savedState = cookieStore.get('naver_oauth_state')?.value
-    const nextPath = cookieStore.get('naver_oauth_next')?.value || '/dashboard'
+    let nextPath = cookieStore.get('naver_oauth_next')?.value || '/dashboard'
+    // Open Redirect 방지
+    if (!nextPath.startsWith('/') || nextPath.startsWith('//')) {
+        nextPath = '/dashboard'
+    }
 
     if (!savedState || savedState !== state) {
         return NextResponse.redirect(`${origin}/login?error=naver-state-mismatch`)
@@ -92,19 +96,12 @@ export async function GET(request: Request) {
         // 네이버 이메일로 기존 유저 검색
         const naverEmail = naverUser.email || `naver_${naverUser.id}@naver.placeholder`
 
-        // 기존 사용자 확인 (이메일로)
-        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
-        const existingUser = existingUsers?.users?.find(
-            (u) => u.email === naverEmail ||
-                u.app_metadata?.provider === 'naver' && u.app_metadata?.naver_id === naverUser.id
-        )
-
+        // 기존 사용자 확인: 먼저 신규 생성 시도 → 이미 존재하면 이메일로 매직링크 발급
+        // listUsers() 전체 로드를 피하기 위해 createUser 우선 전략 사용
         let userId: string
 
-        if (existingUser) {
-            userId = existingUser.id
-        } else {
-            // 신규 유저 생성
+        {
+            // 신규 유저 생성 시도
             const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
                 email: naverEmail,
                 email_confirm: true,
@@ -120,14 +117,28 @@ export async function GET(request: Request) {
                 },
             })
 
-            if (createError || !newUser.user) {
-                console.error('Supabase create user error:', createError)
-                return NextResponse.redirect(`${origin}/login?error=naver-create-user-error`)
+            if (createError) {
+                // 이미 존재하는 유저 → 이메일로 기존 유저 조회 (1페이지만)
+                if (createError.message?.includes('already been registered') || createError.status === 422) {
+                    const { data: usersPage } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 50 })
+                    const found = usersPage?.users?.find(
+                        (u) => u.email === naverEmail ||
+                            (u.app_metadata?.provider === 'naver' && u.app_metadata?.naver_id === naverUser.id)
+                    )
+                    if (!found) {
+                        console.error('User exists but not found in first page')
+                        return NextResponse.redirect(`${origin}/login?error=naver-create-user-error`)
+                    }
+                    userId = found.id
+                } else {
+                    console.error('Supabase create user error:', createError)
+                    return NextResponse.redirect(`${origin}/login?error=naver-create-user-error`)
+                }
+            } else {
+                userId = newUser.user.id
             }
 
-            userId = newUser.user.id
-
-            // profiles 테이블에 프로필 생성
+            // profiles 테이블에 프로필 생성/업데이트
             await supabaseAdmin
                 .from('profiles')
                 .upsert({

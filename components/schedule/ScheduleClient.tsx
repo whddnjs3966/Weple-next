@@ -19,7 +19,7 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
     const [modalTab, setModalTab] = useState<'schedule' | 'memo'>('schedule')
     const [scheduleTitle, setScheduleTitle] = useState('')
     const [scheduleLocation, setScheduleLocation] = useState('')
-    const [scheduleTime, setScheduleTime] = useState('')
+    const [scheduleTime, setScheduleTime] = useState('09:00')
     const [memoContent, setMemoContent] = useState('')
 
     const { events: sharedEvents, addEvent, getEventsForDate } = useSchedule()
@@ -42,7 +42,7 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
         setModalTab('schedule')
         setScheduleTitle('')
         setScheduleLocation('')
-        setScheduleTime('')
+        setScheduleTime('09:00')
         setMemoContent('')
     }
 
@@ -115,7 +115,7 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
         setModalTab('schedule')
         setScheduleTitle('')
         setScheduleLocation('')
-        setScheduleTime('')
+        setScheduleTime('09:00')
     }
 
     // Event indicators
@@ -232,18 +232,29 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                                     {isCurrentMonth ? (
                                         <div
                                             className={`h-full p-1 sm:p-2 rounded-lg transition-all cursor-pointer relative
-                                                ${isToday(day) ? 'ring-2 ring-inset ring-pink-300 bg-pink-50/50 shadow-sm' : 'bg-gray-50/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)]'}
+                                                ${isToday(day) ? 'ring-2 ring-inset ring-pink-300 bg-pink-50/50 shadow-sm' : ''}
                                                 ${isSelected && !isToday(day) ? 'ring-2 ring-inset ring-pink-200 bg-white shadow-sm' : ''}
-                                                hover:bg-pink-50/40 hover:shadow-sm
+                                                ${!isToday(day) && !isSelected && (dayHasEvent || dayHasMemo || dayHasChecklist)
+                                                    ? 'bg-white shadow-md border border-gray-100'
+                                                    : !isToday(day) && !isSelected ? 'bg-gray-50/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)]' : ''}
+                                                hover:bg-pink-50/40 hover:shadow-md
                                             `}
                                             onClick={() => handleDateClick(day)}
                                         >
+                                            {/* 일정이 있는 날짜 상단 컬러 바 */}
+                                            {(dayHasEvent || dayHasMemo || dayHasChecklist) && !dayHasWedding && (
+                                                <div className="absolute top-0 left-1 right-1 h-[3px] rounded-b-full bg-gradient-to-r from-emerald-400 via-blue-400 to-pink-400 opacity-60" />
+                                            )}
+                                            {dayHasWedding && (
+                                                <div className="absolute top-0 left-0 right-0 h-[3px] rounded-b-sm bg-gradient-to-r from-pink-400 via-rose-500 to-pink-400 animate-pulse" />
+                                            )}
+
                                             <span
                                                 className={`text-[13px] font-semibold
                                                     ${isToday(day) ? 'text-pink-400 font-bold' : ''}
                                                     ${isSunday && !isToday(day) ? 'text-pink-300' : ''}
                                                     ${isSaturday && !isToday(day) ? 'text-blue-400' : ''}
-                                                    ${!isSunday && !isSaturday && !isToday(day) ? 'text-gray-500' : ''}
+                                                    ${!isSunday && !isSaturday && !isToday(day) ? 'text-gray-600' : ''}
                                                 `}
                                             >
                                                 {format(day, 'd')}
@@ -252,36 +263,36 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
                                             {/* Event Pills — full on sm+, dots only on mobile */}
                                             <div className="hidden sm:flex flex-col gap-0.5 mt-1">
                                                 {dayHasEvent && (
-                                                    <div className="text-[8px] px-1 py-0.5 rounded bg-emerald-50 text-emerald-500 font-medium truncate flex items-center gap-0.5">
-                                                        <span className="w-1 h-1 rounded-full bg-emerald-400 shrink-0"></span>
+                                                    <div className="text-[8px] px-1 py-0.5 rounded-md bg-emerald-100 text-emerald-600 font-bold truncate flex items-center gap-0.5 shadow-sm">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                                                         일정
                                                     </div>
                                                 )}
                                                 {dayHasMemo && (
-                                                    <div className="text-[8px] px-1 py-0.5 rounded bg-blue-50 text-blue-400 font-medium truncate flex items-center gap-0.5">
-                                                        <span className="w-1 h-1 rounded-full bg-blue-400 shrink-0"></span>
+                                                    <div className="text-[8px] px-1 py-0.5 rounded-md bg-blue-100 text-blue-600 font-bold truncate flex items-center gap-0.5 shadow-sm">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
                                                         메모
                                                     </div>
                                                 )}
                                                 {dayHasChecklist && (
-                                                    <div className="text-[8px] px-1 py-0.5 rounded bg-pink-50 text-pink-300 font-medium truncate flex items-center gap-0.5">
-                                                        <span className="w-1 h-1 rounded-full bg-pink-400 shrink-0"></span>
+                                                    <div className="text-[8px] px-1 py-0.5 rounded-md bg-pink-100 text-pink-500 font-bold truncate flex items-center gap-0.5 shadow-sm">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-pink-500 shrink-0"></span>
                                                         체크
                                                     </div>
                                                 )}
                                                 {dayHasWedding && (
-                                                    <div className="text-[8px] px-1 py-0.5 rounded bg-pink-100 text-pink-500 font-bold truncate flex items-center gap-0.5 border border-pink-200 shadow-sm">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-pink-500 shrink-0 animate-pulse"></span>
+                                                    <div className="text-[8px] px-1 py-0.5 rounded-md bg-pink-200 text-pink-600 font-extrabold truncate flex items-center gap-0.5 border border-pink-300 shadow-md">
+                                                        <span className="w-2 h-2 rounded-full bg-pink-500 shrink-0 animate-pulse"></span>
                                                         결혼식
                                                     </div>
                                                 )}
                                             </div>
-                                            {/* Mobile: dot indicators only */}
-                                            <div className="flex sm:hidden gap-0.5 mt-1 justify-center">
-                                                {dayHasEvent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
-                                                {dayHasMemo && <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>}
-                                                {dayHasChecklist && <span className="w-1.5 h-1.5 rounded-full bg-pink-300"></span>}
-                                                {dayHasWedding && <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>}
+                                            {/* Mobile: dot indicators — larger and more vivid */}
+                                            <div className="flex sm:hidden gap-1 mt-1 justify-center">
+                                                {dayHasEvent && <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-300"></span>}
+                                                {dayHasMemo && <span className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-300"></span>}
+                                                {dayHasChecklist && <span className="w-2 h-2 rounded-full bg-pink-400 shadow-sm shadow-pink-300"></span>}
+                                                {dayHasWedding && <span className="w-2 h-2 rounded-full bg-pink-600 animate-pulse shadow-sm shadow-pink-400"></span>}
                                             </div>
                                         </div>
                                     ) : (
@@ -484,126 +495,209 @@ export default function ScheduleClient({ weddingDate, checklistTasks = [] }: { w
 
             {/* ─── 날짜 클릭 모달: 일정/메모 등록 ─── */}
             {isModalOpen && selectedDate && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
-                    <div className="absolute inset-0 bg-indigo-950/30 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true" aria-label="일정 등록">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+                    <div className="relative w-full sm:max-w-[420px] bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 fade-in duration-300 max-h-[90vh] overflow-y-auto">
 
-                        {/* Modal Header */}
-                        <div className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)', padding: '1.5rem 2rem' }}>
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.15)_1px,transparent_0)] [background-size:20px_20px]"></div>
-                            <div className="relative z-10">
-                                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 text-white shadow-sm border border-white/20">
-                                    <CalendarDays size={20} />
+                        {/* Compact Header */}
+                        <div className="relative px-6 pt-6 pb-4">
+                            {/* Drag indicator (mobile) */}
+                            <div className="sm:hidden w-10 h-1 rounded-full bg-gray-200 mx-auto mb-4" />
+
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-bold text-pink-400 uppercase tracking-widest mb-1">Schedule</p>
+                                    <h3 className="font-bold text-lg text-gray-900">
+                                        {format(selectedDate, 'M월 d일')}
+                                        <span className="text-gray-300 font-normal text-sm ml-1.5">
+                                            {['일', '월', '화', '수', '목', '금', '토'][selectedDate.getDay()]}요일
+                                        </span>
+                                    </h3>
                                 </div>
-                                <p className="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-1">일정 등록</p>
-                                <h3 className="font-bold text-xl text-white">
-                                    {format(selectedDate, 'yyyy년 M월 d일')}
-                                </h3>
+                                <button
+                                    onClick={() => setIsModalOpen(false)}
+                                    aria-label="닫기"
+                                    className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-all"
+                                >
+                                    <X size={16} />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                            >
-                                <X size={16} />
-                            </button>
+
+                            {/* Tab Pills */}
+                            <div className="flex gap-2 mt-4">
+                                <button
+                                    onClick={() => setModalTab('schedule')}
+                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all
+                                        ${modalTab === 'schedule'
+                                            ? 'bg-gray-900 text-white shadow-md'
+                                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'}
+                                    `}
+                                >
+                                    <Calendar size={12} />
+                                    일정
+                                </button>
+                                <button
+                                    onClick={() => setModalTab('memo')}
+                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all
+                                        ${modalTab === 'memo'
+                                            ? 'bg-gray-900 text-white shadow-md'
+                                            : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'}
+                                    `}
+                                >
+                                    <FileText size={12} />
+                                    메모
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Tab Switch */}
-                        <div className="flex border-b border-gray-100">
-                            <button
-                                onClick={() => setModalTab('schedule')}
-                                className={`flex-1 py-3.5 text-sm font-bold flex items-center justify-center gap-2 transition-colors
-                                    ${modalTab === 'schedule' ? 'text-indigo-500 border-b-2 border-indigo-500 bg-indigo-50/30' : 'text-gray-400 hover:text-gray-600'}
-                                `}
-                            >
-                                <Calendar size={15} />
-                                일정 등록
-                            </button>
-                            <button
-                                onClick={() => setModalTab('memo')}
-                                className={`flex-1 py-3.5 text-sm font-bold flex items-center justify-center gap-2 transition-colors
-                                    ${modalTab === 'memo' ? 'text-indigo-500 border-b-2 border-indigo-500 bg-indigo-50/30' : 'text-gray-400 hover:text-gray-600'}
-                                `}
-                            >
-                                <FileText size={15} />
-                                메모 작성
-                            </button>
-                        </div>
+                        <div className="h-px bg-gray-100" />
 
                         {/* Modal Body */}
                         <div className="p-6">
                             {modalTab === 'schedule' ? (
-                                <div className="space-y-4">
+                                <div className="space-y-5">
+                                    {/* 일정 제목 */}
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                            <CalendarDays size={12} className="text-indigo-400" /> 일정 제목
-                                        </label>
+                                        <label className="text-[11px] font-bold text-gray-500 mb-2 block">일정 제목</label>
                                         <input
                                             type="text"
                                             value={scheduleTitle}
                                             onChange={(e) => setScheduleTitle(e.target.value)}
                                             placeholder="예: 드레스 피팅, 스튜디오 촬영"
-                                            className="w-full bg-indigo-50/30 border-2 border-indigo-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 text-sm text-gray-800 outline-none transition-all focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-50 placeholder-gray-300"
                                         />
                                     </div>
+
+                                    {/* 시간 — 커스텀 시간 선택 UI */}
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                            <Clock size={12} className="text-indigo-400" /> 시간
-                                        </label>
-                                        <input
-                                            type="time"
-                                            value={scheduleTime}
-                                            onChange={(e) => setScheduleTime(e.target.value)}
-                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
-                                        />
+                                        <label className="text-[11px] font-bold text-gray-500 mb-2 block">시간</label>
+                                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                                            {/* 오전/오후 토글 */}
+                                            <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-gray-50 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const [h, m] = scheduleTime.split(':').map(Number)
+                                                        const newH = h >= 12 ? h - 12 : h
+                                                        setScheduleTime(`${String(newH).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+                                                    }}
+                                                    className={`px-3.5 py-3 text-xs font-bold transition-all ${
+                                                        parseInt(scheduleTime.split(':')[0]) < 12
+                                                            ? 'bg-pink-400 text-white shadow-sm'
+                                                            : 'text-gray-400 hover:text-gray-600'
+                                                    }`}
+                                                >
+                                                    오전
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const [h, m] = scheduleTime.split(':').map(Number)
+                                                        const newH = h < 12 ? h + 12 : h
+                                                        setScheduleTime(`${String(newH).padStart(2, '0')}:${String(m).padStart(2, '0')}`)
+                                                    }}
+                                                    className={`px-3.5 py-3 text-xs font-bold transition-all ${
+                                                        parseInt(scheduleTime.split(':')[0]) >= 12
+                                                            ? 'bg-pink-400 text-white shadow-sm'
+                                                            : 'text-gray-400 hover:text-gray-600'
+                                                    }`}
+                                                >
+                                                    오후
+                                                </button>
+                                            </div>
+
+                                            {/* 시 선택 */}
+                                            <select
+                                                value={(() => {
+                                                    let h = parseInt(scheduleTime.split(':')[0])
+                                                    if (h === 0) h = 12
+                                                    else if (h > 12) h -= 12
+                                                    return String(h)
+                                                })()}
+                                                onChange={(e) => {
+                                                    let h = parseInt(e.target.value)
+                                                    const isPM = parseInt(scheduleTime.split(':')[0]) >= 12
+                                                    if (isPM && h !== 12) h += 12
+                                                    if (!isPM && h === 12) h = 0
+                                                    const m = scheduleTime.split(':')[1]
+                                                    setScheduleTime(`${String(h).padStart(2, '0')}:${m}`)
+                                                }}
+                                                className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-3 text-center text-sm font-bold text-gray-800 outline-none focus:border-pink-300 focus:ring-4 focus:ring-pink-50 appearance-none cursor-pointer"
+                                            >
+                                                {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
+                                                    <option key={h} value={h}>{h}시</option>
+                                                ))}
+                                            </select>
+
+                                            <span className="text-gray-300 font-bold text-lg">:</span>
+
+                                            {/* 분 선택 */}
+                                            <select
+                                                value={scheduleTime.split(':')[1]}
+                                                onChange={(e) => {
+                                                    const h = scheduleTime.split(':')[0]
+                                                    setScheduleTime(`${h}:${e.target.value}`)
+                                                }}
+                                                className="flex-1 min-w-0 bg-gray-50 border border-gray-200 rounded-2xl px-3 py-3 text-center text-sm font-bold text-gray-800 outline-none focus:border-pink-300 focus:ring-4 focus:ring-pink-50 appearance-none cursor-pointer"
+                                            >
+                                                {['00', '10', '20', '30', '40', '50'].map(m => (
+                                                    <option key={m} value={m}>{m}분</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
+
+                                    {/* 장소 */}
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                            <MapPin size={12} className="text-indigo-400" /> 장소
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={scheduleLocation}
-                                            onChange={(e) => setScheduleLocation(e.target.value)}
-                                            placeholder="예: 강남 드레스샵"
-                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
-                                        />
+                                        <label className="text-[11px] font-bold text-gray-500 mb-2 block">장소 (선택)</label>
+                                        <div className="relative">
+                                            <MapPin size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                            <input
+                                                type="text"
+                                                value={scheduleLocation}
+                                                onChange={(e) => setScheduleLocation(e.target.value)}
+                                                placeholder="예: 강남 드레스샵"
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-10 pr-4 py-3.5 text-sm text-gray-800 outline-none transition-all focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-50 placeholder-gray-300"
+                                            />
+                                        </div>
                                     </div>
+
+                                    {/* 저장 버튼 */}
                                     <button
                                         onClick={handleSaveSchedule}
-                                        className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
+                                        disabled={!scheduleTitle}
+                                        className="w-full py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]"
                                         style={{
-                                            background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
-                                            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
+                                            background: 'linear-gradient(135deg, #F472B6 0%, #EC4899 50%, #DB2777 100%)',
+                                            boxShadow: '0 4px 20px rgba(236, 72, 153, 0.3)',
                                         }}
                                     >
-                                        <Calendar size={16} />
+                                        <Calendar size={15} />
                                         일정 저장하기
                                     </button>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     <div>
-                                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                            <FileText size={12} className="text-indigo-400" /> 메모 내용
-                                        </label>
+                                        <label className="text-[11px] font-bold text-gray-500 mb-2 block">메모 내용</label>
                                         <textarea
                                             value={memoContent}
                                             onChange={(e) => setMemoContent(e.target.value)}
                                             placeholder="이 날짜에 대한 메모를 작성하세요..."
                                             rows={5}
-                                            className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 resize-none"
+                                            className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 text-sm text-gray-800 outline-none transition-all focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-50 resize-none placeholder-gray-300"
                                         />
                                     </div>
                                     <button
                                         onClick={handleSaveMemo}
-                                        className="w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all"
+                                        disabled={!memoContent}
+                                        className="w-full py-3.5 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]"
                                         style={{
-                                            background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
-                                            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
+                                            background: 'linear-gradient(135deg, #F472B6 0%, #EC4899 50%, #DB2777 100%)',
+                                            boxShadow: '0 4px 20px rgba(236, 72, 153, 0.3)',
                                         }}
                                     >
-                                        <FileText size={16} />
+                                        <FileText size={15} />
                                         메모 저장하기
                                     </button>
                                 </div>
