@@ -48,7 +48,8 @@ export async function updateSession(request: NextRequest) {
     const isPublicPage =
         pathname.startsWith('/login') ||
         pathname.startsWith('/signup') ||
-        pathname === '/'
+        pathname === '/' ||
+        pathname.startsWith('/naver')
 
     if (!user) {
         if (!isPublicPage) {
