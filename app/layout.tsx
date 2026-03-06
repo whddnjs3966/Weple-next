@@ -26,8 +26,61 @@ const cinzel = Cinzel({
 })
 
 export const metadata: Metadata = {
-  title: "Wepln - 웨딩 플래너",
-  description: "당신만의 완벽한 웨딩을 위한 스마트 플래너",
+  metadataBase: new URL('https://wepln.com'),
+  title: {
+    default: "Wepln - 당나의 완벽한 웨딩 플래너",
+    template: "%s | Wepln"
+  },
+  description: "당신만의 완벽한 웨딩을 위한 스마트 플래너. 예산 관리부터 일정 체크까지 한 번에 해결하세요.",
+  keywords: ["웨딩", "웨딩플래너", "결혼준비", "가계부", "결혼일정", "스드메", "Wepln", "위플랜"],
+  authors: [{ name: "Wepln Team" }],
+  creator: "Wepln Team",
+  publisher: "Wepln",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    title: "Wepln - 당신만의 완벽한 웨딩 플래너",
+    description: "당신만의 완벽한 웨딩을 위한 스마트 플래너. 예산 관리부터 일정 체크까지 한 번에 해결하세요.",
+    url: "https://wepln.com",
+    siteName: "Wepln",
+    images: [
+      {
+        url: "/og-image.png", // Will need to make sure this image exists or change it later
+        width: 1200,
+        height: 630,
+        alt: "Wepln - 웨딩 플래너 Preview",
+      },
+    ],
+    locale: "ko_KR",
+    type: "website",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wepln - 당신만의 완벽한 웨딩 플래너",
+    description: "당신만의 완벽한 웨딩을 위한 스마트 플래너",
+    images: ["/og-image.png"],
+  },
+  // If you ever need Naver-specific meta tags for site verification 
+  // without relying solely on the HTML file method:
+  // verification: {
+  //   other: {
+  //     "naver-site-verification": ["YOUR_VERIFICATION_CODE_HERE"]
+  //   }
+  // }
 };
 
 import SessionGuard from '@/components/SessionGuard'
