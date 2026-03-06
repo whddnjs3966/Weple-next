@@ -49,7 +49,9 @@ export async function updateSession(request: NextRequest) {
         pathname.startsWith('/login') ||
         pathname.startsWith('/signup') ||
         pathname === '/' ||
-        pathname.startsWith('/naver')
+        pathname.startsWith('/naver') ||
+        pathname.startsWith('/sitemap.xml') ||
+        pathname.startsWith('/robots.txt')
 
     if (!user) {
         if (!isPublicPage) {
