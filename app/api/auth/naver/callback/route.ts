@@ -141,14 +141,22 @@ export async function GET(request: Request) {
 
         const userId = linkData.user.id
 
-        // profiles 테이블에 프로필 생성/업데이트
-        await supabaseAdmin
+        // 4.5 프로필 존재 여부 확인 후 없으면 생성
+        const { data: existingProfile } = await supabaseAdmin
             .from('profiles')
-            .upsert({
-                id: userId,
-                full_name: naverUser.name || naverUser.nickname || null,
-                avatar_url: naverUser.profile_image || null,
-            }, { onConflict: 'id' })
+            .select('id')
+            .eq('id', userId)
+            .single()
+
+        if (!existingProfile) {
+            await supabaseAdmin
+                .from('profiles')
+                .insert({
+                    id: userId,
+                    full_name: naverUser.name || naverUser.nickname || null,
+                    avatar_url: naverUser.profile_image || null,
+                })
+        }
 
         // 5. OTP 검증으로 세션 생성 — redirect 응답에 쿠키를 직접 설정
         // cookies() API는 NextResponse.redirect()에 쿠키를 전달하지 못하므로

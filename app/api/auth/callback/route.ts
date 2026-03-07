@@ -1,3 +1,4 @@
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -36,12 +37,19 @@ export async function GET(request: Request) {
                 }
 
                 // 5. 프로필 없음 → 신규 유저 → 프로필 자동 생성 후 /onboarding
-                await supabase
+                const supabaseAdmin = createSupabaseClient(
+                    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+                    { auth: { autoRefreshToken: false, persistSession: false } }
+                )
+
+                await supabaseAdmin
                     .from('profiles')
-                    .upsert({
+                    .insert({
                         id: user.id,
                         full_name: user.user_metadata?.name || user.user_metadata?.full_name || null,
-                    }, { onConflict: 'id' })
+                        avatar_url: user.user_metadata?.avatar_url || null,
+                    })
 
                 return NextResponse.redirect(new URL('/onboarding', origin).toString())
             }
