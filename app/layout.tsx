@@ -28,8 +28,8 @@ const cinzel = Cinzel({
 export const metadata: Metadata = {
   metadataBase: new URL('https://wepln.com'),
   title: {
-    default: "Wepln - 나만의 웨딩플래너",
-    template: "%s | Wepln"
+    default: "WEPLN - 나만의 웨딩플래너",
+    template: "%s | WEPLN"
   },
   description: "당신만의 완벽한 웨딩을 위한 스마트 플래너. 예산 관리부터 일정 체크까지 한 번에 해결하세요.",
   keywords: ["웨딩", "웨딩플래너", "결혼준비", "가계부", "결혼일정", "스드메", "Wepln", "위플랜"],
@@ -42,10 +42,10 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: "Wepln - 나만의 웨딩플래너",
+    title: "WEPLN - 나만의 웨딩플래너",
     description: "당신만의 완벽한 웨딩을 위한 스마트 플래너. 예산 관리부터 일정 체크까지 한 번에 해결하세요.",
     url: "https://wepln.com",
-    siteName: "Wepln",
+    siteName: "WEPLN",
     images: [
       {
         url: "/og-image.png", // Will need to make sure this image exists or change it later
