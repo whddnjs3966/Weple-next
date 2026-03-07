@@ -97,6 +97,24 @@ export async function removeUserPlace(id: string) {
     return { success: true }
 }
 
+export async function removeUserPlaceByName(category: string, place_name: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    const { error } = await supabase
+        .from('user_places')
+        .delete()
+        .eq('category', category)
+        .eq('place_name', place_name)
+        .eq('user_id', user.id)
+
+    if (error) return { error: error.message }
+
+    revalidatePath('/places')
+    return { success: true }
+}
+
 export async function updateUserPlaceMemo(id: string, memo: string, is_confirmed: boolean) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

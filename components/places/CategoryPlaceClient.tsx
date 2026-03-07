@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { addUserPlace } from '@/actions/user-places'
+import { addUserPlace, removeUserPlaceByName } from '@/actions/user-places'
 import { CATEGORIES, CATEGORY_FILTERS } from '@/lib/constants/place-categories'
 
 interface NaverPlace {
@@ -130,15 +130,31 @@ export default function CategoryPlaceClient({ slug, defaultSido, defaultBudget, 
         placePhone?: string,
         placeLink?: string,
     ) => {
+        if (addingPlace === placeName) return
+
+        const isAlreadyAdded = addedPlaces.has(placeName)
         setAddingPlace(placeName)
-        await addUserPlace({
-            category: slug,
-            place_name: placeName,
-            place_address: placeAddress,
-            place_phone: placePhone,
-            place_link: placeLink,
-        })
-        setAddedPlaces(prev => new Set([...prev, placeName]))
+
+        if (isAlreadyAdded) {
+            // Remove it
+            await removeUserPlaceByName(slug, placeName)
+            setAddedPlaces(prev => {
+                const newSet = new Set(prev)
+                newSet.delete(placeName)
+                return newSet
+            })
+        } else {
+            // Add it
+            await addUserPlace({
+                category: slug,
+                place_name: placeName,
+                place_address: placeAddress,
+                place_phone: placePhone,
+                place_link: placeLink,
+            })
+            setAddedPlaces(prev => new Set([...prev, placeName]))
+        }
+
         setAddingPlace(null)
     }
 
@@ -608,9 +624,9 @@ export default function CategoryPlaceClient({ slug, defaultSido, defaultBudget, 
                                                     e.stopPropagation()
                                                     handleAdd(place.title, place.roadAddress || place.address, place.telephone, place.link)
                                                 }}
-                                                disabled={isAdding || isAdded}
+                                                disabled={isAdding}
                                                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-all ${isAdded
-                                                    ? 'bg-emerald-50 text-emerald-500 border border-emerald-100 cursor-default'
+                                                    ? 'bg-emerald-50 text-emerald-500 border border-emerald-100 hover:bg-emerald-100 hover:border-emerald-200'
                                                     : 'bg-gradient-to-r from-pink-400 to-rose-400 text-white shadow-sm hover:shadow-md hover:shadow-pink-300/40 hover:-translate-y-0.5'
                                                     }`}
                                             >
