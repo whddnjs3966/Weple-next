@@ -136,6 +136,45 @@ export async function createPost(formData: FormData) {
     return { success: true }
 }
 
+export async function updatePost(id: string, formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    const title = formData.get('title') as string
+    const content = formData.get('content') as string
+    const category = (formData.get('category') as string)?.toLowerCase() || 'free'
+
+    if (!title || !content) {
+        return { error: '제목과 내용을 입력해주세요.' }
+    }
+
+    // Verify authorship or admin
+    const { data: post } = await supabase.from('posts').select('user_id').eq('id', id).single()
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+
+    if (!post) return { error: 'Post not found' }
+    if (post.user_id !== user.id && profile?.role !== 'admin') {
+        return { error: '권한이 없습니다.' }
+    }
+
+    const { error } = await supabase
+        .from('posts')
+        .update({
+            title,
+            content,
+            category,
+            updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+
+    if (error) return { error: error.message }
+
+    revalidatePath('/community')
+    revalidatePath(`/community/${id}`)
+    return { success: true }
+}
+
 export async function createComment(formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

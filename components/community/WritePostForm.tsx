@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ChevronLeft, PenTool, Loader2 } from 'lucide-react'
-import { createPost } from '@/actions/community'
+import { createPost, updatePost, type Post } from '@/actions/community'
 import TextEditor from './TextEditor'
 
 const CATEGORIES = [
@@ -14,12 +14,12 @@ const CATEGORIES = [
     { code: 'QUESTION', name: 'Q&A' },
 ]
 
-export default function WritePostForm({ role }: { role?: string }) {
+export default function WritePostForm({ role, initialData }: { role?: string, initialData?: Post }) {
     const router = useRouter()
     const [isPending, startTransition] = useTransition()
-    const [category, setCategory] = useState('FREE')
-    const [title, setTitle] = useState('')
-    const [content, setContent] = useState('')
+    const [category, setCategory] = useState(initialData?.category?.toUpperCase() || 'FREE')
+    const [title, setTitle] = useState(initialData?.title || '')
+    const [content, setContent] = useState(initialData?.content || '')
     const [error, setError] = useState<string | null>(null)
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -37,11 +37,17 @@ export default function WritePostForm({ role }: { role?: string }) {
         formData.append('category', category)
 
         startTransition(async () => {
-            const result = await createPost(formData)
+            let result;
+            if (initialData?.id) {
+                result = await updatePost(initialData.id, formData)
+            } else {
+                result = await createPost(formData)
+            }
+
             if (result?.error) {
                 setError(result.error)
             } else {
-                router.push('/community')
+                router.push(initialData?.id ? `/community/${initialData.id}` : '/community')
             }
         })
     }
@@ -51,14 +57,16 @@ export default function WritePostForm({ role }: { role?: string }) {
             {/* Header */}
             <div className="text-center mb-8">
                 <h2 className="font-serif italic text-3xl md:text-4xl font-bold text-gray-800 tracking-tight mb-2">
-                    New Post
+                    {initialData ? 'Edit Post' : 'New Post'}
                 </h2>
                 <div className="flex items-center justify-center gap-2 mt-2">
                     <div className="w-12 h-[2px] bg-gradient-to-r from-transparent to-pink-400"></div>
                     <div className="w-2 h-2 rounded-full bg-pink-400"></div>
                     <div className="w-12 h-[2px] bg-gradient-to-l from-transparent to-pink-400"></div>
                 </div>
-                <p className="text-gray-400 text-sm mt-4">새로운 이야기를 들려주세요</p>
+                <p className="text-gray-400 text-sm mt-4">
+                    {initialData ? '게시글을 수정합니다' : '새로운 이야기를 들려주세요'}
+                </p>
             </div>
 
             <div className="bg-white/70 backdrop-blur-xl rounded-[20px] shadow-xl border border-white/50 p-6 md:p-8">
@@ -147,7 +155,7 @@ export default function WritePostForm({ role }: { role?: string }) {
                             ) : (
                                 <>
                                     <PenTool size={18} />
-                                    글 등록하기
+                                    {initialData ? '수정 완료하기' : '글 등록하기'}
                                 </>
                             )}
                         </button>

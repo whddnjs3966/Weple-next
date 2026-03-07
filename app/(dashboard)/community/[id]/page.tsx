@@ -1,7 +1,7 @@
 import { getPost, getComments, createComment, deletePost } from '@/actions/community'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, User, Clock, Eye, Trash2 } from 'lucide-react'
+import { ArrowLeft, User, Clock, Eye, Trash2, Edit } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
 import sanitizeHtml from 'sanitize-html'
@@ -70,12 +70,21 @@ export default async function PostDetailPage({
                 </Link>
 
                 {canDelete && (
-                    <form action={removePost}>
-                        <button aria-label="게시글 삭제" className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors px-3 py-2 rounded-xl hover:bg-red-50 text-xs font-medium">
-                            <Trash2 size={15} />
-                            삭제
-                        </button>
-                    </form>
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={`/community/${post.id}/edit`}
+                            className="flex items-center gap-1.5 text-gray-400 hover:text-blue-500 transition-colors px-3 py-2 rounded-xl hover:bg-blue-50 text-xs font-medium"
+                        >
+                            <Edit size={15} />
+                            수정
+                        </Link>
+                        <form action={removePost}>
+                            <button aria-label="게시글 삭제" className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors px-3 py-2 rounded-xl hover:bg-red-50 text-xs font-medium">
+                                <Trash2 size={15} />
+                                삭제
+                            </button>
+                        </form>
+                    </div>
                 )}
             </div>
 
