@@ -6,7 +6,7 @@ import { CheckCircle, Circle, Plus, Trash2, ClipboardCheck, Calendar, X, Save, S
 import { differenceInDays } from 'date-fns'
 import { useSchedule } from '@/contexts/ScheduleContext'
 import { Database } from '@/lib/types/database.types'
-import { toggleTaskCompletion, updateTaskBudget, updateTaskDate, deleteTasks, addTask } from '@/actions/checklist'
+import { toggleTaskCompletion, updateTaskBudget, updateTaskDate, deleteTasks, addTask, seedDefaultTasks } from '@/actions/checklist'
 import { AI_CHECKLIST_SECTIONS, getCategoryIcon, getCategoryColor } from '@/lib/constants/ai-checklist'
 import type { AiChecklistItem } from '@/lib/constants/ai-checklist'
 import AddTaskModal from './AddTaskModal'
@@ -54,6 +54,10 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
     const [addingItemId, setAddingItemId] = useState<string | null>(null)
     const [isToggling, setIsToggling] = useState<string | null>(null)
     const [isDeleting, setIsDeleting] = useState(false)
+
+    // AI 추천 리스트 일괄 추가 상태
+    const [selectedAiItems, setSelectedAiItems] = useState<Set<string>>(new Set())
+    const [isAddingBulk, setIsAddingBulk] = useState(false)
 
     useEffect(() => {
         setTasks(mapDbTasks(initialTasks))
@@ -181,6 +185,58 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
         if (result?.error) {
             alert('추가에 실패했습니다.')
         } else {
+            setActiveTab('my')
+        }
+    }
+
+    const toggleAiSelect = (id: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation()
+        const newSet = new Set(selectedAiItems)
+        if (newSet.has(id)) newSet.delete(id)
+        else newSet.add(id)
+        setSelectedAiItems(newSet)
+    }
+
+    const selectAllAiInSection = (sectionIdItems: string[]) => {
+        const newSet = new Set(selectedAiItems)
+        const allSelected = sectionIdItems.every(id => newSet.has(id))
+
+        if (allSelected) {
+            sectionIdItems.forEach(id => newSet.delete(id))
+        } else {
+            sectionIdItems.forEach(id => newSet.add(id))
+        }
+        setSelectedAiItems(newSet)
+    }
+
+    const handleBulkAddAiItems = async () => {
+        if (selectedAiItems.size === 0 || isAddingBulk) return
+        setIsAddingBulk(true)
+
+        // Find selected items across all sections
+        const itemsToAdd: AiChecklistItem[] = []
+        AI_CHECKLIST_SECTIONS.forEach(section => {
+            section.items.forEach(item => {
+                if (selectedAiItems.has(item.id)) {
+                    itemsToAdd.push(item)
+                }
+            })
+        })
+
+        const tasksToInsert = itemsToAdd.map(item => ({
+            title: item.title,
+            description: item.description || '',
+            d_day: item.dDayOffset,
+            estimated_budget: item.estimatedBudget
+        }))
+
+        const result = await seedDefaultTasks(tasksToInsert)
+        setIsAddingBulk(false)
+
+        if (result?.error) {
+            alert('일괄 추가에 실패했습니다.')
+        } else {
+            setSelectedAiItems(new Set())
             setActiveTab('my')
         }
     }
@@ -506,7 +562,13 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                                     <span className="text-sm font-bold text-gray-700">{section.label}</span>
                                 </div>
                                 <div className="flex-1 h-px bg-gray-200"></div>
-                                <span className="text-[11px] text-gray-400">{section.items.length}개</span>
+                                <span className="text-[11px] text-gray-400 mr-2">{section.items.length}개</span>
+                                <button
+                                    onClick={() => selectAllAiInSection(section.items.map(i => i.id))}
+                                    className="text-[11px] font-bold text-violet-500 hover:text-violet-600 bg-violet-50 hover:bg-violet-100 px-2 py-1 rounded-md transition-colors"
+                                >
+                                    {section.items.every(i => selectedAiItems.has(i.id)) ? '전체 해제' : '전체 선택'}
+                                </button>
                             </div>
 
                             {/* Items — Card Grid */}
@@ -516,8 +578,19 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                                         key={item.id}
                                         initial={{ opacity: 0, y: 4 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all group flex flex-col h-full"
+                                        onClick={() => toggleAiSelect(item.id)}
+                                        className={`rounded-2xl border shadow-sm overflow-hidden hover:shadow-lg transition-all group flex flex-col h-full cursor-pointer relative ${selectedAiItems.has(item.id) ? 'bg-violet-50/50 border-violet-300 ring-2 ring-violet-200' : 'bg-white border-gray-100 hover:-translate-y-0.5'
+                                            }`}
                                     >
+                                        <div className="absolute top-3 right-3 z-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedAiItems.has(item.id)}
+                                                onChange={() => toggleAiSelect(item.id)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="w-4 h-4 rounded-md border-gray-300 text-violet-500 focus:ring-violet-400 cursor-pointer"
+                                            />
+                                        </div>
                                         <div className="h-px bg-gradient-to-r from-transparent via-violet-300/60 to-transparent" />
                                         <div className="p-4 flex-1 flex flex-col">
                                             {/* Badges */}
@@ -544,9 +617,9 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                                                     <span />
                                                 )}
                                                 <button
-                                                    onClick={() => handleAddAiItem(item)}
+                                                    onClick={(e) => { e.stopPropagation(); handleAddAiItem(item); }}
                                                     disabled={addingItemId === item.id}
-                                                    className="h-7 px-3 rounded-lg bg-pink-50 border border-pink-200 text-pink-500 text-[11px] font-bold hover:bg-pink-100 hover:border-pink-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1"
+                                                    className="h-7 px-3 rounded-lg bg-pink-50 border border-pink-200 text-pink-500 text-[11px] font-bold hover:bg-pink-100 hover:border-pink-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1 z-10"
                                                 >
                                                     {addingItemId === item.id ? (
                                                         <span className="animate-pulse">추가중...</span>
@@ -564,6 +637,33 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                             </div>
                         </div>
                     ))}
+
+                    {/* 일괄 추가 Floating Action Bar */}
+                    <AnimatePresence>
+                        {selectedAiItems.size > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 50 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 50 }}
+                                className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white rounded-full px-6 py-3 shadow-2xl flex items-center gap-4"
+                            >
+                                <span className="text-sm font-bold">{selectedAiItems.size}개 항목 선택됨</span>
+                                <button
+                                    onClick={handleBulkAddAiItems}
+                                    disabled={isAddingBulk}
+                                    className="bg-violet-500 hover:bg-violet-400 text-white px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
+                                >
+                                    {isAddingBulk ? (
+                                        <span className="animate-pulse">추가 중...</span>
+                                    ) : (
+                                        <>
+                                            <Sparkles size={14} /> 일괄 추가하기
+                                        </>
+                                    )}
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             )}
 
