@@ -5,6 +5,7 @@ import { ArrowLeft, User, Clock, Eye, Trash2, Edit } from 'lucide-react'
 import { revalidatePath } from 'next/cache'
 import { format } from 'date-fns'
 import sanitizeHtml from 'sanitize-html'
+import 'react-quill-new/dist/quill.snow.css'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function PostDetailPage({
@@ -37,10 +38,9 @@ export default async function PostDetailPage({
             'h1', 'h2', 'h3', 'ul', 'ol', 'li', 'a', 'img', 'span',
         ],
         allowedAttributes: {
+            '*': ['class', 'style'],
             a: ['href', 'target', 'rel'],
-            img: ['src', 'alt', 'width', 'height', 'style', 'class'],
-            span: ['class', 'style'],
-            p: ['class', 'style'],
+            img: ['src', 'alt', 'width', 'height'],
         },
         allowedSchemes: ['http', 'https', 'data'],
     })
@@ -116,7 +116,9 @@ export default async function PostDetailPage({
                     </div>
                 </div>
 
-                <div className="p-8 min-h-[300px] text-gray-700 leading-relaxed [&_p]:mb-4 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-3" dangerouslySetInnerHTML={{ __html: safeContent }} />
+                <div className="p-8 min-h-[300px] ql-snow">
+                    <div className="ql-editor !p-0 text-gray-700 leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-3" dangerouslySetInnerHTML={{ __html: safeContent }} />
+                </div>
             </div>
 
             {/* Comments Section */}
