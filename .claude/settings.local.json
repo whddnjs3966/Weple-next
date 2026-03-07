@@ -48,7 +48,9 @@
       "WebFetch(domain:blog.wedsites.com)",
       "WebFetch(domain:zaacchi.medium.com)",
       "Bash(mv:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "mcp__notebooklm__get_health",
+      "mcp__notebooklm__setup_auth"
     ]
   }
 }

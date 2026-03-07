@@ -99,7 +99,7 @@ export default async function PostDetailPage({
                     </div>
                 </div>
 
-                <div className="p-8 min-h-[300px] text-gray-700 leading-relaxed [&_p]:mb-4 [&_p:last-child]:mb-0" dangerouslySetInnerHTML={{ __html: safeContent }} />
+                <div className="p-8 min-h-[300px] text-gray-700 leading-relaxed [&_p]:mb-4 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-3" dangerouslySetInnerHTML={{ __html: safeContent }} />
             </div>
 
             {/* Comments Section */}

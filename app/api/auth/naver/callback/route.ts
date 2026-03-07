@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { Database } from '@/lib/types/database.types'
 
 /**
  * 네이버 OAuth 2.0 Callback 처리
@@ -96,9 +97,8 @@ export async function GET(request: Request) {
         // 네이버 이메일로 기존 유저 검색
         const naverEmail = naverUser.email || `naver_${naverUser.id}@naver.placeholder`
 
-        // 기존 사용자 확인: 먼저 신규 생성 시도 → 이미 존재하면 이메일로 매직링크 발급
-        // listUsers() 전체 로드를 피하기 위해 createUser 우선 전략 사용
-        let userId: string
+        // 기존 사용자 확인: 먼저 신규 생성 시도 → 이미 존재하면 generateLink에서 userId 획득
+        let isNewUser = false
 
         {
             // 신규 유저 생성 시도
@@ -118,37 +118,17 @@ export async function GET(request: Request) {
             })
 
             if (createError) {
-                // 이미 존재하는 유저 → 이메일로 기존 유저 조회 (1페이지만)
-                if (createError.message?.includes('already been registered') || createError.status === 422) {
-                    const { data: usersPage } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 50 })
-                    const found = usersPage?.users?.find(
-                        (u) => u.email === naverEmail ||
-                            (u.app_metadata?.provider === 'naver' && u.app_metadata?.naver_id === naverUser.id)
-                    )
-                    if (!found) {
-                        console.error('User exists but not found in first page')
-                        return NextResponse.redirect(`${origin}/login?error=naver-create-user-error`)
-                    }
-                    userId = found.id
-                } else {
+                if (!(createError.message?.includes('already been registered') || createError.status === 422)) {
                     console.error('Supabase create user error:', createError)
                     return NextResponse.redirect(`${origin}/login?error=naver-create-user-error`)
                 }
+                // 이미 존재하는 유저 → generateLink에서 user 정보를 가져옴
             } else {
-                userId = newUser.user.id
+                isNewUser = true
             }
-
-            // profiles 테이블에 프로필 생성/업데이트
-            await supabaseAdmin
-                .from('profiles')
-                .upsert({
-                    id: userId,
-                    full_name: naverUser.name || naverUser.nickname || null,
-                    avatar_url: naverUser.profile_image || null,
-                }, { onConflict: 'id' })
         }
 
-        // 4. 매직 링크 방식으로 세션 생성 (Admin API)
+        // 4. 매직 링크 방식으로 세션 생성 (Admin API) — user 정보도 함께 반환됨
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
             type: 'magiclink',
             email: naverEmail,
@@ -159,8 +139,42 @@ export async function GET(request: Request) {
             return NextResponse.redirect(`${origin}/login?error=naver-session-error`)
         }
 
-        // OTP token + email hash로 세션 교환
-        const supabase = await createServerClient()
+        const userId = linkData.user.id
+
+        // profiles 테이블에 프로필 생성/업데이트
+        await supabaseAdmin
+            .from('profiles')
+            .upsert({
+                id: userId,
+                full_name: naverUser.name || naverUser.nickname || null,
+                avatar_url: naverUser.profile_image || null,
+            }, { onConflict: 'id' })
+
+        // 5. OTP 검증으로 세션 생성 — redirect 응답에 쿠키를 직접 설정
+        // cookies() API는 NextResponse.redirect()에 쿠키를 전달하지 못하므로
+        // 수동으로 쿠키를 수집하여 redirect 응답에 복사
+        const pendingCookies: Array<{ name: string; value: string; options: Record<string, unknown> }> = []
+
+        const supabase = createServerClient<Database>(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+                cookies: {
+                    getAll() {
+                        return cookieStore.getAll()
+                    },
+                    setAll(cookiesToSet) {
+                        cookiesToSet.forEach(({ name, value, options }) => {
+                            // cookieStore에도 설정 (후속 쿼리에서 세션 사용 가능)
+                            cookieStore.set(name, value, options)
+                            // redirect 응답에 복사할 쿠키 저장
+                            pendingCookies.push({ name, value, options: options || {} })
+                        })
+                    },
+                },
+            }
+        )
+
         const { error: verifyError } = await supabase.auth.verifyOtp({
             token_hash: linkData.properties?.hashed_token || '',
             type: 'magiclink',
@@ -171,18 +185,25 @@ export async function GET(request: Request) {
             return NextResponse.redirect(`${origin}/login?error=naver-verify-error`)
         }
 
-        // 5. 프로필 확인 후 리다이렉트
+        // 6. 프로필 확인 후 리다이렉트 (세션 쿠키 포함)
         const { data: profile } = await supabase
             .from('profiles')
             .select('id, wedding_date')
             .eq('id', userId)
             .single()
 
-        if (profile?.wedding_date) {
-            return NextResponse.redirect(new URL(nextPath, origin).toString())
+        const redirectUrl = profile?.wedding_date
+            ? new URL(nextPath, origin).toString()
+            : new URL('/onboarding', origin).toString()
+
+        const response = NextResponse.redirect(redirectUrl)
+
+        // verifyOtp에서 설정된 세션 쿠키를 redirect 응답에 복사
+        for (const cookie of pendingCookies) {
+            response.cookies.set(cookie.name, cookie.value, cookie.options)
         }
 
-        return NextResponse.redirect(new URL('/onboarding', origin).toString())
+        return response
 
     } catch (err) {
         console.error('Naver OAuth callback error:', err)
