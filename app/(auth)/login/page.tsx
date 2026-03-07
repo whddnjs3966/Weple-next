@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Instagram } from 'lucide-react'
 import Image from 'next/image'
 
 function LoginPageContent() {
@@ -189,8 +189,15 @@ function LoginPageContent() {
             </main>
 
             {/* Copyright */}
-            <footer className="absolute bottom-4 text-center w-full text-[10px] text-gray-300 uppercase tracking-widest">
-                &copy; 2026 Wepln. All rights reserved.
+            <footer className="absolute bottom-4 flex flex-col items-center w-full gap-2 text-center text-[10px] text-gray-300 uppercase tracking-widest">
+                <div className="flex items-center gap-1.5 lowercase tracking-normal text-[11px] font-semibold opacity-80">
+                    contact :
+                    <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-white inline-flex items-center gap-1 transition-colors group">
+                        <Instagram size={13} className="group-hover:scale-110 transition-transform" />
+                        wepln_for_all
+                    </a>
+                </div>
+                <div>&copy; 2026 Wepln. All rights reserved.</div>
             </footer>
         </div>
     )

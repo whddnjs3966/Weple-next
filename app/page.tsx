@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Instagram } from 'lucide-react'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
 
@@ -745,6 +745,13 @@ export default function LandingPage() {
       >
         <div className="max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
           <span className="font-serif font-bold text-2xl text-[#BA9776] mb-3">Wepln</span>
+          <p className="text-[12px] text-gray-500 font-bold mb-2 flex items-center justify-center gap-1.5">
+            contact :
+            <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-[#BA9776] inline-flex items-center gap-1 transition-colors group">
+              <Instagram size={14} className="group-hover:scale-110 transition-transform" />
+              wepln_for_all
+            </a>
+          </p>
           <p className="text-[12px] text-gray-500 font-bold">© 2026 Wepln. All rights reserved.</p>
         </div>
       </footer>

@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar'
 import Providers from './Providers'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Instagram } from 'lucide-react'
 
 export default async function DashboardLayout({
     children,
@@ -57,8 +58,15 @@ export default async function DashboardLayout({
                         {children}
                     </main>
 
-                    <footer className="py-8 text-center text-gray-400 text-[10px] font-medium tracking-widest uppercase">
-                        © 2026 Wepln Corporation
+                    <footer className="py-8 flex flex-col items-center gap-2 text-center text-gray-400 text-[10px] font-medium tracking-widest uppercase">
+                        <div className="flex items-center gap-1.5 lowercase tracking-normal text-[11px] font-semibold text-gray-400">
+                            contact :
+                            <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-pink-400 inline-flex items-center gap-1 transition-colors group">
+                                <Instagram size={13} className="group-hover:scale-110 transition-transform" />
+                                wepln_for_all
+                            </a>
+                        </div>
+                        <div>© 2026 Wepln Corporation</div>
                     </footer>
                 </div>
             </div>
