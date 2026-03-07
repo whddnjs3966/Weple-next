@@ -13,11 +13,11 @@ interface PostWithAuthor extends DBPost {
 
 const CATEGORIES = [
     { code: 'ALL', name: '전체' },
-    { code: 'FREE', name: '자유게시판' },
     { code: 'NOTICE', name: '공지사항' },
-    { code: 'QUESTION', name: 'Q&A' },
+    { code: 'FREE', name: '자유게시판' },
     { code: 'REVIEW', name: '후기' },
     { code: 'TIP', name: '꿀팁' },
+    { code: 'QUESTION', name: 'Q&A' },
 ]
 
 const PAGE_SIZE = 10

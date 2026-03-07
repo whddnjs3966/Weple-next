@@ -60,7 +60,6 @@ export default async function DashboardLayout({
 
                     <footer className="py-12 flex flex-col items-center gap-5 text-center px-4">
                         <div className="flex flex-col items-center justify-center gap-3">
-                            <p className="text-sm font-medium text-gray-300">위플랜과 함께하는 결혼 준비, 소토은 언제든 환영해요 ✨</p>
                             <a
                                 href="https://instagram.com/wepln_for_all"
                                 target="_blank"

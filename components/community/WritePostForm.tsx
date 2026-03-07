@@ -9,9 +9,9 @@ import TextEditor from './TextEditor'
 
 const CATEGORIES = [
     { code: 'FREE', name: '자유게시판' },
-    { code: 'QUESTION', name: 'Q&A' },
     { code: 'REVIEW', name: '후기' },
     { code: 'TIP', name: '꿀팁' },
+    { code: 'QUESTION', name: 'Q&A' },
 ]
 
 export default function WritePostForm({ role }: { role?: string }) {

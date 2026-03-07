@@ -746,7 +746,6 @@ export default function LandingPage() {
           <span className="font-serif font-medium text-3xl text-[#8B7355] mb-6">Wepln</span>
 
           <div className="mb-6 flex flex-col items-center justify-center gap-3">
-            <p className="text-sm font-medium text-gray-600">더 많은 이야기와 소통은 인스타그램에서 만나요 ✨</p>
             <a
               href="https://instagram.com/wepln_for_all"
               target="_blank"
