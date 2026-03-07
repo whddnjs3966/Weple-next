@@ -745,13 +745,22 @@ export default function LandingPage() {
       >
         <div className="max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
           <span className="font-serif font-bold text-2xl text-[#BA9776] mb-3">Wepln</span>
-          <p className="text-[12px] text-gray-500 font-bold mb-2 flex items-center justify-center gap-1.5">
-            contact :
-            <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-[#BA9776] inline-flex items-center gap-1 transition-colors group">
-              <Instagram size={14} className="group-hover:scale-110 transition-transform" />
+          <div className="mb-3 flex items-center justify-center gap-2 text-sm font-bold text-gray-700">
+            <svg width="0" height="0" className="hidden">
+              <linearGradient id="ig-gradient" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f09433" />
+                <stop offset="25%" stopColor="#e6683c" />
+                <stop offset="50%" stopColor="#dc2743" />
+                <stop offset="75%" stopColor="#cc2366" />
+                <stop offset="100%" stopColor="#bc1888" />
+              </linearGradient>
+            </svg>
+            <span>contact :</span>
+            <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 inline-flex items-center gap-1.5 transition-colors group">
+              <Instagram size={18} stroke="url(#ig-gradient)" className="group-hover:scale-110 transition-transform" />
               wepln_for_all
             </a>
-          </p>
+          </div>
           <p className="text-[12px] text-gray-500 font-bold">© 2026 Wepln. All rights reserved.</p>
         </div>
       </footer>

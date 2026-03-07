@@ -189,11 +189,20 @@ function LoginPageContent() {
             </main>
 
             {/* Copyright */}
-            <footer className="absolute bottom-4 flex flex-col items-center w-full gap-2 text-center text-[10px] text-gray-300 uppercase tracking-widest">
-                <div className="flex items-center gap-1.5 lowercase tracking-normal text-[11px] font-semibold opacity-80">
-                    contact :
-                    <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-white inline-flex items-center gap-1 transition-colors group">
-                        <Instagram size={13} className="group-hover:scale-110 transition-transform" />
+            <footer className="absolute bottom-4 flex flex-col items-center w-full gap-3 text-center text-xs text-gray-400 uppercase tracking-widest">
+                <div className="flex items-center gap-2 lowercase tracking-normal text-sm font-bold text-gray-600">
+                    <svg width="0" height="0" className="hidden">
+                        <linearGradient id="ig-gradient-login" x1="1" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#f09433" />
+                            <stop offset="25%" stopColor="#e6683c" />
+                            <stop offset="50%" stopColor="#dc2743" />
+                            <stop offset="75%" stopColor="#cc2366" />
+                            <stop offset="100%" stopColor="#bc1888" />
+                        </linearGradient>
+                    </svg>
+                    <span>contact :</span>
+                    <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 inline-flex items-center gap-1.5 transition-colors group">
+                        <Instagram size={18} stroke="url(#ig-gradient-login)" className="group-hover:scale-110 transition-transform" />
                         wepln_for_all
                     </a>
                 </div>
