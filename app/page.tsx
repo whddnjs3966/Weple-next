@@ -740,28 +740,25 @@ export default function LandingPage() {
           FOOTER
       ══════════════════════════════════ */}
       <footer
-        className="relative z-20 pt-16 pb-8 border-t border-[#BA9776]/20"
-        style={{ background: 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.6))' }}
+        className="relative z-20 pt-20 pb-12 border-t border-[#BA9776]/20 bg-gradient-to-b from-transparent to-white/90"
       >
         <div className="max-w-6xl mx-auto px-6 flex flex-col items-center text-center">
-          <span className="font-serif font-bold text-2xl text-[#BA9776] mb-3">Wepln</span>
-          <div className="mb-3 flex items-center justify-center gap-2 text-sm font-bold text-gray-700">
-            <svg width="0" height="0" className="hidden">
-              <linearGradient id="ig-gradient" x1="1" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f09433" />
-                <stop offset="25%" stopColor="#e6683c" />
-                <stop offset="50%" stopColor="#dc2743" />
-                <stop offset="75%" stopColor="#cc2366" />
-                <stop offset="100%" stopColor="#bc1888" />
-              </linearGradient>
-            </svg>
-            <span>contact :</span>
-            <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 inline-flex items-center gap-1.5 transition-colors group">
-              <Instagram size={18} stroke="url(#ig-gradient)" className="group-hover:scale-110 transition-transform" />
-              wepln_for_all
+          <span className="font-serif font-medium text-3xl text-[#8B7355] mb-6">Wepln</span>
+
+          <div className="mb-6 flex flex-col items-center justify-center gap-3">
+            <p className="text-sm font-medium text-gray-600">더 많은 이야기와 소통은 인스타그램에서 만나요 ✨</p>
+            <a
+              href="https://instagram.com/wepln_for_all"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-pink-100 shadow-sm hover:shadow-md hover:border-pink-300 transition-all duration-300 group"
+            >
+              <Instagram size={20} className="text-[#E1306C] group-hover:scale-110 transition-transform duration-300" />
+              <span className="font-bold text-[#E1306C] tracking-wide">@wepln_for_all</span>
             </a>
           </div>
-          <p className="text-[12px] text-gray-500 font-bold">© 2026 Wepln. All rights reserved.</p>
+
+          <p className="text-xs text-gray-400 font-medium tracking-wider uppercase">© 2026 Wepln. All rights reserved.</p>
         </div>
       </footer>
     </div>

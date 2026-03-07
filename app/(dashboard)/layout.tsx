@@ -58,24 +58,22 @@ export default async function DashboardLayout({
                         {children}
                     </main>
 
-                    <footer className="py-8 flex flex-col items-center gap-3 text-center text-gray-500 text-xs font-medium tracking-widest uppercase">
-                        <div className="flex items-center gap-2 lowercase tracking-normal text-sm font-bold text-gray-700">
-                            <svg width="0" height="0" className="hidden">
-                                <linearGradient id="ig-gradient-dash" x1="1" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#f09433" />
-                                    <stop offset="25%" stopColor="#e6683c" />
-                                    <stop offset="50%" stopColor="#dc2743" />
-                                    <stop offset="75%" stopColor="#cc2366" />
-                                    <stop offset="100%" stopColor="#bc1888" />
-                                </linearGradient>
-                            </svg>
-                            <span>contact :</span>
-                            <a href="https://instagram.com/wepln_for_all" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 inline-flex items-center gap-1.5 transition-colors group">
-                                <Instagram size={18} stroke="url(#ig-gradient-dash)" className="group-hover:scale-110 transition-transform" />
-                                wepln_for_all
+                    <footer className="py-12 flex flex-col items-center gap-5 text-center px-4">
+                        <div className="flex flex-col items-center justify-center gap-3">
+                            <p className="text-sm font-medium text-gray-300">위플랜과 함께하는 결혼 준비, 소토은 언제든 환영해요 ✨</p>
+                            <a
+                                href="https://instagram.com/wepln_for_all"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 hover:border-pink-400/50 transition-all duration-300 group"
+                            >
+                                <Instagram size={20} className="text-[#E1306C] group-hover:scale-110 transition-transform duration-300" />
+                                <span className="font-bold text-white tracking-wide">@wepln_for_all</span>
                             </a>
                         </div>
-                        <div className="opacity-70">© 2026 Wepln Corporation</div>
+                        <div className="text-[10px] text-gray-500 font-medium tracking-widest uppercase mt-4">
+                            © 2026 Wepln Corporation
+                        </div>
                     </footer>
                 </div>
             </div>
