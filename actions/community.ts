@@ -163,8 +163,7 @@ export async function updatePost(id: string, formData: FormData) {
         .update({
             title,
             content,
-            category,
-            updated_at: new Date().toISOString()
+            category
         })
         .eq('id', id)
 
