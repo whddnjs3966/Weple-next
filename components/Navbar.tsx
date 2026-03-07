@@ -113,7 +113,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 
                     <div className="flex items-center justify-center gap-3 md:gap-6 px-4 md:px-8 py-2">
                         {/* Logo */}
-                        <Link href="/" className="flex items-center gap-2 group transition-transform hover:scale-105 shrink-0">
+                        <Link href={userEmail ? '/dashboard' : '/'} className="flex items-center gap-2 group transition-transform hover:scale-105 shrink-0">
                             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-pink-300 to-pink-400 flex items-center justify-center text-white shadow-sm shadow-pink-300/30 shrink-0">
                                 <Flower2 size={16} />
                             </div>

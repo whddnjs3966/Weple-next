@@ -275,8 +275,12 @@ export async function GET(request: NextRequest) {
         ]),
         ...uniqueQueries.slice(coreCount).map(q => fetchLocal(q, clientId, clientSecret)),
     ]
-    const results = await Promise.all(fetchPromises)
-    const allItems = results.flat()
+    const resultsSettings = await Promise.allSettled(fetchPromises)
+
+    // 성공한 응답(fulfilled)의 데이터만 플랫하게 병합
+    const allItems = resultsSettings
+        .filter((res): res is PromiseFulfilledResult<NaverLocalItem[]> => res.status === 'fulfilled')
+        .flatMap(res => res.value)
 
     // 중복 제거 (장소명 기준)
     const seen = new Set<string>()

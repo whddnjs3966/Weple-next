@@ -5,9 +5,10 @@ import { useEffect, useRef } from 'react'
 interface ParticlesProps {
     className?: string
     quantity?: number
+    color?: string
 }
 
-export default function Particles({ className = '', quantity = 160 }: ParticlesProps) {
+export default function Particles({ className = '', quantity = 160, color = '' }: ParticlesProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
     useEffect(() => {

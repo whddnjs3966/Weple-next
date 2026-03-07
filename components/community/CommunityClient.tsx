@@ -96,7 +96,7 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
 
     const getPageNumbers = () => {
         const pages: number[] = []
-        const maxVisible = 5
+        const maxVisible = 10
         let start = Math.max(1, currentPage - Math.floor(maxVisible / 2))
         const end = Math.min(totalPages, start + maxVisible - 1)
         start = Math.max(1, end - maxVisible + 1)
@@ -128,10 +128,10 @@ export default function CommunityClient({ initialPosts, initialCount }: Communit
                             onClick={() => handleCategoryChange(cat.code)}
                             disabled={isPending}
                             className={`
-                                px-5 py-3 text-sm font-medium whitespace-nowrap transition-all relative
+                                px-5 py-3 text-sm font-bold whitespace-nowrap transition-all relative
                                 ${currentCategory === cat.code
-                                    ? 'text-pink-500 font-bold'
-                                    : 'text-gray-400 hover:text-gray-600'
+                                    ? 'text-pink-500'
+                                    : 'text-gray-500 hover:text-gray-800'
                                 }
                             `}
                         >

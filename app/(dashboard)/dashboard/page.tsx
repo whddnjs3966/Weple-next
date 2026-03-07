@@ -97,19 +97,19 @@ export default async function Dashboard() {
 
     return (
         <>
-            {/* Dashboard-only: Deep Dark Background */}
-            <div className="fixed inset-0 bg-black">
-                {/* 웨딩 사진 - 매우 어둡게 */}
+            {/* Dashboard-only: Bright Romantic Background */}
+            <div className="fixed inset-0 bg-[#fdfbf7]">
+                {/* 웨딩 사진 - 밝고 화사하게 */}
                 <img
-                    src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+                    src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
                     alt="Wedding Background"
-                    className="absolute inset-0 w-full h-full object-cover opacity-55"
+                    className="absolute inset-0 w-full h-full object-cover opacity-[0.15]"
                     style={{ animation: 'slow-zoom 20s infinite alternate ease-in-out' }}
                 />
-                {/* 짙은 그라디언트 오버레이 */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/60" />
-                {/* 별빛 파티클 */}
-                <Particles quantity={160} />
+                {/* 밝은 그라디언트 오버레이 */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/60 via-pink-50/40 to-white/70 backdrop-blur-[2px]" />
+                {/* 별빛/꽃가루 파티클 */}
+                <Particles quantity={100} color="#f472b6" />
             </div>
 
             <style>{`
