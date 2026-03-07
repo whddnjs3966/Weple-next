@@ -154,11 +154,17 @@ export async function updatePost(id: string, formData: FormData) {
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
 
     if (!post) return { error: 'Post not found' }
-    if (post.user_id !== user.id && profile?.role !== 'admin') {
+
+    const isAdmin = profile?.role === 'admin'
+
+    if (post.user_id !== user.id && !isAdmin) {
         return { error: '권한이 없습니다.' }
     }
 
-    const { error } = await supabase
+    // 관리자이거나 다른 RLS 정책 우회를 위해 admin client 사용
+    const updateClient = isAdmin ? createAdminClient() : supabase
+
+    const { error } = await updateClient
         .from('posts')
         .update({
             title,

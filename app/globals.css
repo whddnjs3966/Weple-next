@@ -27,6 +27,32 @@
     color: #1F2937;
   }
 
+  b,
+  strong {
+    font-weight: bold;
+  }
+
+  em,
+  i {
+    font-style: italic;
+  }
+
+  u {
+    text-decoration: underline;
+  }
+
+  s,
+  strike {
+    text-decoration: line-through;
+  }
+
+  blockquote {
+    border-left: 4px solid #FBCFE8;
+    padding-left: 1rem;
+    color: #6B7280;
+    font-style: italic;
+  }
+
   ::selection {
     background-color: rgba(249, 168, 212, 0.25);
     color: #1F2937;
