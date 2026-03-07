@@ -215,6 +215,30 @@
     z-index: 50;
     transform: scale(1.05);
   }
+
+  /* ─── React Quill Viewer Overrides for Tailwind ─── */
+  .ql-editor p:empty::before {
+    content: '\00a0';
+    /* 빈 줄(엔터) 높이 유지 */
+  }
+
+  .ql-editor ul {
+    list-style-type: disc !important;
+    padding-left: 1.5rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .ql-editor ol {
+    list-style-type: decimal !important;
+    padding-left: 1.5rem !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .ql-editor li {
+    margin-bottom: 0.25rem !important;
+  }
 }
 
 /* ─── Custom Scrollbar ─── */
