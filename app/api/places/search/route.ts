@@ -79,17 +79,17 @@ const SIDO_SUB_REGIONS: Record<string, string[]> = {
 // 제외 키워드 (불필요한 공방, 셀프사진관, 학원 등 제거)
 const GLOBAL_EXCLUDED = ['공방', '셀프', '클래스', '원데이', '수강', '레슨', '체험', '취미', 'DIY', '만들기', '교실', '학원', '강좌', '아카데미']
 const CATEGORY_EXCLUDED: Record<string, string[]> = {
-    'jewelry': ['반지공방', '커플링체험', '실버', '은반지', '체험공방', '우드링'],
-    'studio': ['셀프사진관', '포토부스', '증명사진', '여권사진', '인생네컷'],
-    'dress': ['한복대여', '코스프레', '파티의상', '파티룸', '셀프스튜디오'],
-    'makeup': ['네일', '왁싱', '반영구', '피부과', '에스테틱', '올리브영', '롯데마트'],
-    'suit': ['세탁', '수선', '클리닝'],
-    'bouquet': ['화환', '조화', '조경', '인테리어'],
-    'snap': ['셀프사진관', '포토부스', '증명사진'],
+    'jewelry': ['반지공방', '커플링체험', '실버', '은반지', '체험공방', '우드링', '악세사리', '도매', '부자재'],
+    'studio': ['셀프사진관', '포토부스', '증명사진', '여권사진', '인생네컷', '키즈', '가족사진', '베이비', '우정사진', '프로필'],
+    'dress': ['한복대여', '코스프레', '파티의상', '파티룸', '셀프스튜디오', '의상대여', '아동복', '교복'],
+    'makeup': ['네일', '왁싱', '반영구', '피부과', '에스테틱', '올리브영', '롯데마트', '미용학원', '눈썹'],
+    'suit': ['세탁', '수선', '클리닝', '아웃도어', '교복', '작업복'],
+    'bouquet': ['화환', '조화', '조경', '인테리어', '화분', '근조', '관엽', '개업'],
+    'snap': ['셀프사진관', '포토부스', '증명사진', '가족사진', '돌스냅', '베이비스냅'],
     'wedding-hall': ['장례', '연습실', '세미나', '장례식장', '포차', '한식', '일식', '중식', '고기집', '국밥', '식당'],
-    'hanbok': ['세탁', '수선', '한복체험', '관광', '전통체험', '외국인'],
-    'invitation': ['인쇄소', '복사', '명함', '전단지'],
-    'pyebaek': ['장례', '제사', '차례'],
+    'hanbok': ['세탁', '수선', '한복체험', '관광', '전통체험', '외국인', '대패'],
+    'invitation': ['인쇄소', '복사', '명함', '전단지', '간판', '현수막', '스티커', '판촉물'],
+    'pyebaek': ['장례', '제사', '차례', '제사음식', '반찬', '식육'],
 }
 
 // 카테고리 관련성 필터 — 네이버 API category 필드 + 장소명 + 설명에서 확인
@@ -183,10 +183,12 @@ export async function GET(request: NextRequest) {
     }
 
     const rawFilters = searchParams.get('filters') || ''
-    // 네이버 검색엔진이 혼란스러워하는 UI용 복잡한 필터 문자열 제거
+    // 1. 괄호 내용 제거 -> 2. 슬래시 앞단어만 -> 3. 인원명수/돈 단위 제거 -> 네이버 검색 최적화
     const filterKeywords = rawFilters.split(',')
         .map(f => f.trim())
-        .filter(f => f && !f.includes('명') && !f.includes('원') && !f.includes('~') && !f.includes('('))
+        .map(f => f.replace(/\([^)]*\)/g, '').trim()) // 괄호와 그 안 내용물 싹 삭제 "인물 중심 (심플/클래식)" -> "인물 중심"
+        .map(f => f.split('/')[0].trim()) // 슬래시로 2개 이상 선택지가 있다면 1개로 압축 "화이트 & 그린" -> "화이트 & 그린" // "벨라인/A라인" -> "벨라인"
+        .filter(f => f && !f.includes('명') && !f.includes('만원') && !f.includes('원'))
     const budget = Number(searchParams.get('budget') || '0')
     const style = searchParams.get('style') || ''
 
@@ -329,6 +331,34 @@ export async function GET(request: NextRequest) {
         }
         // 지역명이 주소에 포함되면 가산
         if (item.address.includes(region) || item.roadAddress.includes(region)) score += 2
+
+        // 온보딩 데이터 기반 AI 매칭 보너스 (압도적 가중치 +5)
+        if (budget > 0) {
+            // 예산이 낮으면 가성비/합리적 업체 우대
+            if (budget <= 2000 && (title.includes('가성비') || desc.includes('가성비') || desc.includes('합리적') || desc.includes('셀프'))) {
+                score += 5
+            }
+            // 예산이 높으면 프리미엄/하이엔드 업체 우대
+            else if (budget >= 5000 && (title.includes('하이엔드') || desc.includes('하이엔드') || title.includes('프리미엄') || desc.includes('프리미엄') || title.includes('고급') || desc.includes('고급') || title.includes('럭셔리') || desc.includes('럭셔리'))) {
+                score += 5
+            }
+        }
+
+        // 온보딩 스타일 반영 가중치
+        if (style) {
+            const styles = style.split(',')
+            for (const s of styles) {
+                const mapped = STYLE_KEYWORDS[s.trim()]
+                if (mapped) {
+                    for (const m of mapped) {
+                        if (title.includes(m) || desc.includes(m) || cat.includes(m)) {
+                            score += 5
+                        }
+                    }
+                }
+            }
+        }
+
         return { item, score }
     })
     scored.sort((a, b) => b.score - a.score)

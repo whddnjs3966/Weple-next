@@ -632,6 +632,37 @@ export default function CategoryPlaceClient({ slug, defaultSido, defaultBudget, 
                     )}
                 </section>
             )}
+
+            {/* ── AI 검색 로딩 오버레이 ── */}
+            <AnimatePresence>
+                {naverLoading && searchMode === 'ai' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white/95 backdrop-blur-md"
+                    >
+                        <div className="relative flex items-center justify-center w-24 h-24 mb-6">
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
+                                className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-pink-400 border-r-violet-400"
+                            />
+                            <motion.div
+                                animate={{ rotate: -360 }}
+                                transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
+                                className="absolute inset-3 rounded-full border-[3px] border-transparent border-b-rose-400 border-l-fuchsia-400 opacity-60"
+                            />
+                            <Star size={36} className="text-pink-500 animate-pulse pb-1" />
+                        </div>
+                        <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent mb-3 text-center">AI 맞춤 분석 중...</h2>
+                        <p className="text-sm text-gray-500 font-medium text-center leading-relaxed">
+                            고객님의 취향과 조건에 맞는<br />최적의 장소를 판별하고 있습니다 🤖✨
+                        </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </div>
     )
 }
