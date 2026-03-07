@@ -6,7 +6,10 @@ export const CATEGORIES = [
     { slug: 'snap', label: '본식스냅', emoji: '📷' },
     { slug: 'jewelry', label: '예물', emoji: '💍' },
     { slug: 'suit', label: '예복', emoji: '👔' },
-    { slug: 'bouquet', label: '부케/기타', emoji: '💐' },
+    { slug: 'hanbok', label: '한복', emoji: '👘' },
+    { slug: 'invitation', label: '청첩장', emoji: '💌' },
+    { slug: 'pyebaek', label: '폐백/이바지', emoji: '🎁' },
+    { slug: 'bouquet', label: '부케/플라워', emoji: '💐' },
 ]
 
 export type CategoryFilter = {
@@ -92,6 +95,33 @@ export const CATEGORY_FILTERS: Record<string, CategoryFilter[]> = {
             }
         },
         { key: 'style', label: '핏/디자인', options: ['클래식 포멀 핏 (투버튼/싱글)', '트렌디 슬림 핏', '더블 브레스티드 (화려함)'] },
+    ],
+    'hanbok': [
+        { key: 'type', label: '한복 종류', options: ['혼주 한복 (어머니/아버지)', '신부 한복 (폐백/촬영용)', '신랑 한복'] },
+        {
+            key: 'style', label: '한복 스타일', options: (filters) => {
+                if (filters.type === '신부 한복 (폐백/촬영용)') return ['전통 궁중 한복', '퓨전 한복 (모던/심플)', '화려한 자수/당의']
+                return ['단아한 전통 한복', '모던 퓨전 한복', '격식 있는 정장 한복']
+            }
+        },
+        { key: 'method', label: '준비 방식', options: ['맞춤 제작', '대여', '구매 (기성복)'] },
+    ],
+    'invitation': [
+        { key: 'type', label: '청첩장 형태', options: ['종이 청첩장 (인쇄)', '모바일 청첩장', '종이 + 모바일 병행'] },
+        {
+            key: 'style', label: '디자인 스타일', options: () => {
+                return ['클래식/격식 (전통 서체/금박)', '미니멀/모던 (심플/깔끔)', '감성/일러스트 (수채화/손그림)']
+            }
+        },
+        { key: 'budget', label: '예산대', options: ['장당 1,000원 이하', '장당 1,000~3,000원', '장당 3,000원 이상 (프리미엄)'] },
+    ],
+    'pyebaek': [
+        { key: 'type', label: '준비 항목', options: ['폐백 음식 (밤/대추/폐백닭 등)', '이바지 음식 (떡/한과/과일)', '폐백 + 이바지 세트'] },
+        {
+            key: 'style', label: '스타일', options: () => {
+                return ['전통 격식 (정갈한 상차림)', '모던 퓨전 (깔끔/간소화)', '프리미엄 (고급 식재료)']
+            }
+        },
     ],
     'bouquet': [
         { key: 'color', label: '부케 컬러 포인트', options: ['화이트 & 그린 (순수하고 클래식한)', '파스텔 톤 (피치/핑크 계열 러블리)', '비비드 톤 (레드/퍼플/옐로우 포컬)'] },

@@ -65,46 +65,8 @@ export async function updateSession(request: NextRequest) {
     }
 
     // ── 인증된 유저 ──
-    const isOnboarding = pathname.startsWith('/onboarding')
-
-    // 온보딩 페이지에 있으면 DB 조회 없이 통과 (온보딩 중이니까)
-    if (isOnboarding) {
-        return supabaseResponse
-    }
-
-    // 공개 페이지 또는 보호된 페이지 → 온보딩 완료 여부 확인 (DB 조회 1회)
-    const { data: profile } = await (supabase as any)
-        .from('profiles')
-        .select('wedding_date')
-        .eq('id', user.id)
-        .single()
-
-    const hasCompletedOnboarding = profile && profile.wedding_date
-
-    if (isPublicPage) {
-        // 인증 + 공개 페이지 → 대시보드 또는 온보딩으로 리다이렉트
-        const targetPath = hasCompletedOnboarding ? '/dashboard' : '/onboarding'
-        if (pathname === targetPath) return supabaseResponse
-
-        const url = request.nextUrl.clone()
-        url.pathname = targetPath
-        const redirectResponse = NextResponse.redirect(url)
-        supabaseResponse.cookies.getAll().forEach(cookie => {
-            redirectResponse.cookies.set(cookie.name, cookie.value, { ...cookie })
-        })
-        return redirectResponse
-    }
-
-    // 보호된 페이지인데 온보딩 미완료 → /onboarding으로 리다이렉트
-    if (!hasCompletedOnboarding) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/onboarding'
-        const redirectResponse = NextResponse.redirect(url)
-        supabaseResponse.cookies.getAll().forEach(cookie => {
-            redirectResponse.cookies.set(cookie.name, cookie.value, { ...cookie })
-        })
-        return redirectResponse
-    }
-
+    // 더 이상 미들웨어 단계에서 데이터베이스(온보딩 완료 여부)를 조회하지 않습니다.
+    // 매 요청마다 DB 조회가 들어가면 성능 저하가 극심해지므로, 
+    // 온보딩 우회(리다이렉트)는 각 페이지나 Server Component Layout에서 처리하도록 위임합니다.
     return supabaseResponse
 }

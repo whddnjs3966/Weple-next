@@ -23,7 +23,7 @@ interface NaverPlace {
     mapy?: string
 }
 
-const CITIES = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '제주']
+const CITIES = ['서울', '경기', '인천', '부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
 
 const slideVariants = {
     enter: (dir: number) => ({ x: dir > 0 ? '55%' : '-55%', opacity: 0 }),
@@ -41,10 +41,13 @@ const CATEGORY_GRADIENTS: Record<string, { bg: string; text: string }> = {
     'snap': { bg: 'from-amber-100 via-orange-50 to-orange-200', text: 'text-amber-500' },
     'jewelry': { bg: 'from-yellow-100 via-amber-50 to-amber-200', text: 'text-yellow-500' },
     'suit': { bg: 'from-red-100 via-rose-100 to-rose-200', text: 'text-red-400' },
+    'hanbok': { bg: 'from-teal-100 via-emerald-50 to-emerald-200', text: 'text-teal-500' },
+    'invitation': { bg: 'from-indigo-100 via-blue-50 to-blue-200', text: 'text-indigo-400' },
+    'pyebaek': { bg: 'from-orange-100 via-amber-50 to-amber-200', text: 'text-orange-500' },
     'bouquet': { bg: 'from-sky-100 via-blue-50 to-blue-200', text: 'text-sky-400' },
 }
 
-export default function CategoryPlaceClient({ slug }: { slug: string }) {
+export default function CategoryPlaceClient({ slug, defaultSido, defaultBudget, defaultStyle }: { slug: string; defaultSido?: string; defaultBudget?: number; defaultStyle?: string }) {
     const router = useRouter()
     const category = CATEGORIES.find((c: any) => c.slug === slug)
     const filters = CATEGORY_FILTERS[slug] || []
@@ -54,7 +57,7 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
     const [dir, setDir] = useState(1)
     const [showSummary, setShowSummary] = useState(false)
 
-    const [sido, setSido] = useState('')
+    const [sido, setSido] = useState(defaultSido && defaultSido !== '미정/기타' ? defaultSido : '')
     const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({})
 
     const [naverResults, setNaverResults] = useState<NaverPlace[]>([])
@@ -67,7 +70,7 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
     // 신규 모드
     const [searchMode, setSearchMode] = useState<'choice' | 'direct' | 'ai'>('choice')
     const [directQuery, setDirectQuery] = useState('')
-    const [directRegion, setDirectRegion] = useState('')
+    const [directRegion, setDirectRegion] = useState(defaultSido && defaultSido !== '미정/기타' ? defaultSido : '')
     const [searchingDirect, setSearchingDirect] = useState(false)
 
     // ── 위자드 네비게이션 ──────────────────────────────
@@ -106,7 +109,9 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
         const queryParams = new URLSearchParams({
             category: slug,
             sido: searchSido,
-            filters: filterValues
+            filters: filterValues,
+            ...(defaultBudget ? { budget: String(defaultBudget) } : {}),
+            ...(defaultStyle ? { style: defaultStyle } : {}),
         }).toString()
 
         fetch(`/api/places/search?${queryParams}`)
@@ -150,13 +155,13 @@ export default function CategoryPlaceClient({ slug }: { slug: string }) {
     const resetWizard = () => {
         setSearchMode('choice')
         setDirectQuery('')
-        setDirectRegion('')
+        setDirectRegion(defaultSido && defaultSido !== '미정/기타' ? defaultSido : '')
         setSearchingDirect(false)
         setSearched(false)
         setShowSummary(false)
         setStep(0)
         setDir(1)
-        setSido('')
+        setSido(defaultSido && defaultSido !== '미정/기타' ? defaultSido : '')
         setSelectedFilters({})
         setNaverResults([])
         setNaverError(null)

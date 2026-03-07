@@ -36,6 +36,18 @@ const CATEGORY_QUERIES: Record<string, string[]> = {
         '남성정장', '웨딩정장', '턱시도대여', '신랑정장',
         '맞춤정장', '예복', '맞춤예복', '테일러샵',
     ],
+    'hanbok': [
+        '한복대여', '혼주한복', '웨딩한복', '한복맞춤',
+        '신부한복', '전통한복', '한복샵', '퓨전한복',
+    ],
+    'invitation': [
+        '청첩장', '모바일청첩장', '웨딩카드', '결혼청첩장',
+        '청첩장인쇄', '프리미엄청첩장', '웨딩초대장',
+    ],
+    'pyebaek': [
+        '폐백음식', '이바지', '폐백', '폐백음식점',
+        '이바지떡', '전통폐백', '폐백서비스',
+    ],
     'bouquet': [
         '웨딩부케', '본식부케', '부케', '웨딩플라워',
         '꽃집 부케', '웨딩꽃', '플로리스트 웨딩',
@@ -47,9 +59,21 @@ const CATEGORY_QUERIES: Record<string, string[]> = {
 // 대표 하위 지역을 추가 검색하여 결과를 보강한다.
 // ──────────────────────────────────────────────────────────────
 const SIDO_SUB_REGIONS: Record<string, string[]> = {
-    '서울': ['강남', '잠실', '종로', '서초', '마포', '여의도'],
-    '경기': ['수원', '분당', '일산', '판교'],
+    '서울': ['강남', '잠실', '종로', '서초', '마포', '여의도', '청담'],
+    '경기': ['수원', '분당', '일산', '판교', '용인', '성남'],
     '인천': ['송도', '부평', '인천시'],
+    '부산': ['해운대', '서면', '센텀시티', '남포동'],
+    '대구': ['수성구', '동성로', '범어'],
+    '대전': ['유성구', '둔산동'],
+    '광주': ['상무지구', '충장로'],
+    '울산': ['남구', '삼산동'],
+    '경남': ['창원', '김해', '진주'],
+    '경북': ['포항', '경주', '구미'],
+    '충남': ['천안', '아산'],
+    '충북': ['청주'],
+    '전남': ['여수', '순천', '목포'],
+    '전북': ['전주', '군산'],
+    '강원': ['춘천', '강릉', '원주'],
 }
 
 // 제외 키워드 (불필요한 공방, 셀프사진관, 학원 등 제거)
@@ -62,7 +86,10 @@ const CATEGORY_EXCLUDED: Record<string, string[]> = {
     'suit': ['세탁', '수선', '클리닝'],
     'bouquet': ['화환', '조화', '조경', '인테리어'],
     'snap': ['셀프사진관', '포토부스', '증명사진'],
-    'wedding-hall': ['장례', '연습실', '세미나', '장례식장', '포차'],
+    'wedding-hall': ['장례', '연습실', '세미나', '장례식장', '포차', '한식', '일식', '중식', '고기집', '국밥', '식당'],
+    'hanbok': ['세탁', '수선', '한복체험', '관광', '전통체험', '외국인'],
+    'invitation': ['인쇄소', '복사', '명함', '전단지'],
+    'pyebaek': ['장례', '제사', '차례'],
 }
 
 // 카테고리 관련성 필터 — 네이버 API category 필드 + 장소명 + 설명에서 확인
@@ -75,6 +102,9 @@ const CATEGORY_RELEVANCE: Record<string, string[]> = {
     'snap': ['사진', '스냅', '촬영', '웨딩', '결혼', '영상', '스튜디오', 'dvd'],
     'jewelry': ['보석', '귀금속', '주얼리', '쥬얼리', '반지', '예물', '다이아'],
     'suit': ['테일러', '맞춤', '정장', '의류', '양복', '예복', '턱시도', '가먼트', '수트'],
+    'hanbok': ['한복', '전통', '혼주', '폐백', '맞춤', '대여', '의류', '의상', '한복집'],
+    'invitation': ['청첩장', '카드', '인쇄', '초대장', '웨딩', '디자인', '모바일'],
+    'pyebaek': ['폐백', '이바지', '떡', '한과', '전통', '음식', '케이터링', '답례'],
     'bouquet': ['꽃', '화원', '플라워', '부케', '식물', '플로리스트', '가든'],
 }
 
@@ -104,8 +134,9 @@ async function fetchLocal(
     query: string,
     clientId: string,
     clientSecret: string,
+    start: number = 1,
 ): Promise<NaverLocalItem[]> {
-    const url = `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=5&start=1&sort=comment`
+    const url = `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(query)}&display=5&start=${start}&sort=comment`
     const res = await fetch(url, {
         headers: {
             'X-Naver-Client-Id': clientId,
@@ -152,11 +183,40 @@ export async function GET(request: NextRequest) {
     }
 
     const rawFilters = searchParams.get('filters') || ''
-    const filterKeywords = rawFilters.split(',').map(f => f.trim()).filter(Boolean)
+    // 네이버 검색엔진이 혼란스러워하는 UI용 복잡한 필터 문자열 제거
+    const filterKeywords = rawFilters.split(',')
+        .map(f => f.trim())
+        .filter(f => f && !f.includes('명') && !f.includes('원') && !f.includes('~') && !f.includes('('))
+    const budget = Number(searchParams.get('budget') || '0')
+    const style = searchParams.get('style') || ''
 
     const keywords = CATEGORY_QUERIES[category] || ['웨딩홀']
     const relevanceKeywords = CATEGORY_RELEVANCE[category] || []
     const region = sigungu || sido
+
+    // 예산 기반 키워드 보강: 예산이 낮으면 가성비, 높으면 프리미엄 검색어 추가
+    if (budget > 0) {
+        if (budget <= 2000) {
+            filterKeywords.push('가성비')
+        } else if (budget >= 5000) {
+            filterKeywords.push('프리미엄')
+        }
+    }
+
+    // 온보딩 스타일 키워드 반영
+    const STYLE_KEYWORDS: Record<string, string[]> = {
+        'Classic': ['클래식', '격식'],
+        'Garden': ['야외', '가든'],
+        'Modern': ['모던', '미니멀'],
+        'Small': ['소규모', '스몰웨딩'],
+    }
+    if (style) {
+        const styles = style.split(',')
+        for (const s of styles) {
+            const mapped = STYLE_KEYWORDS[s.trim()]
+            if (mapped) filterKeywords.push(mapped[0])
+        }
+    }
 
     // ──────────────────────────────────────────────────────────
     // 검색 쿼리 생성 전략:
@@ -203,9 +263,16 @@ export async function GET(request: NextRequest) {
     // API Rate Limit 방지 및 응답 속도 최적화를 위해 중복 제거 후 최대 25개로 쿼리 제한
     const uniqueQueries = Array.from(new Set(queries)).slice(0, 25)
 
-    // 병렬 요청 (1건/쿼리, 페이징 불필요 — 네이버 Local API는 total≤5)
+    // 병렬 요청: 핵심 키워드(처음 3개)는 start=1,6으로 2페이지씩, 나머지는 1페이지
     console.log(`[Naver Search] Category: ${category}, Queries: ${uniqueQueries.length}`)
-    const fetchPromises = uniqueQueries.map(q => fetchLocal(q, clientId, clientSecret))
+    const coreCount = Math.min(3, uniqueQueries.length)
+    const fetchPromises = [
+        ...uniqueQueries.slice(0, coreCount).flatMap(q => [
+            fetchLocal(q, clientId, clientSecret, 1),
+            fetchLocal(q, clientId, clientSecret, 6),
+        ]),
+        ...uniqueQueries.slice(coreCount).map(q => fetchLocal(q, clientId, clientSecret)),
+    ]
     const results = await Promise.all(fetchPromises)
     const allItems = results.flat()
 
@@ -229,8 +296,9 @@ export async function GET(request: NextRequest) {
 
     // 카테고리 관련성 필터링 (느슨한 모드):
     // category 필드 + 장소명 + 설명 중 하나라도 매칭되면 통과
-    const filtered = relevanceKeywords.length > 0
-        ? afterExclusion.filter(item => {
+    let filtered = afterExclusion
+    if (relevanceKeywords.length > 0) {
+        const strictFiltered = afterExclusion.filter(item => {
             const cat = item.category.toLowerCase()
             const title = stripHtml(item.title).toLowerCase()
             const desc = item.description.toLowerCase()
@@ -238,10 +306,44 @@ export async function GET(request: NextRequest) {
                 cat.includes(kw) || title.includes(kw) || desc.includes(kw)
             )
         })
-        : afterExclusion
+        // 관련성 필터 후 결과가 너무 적으면 제외 필터만 적용된 결과로 폴백
+        filtered = strictFiltered.length >= 3 ? strictFiltered : afterExclusion
+    }
 
-    // 결과 셔플 → 매번 다른 순서로 표시
-    const places = shuffle(filtered).map(item => ({
+    // 관련성 점수 계산 후 정렬 (높은 점수 우선, 동일 점수는 셔플)
+    const scored = filtered.map(item => {
+        const title = stripHtml(item.title).toLowerCase()
+        const cat = item.category.toLowerCase()
+        const desc = item.description.toLowerCase()
+        let score = 0
+        // 카테고리 관련 키워드 매칭 수에 따라 가산
+        for (const kw of relevanceKeywords) {
+            if (title.includes(kw)) score += 3
+            if (cat.includes(kw)) score += 2
+            if (desc.includes(kw)) score += 1
+        }
+        // 필터 키워드 매칭 보너스
+        for (const fk of filterKeywords) {
+            const fkLower = fk.toLowerCase()
+            if (title.includes(fkLower) || desc.includes(fkLower)) score += 2
+        }
+        // 지역명이 주소에 포함되면 가산
+        if (item.address.includes(region) || item.roadAddress.includes(region)) score += 2
+        return { item, score }
+    })
+    scored.sort((a, b) => b.score - a.score)
+    // 동일 점수 그룹 내에서 셔플하여 다양성 유지
+    const grouped: typeof scored = []
+    let i = 0
+    while (i < scored.length) {
+        let j = i
+        while (j < scored.length && scored[j].score === scored[i].score) j++
+        const group = scored.slice(i, j)
+        grouped.push(...shuffle(group))
+        i = j
+    }
+
+    const places = grouped.map(({ item }) => ({
         title: stripHtml(item.title),
         address: item.address,
         roadAddress: item.roadAddress,

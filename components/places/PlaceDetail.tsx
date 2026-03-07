@@ -46,6 +46,9 @@ const CATEGORY_THEMES: Record<string, { gradient: string; accent: string; icon: 
     'snap': { gradient: 'from-stone-800 via-amber-900/40 to-stone-700', accent: 'text-amber-300', icon: '📷' },
     'jewelry': { gradient: 'from-stone-800 via-amber-900/50 to-stone-700', accent: 'text-amber-300', icon: '💍' },
     'suit': { gradient: 'from-stone-800 via-red-900/30 to-stone-700', accent: 'text-red-300', icon: '👔' },
+    'hanbok': { gradient: 'from-stone-800 via-teal-900/40 to-stone-700', accent: 'text-teal-300', icon: '👘' },
+    'invitation': { gradient: 'from-slate-800 via-indigo-900/40 to-slate-700', accent: 'text-indigo-300', icon: '💌' },
+    'pyebaek': { gradient: 'from-stone-800 via-orange-900/40 to-stone-700', accent: 'text-orange-300', icon: '🎁' },
     'bouquet': { gradient: 'from-slate-800 via-sky-900/40 to-slate-700', accent: 'text-sky-300', icon: '💐' },
 }
 
@@ -57,7 +60,10 @@ const CATEGORY_LABELS: Record<string, string> = {
     'snap': '본식스냅',
     'jewelry': '예물',
     'suit': '예복',
-    'bouquet': '부케/기타',
+    'hanbok': '한복',
+    'invitation': '청첩장',
+    'pyebaek': '폐백/이바지',
+    'bouquet': '부케/플라워',
 }
 
 const INITIAL_REVIEW_COUNT = 3

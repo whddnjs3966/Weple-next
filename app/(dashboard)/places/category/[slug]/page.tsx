@@ -11,7 +11,17 @@ export default async function CategoryPlacePage({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
-    const { slug } = await params
+    const [{ slug }, { data: profile }] = await Promise.all([
+        params,
+        supabase.from('profiles').select('region_sido, budget_max, style').eq('id', user.id).single(),
+    ])
 
-    return <CategoryPlaceClient slug={slug} />
+    return (
+        <CategoryPlaceClient
+            slug={slug}
+            defaultSido={profile?.region_sido || ''}
+            defaultBudget={profile?.budget_max || 0}
+            defaultStyle={profile?.style || ''}
+        />
+    )
 }

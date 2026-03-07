@@ -17,6 +17,9 @@ const CATEGORY_STYLES: Record<string, string> = {
     'snap': 'from-amber-100/80 to-orange-50/50 text-amber-500 hover:border-amber-200',
     'jewelry': 'from-yellow-100/80 to-amber-50/50 text-yellow-600 hover:border-yellow-200',
     'suit': 'from-red-100/80 to-rose-50/50 text-red-500 hover:border-red-200',
+    'hanbok': 'from-teal-100/80 to-emerald-50/50 text-teal-500 hover:border-teal-200',
+    'invitation': 'from-indigo-100/80 to-blue-50/50 text-indigo-500 hover:border-indigo-200',
+    'pyebaek': 'from-orange-100/80 to-amber-50/50 text-orange-500 hover:border-orange-200',
     'bouquet': 'from-sky-100/80 to-blue-50/50 text-sky-500 hover:border-sky-200',
 }
 

@@ -103,7 +103,7 @@ export default function WritePostForm({ role }: { role?: string }) {
                     {/* Content Input (Rich Text Editor) */}
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-gray-600 block pl-1">내용</label>
-                        <div className="h-[450px]">
+                        <div className="min-h-[450px]">
                             <TextEditor
                                 value={content}
                                 onChange={setContent}

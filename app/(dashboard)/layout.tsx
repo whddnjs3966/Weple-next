@@ -18,6 +18,18 @@ export default async function DashboardLayout({
         redirect('/login')
     }
 
+    // 미들웨어에서 넘어온 DB 조회 책임
+    // 사용자가 온보딩을 완료했는지 (wedding_date 확인) 검사합니다.
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('wedding_date')
+        .eq('id', user.id)
+        .single()
+
+    if (!profile?.wedding_date) {
+        redirect('/onboarding')
+    }
+
     return (
         <Providers>
             <div className="min-h-screen relative">

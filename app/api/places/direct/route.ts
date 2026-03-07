@@ -34,6 +34,9 @@ const CATEGORY_EXCLUDED: Record<string, string[]> = {
     'bouquet': ['화환', '조화', '조경', '인테리어'],
     'snap': ['셀프사진관', '포토부스', '증명사진'],
     'wedding-hall': ['장례', '연습실', '세미나', '장례식장', '포차'],
+    'hanbok': ['세탁', '수선', '한복체험', '관광', '전통체험', '외국인'],
+    'invitation': ['인쇄소', '복사', '명함', '전단지'],
+    'pyebaek': ['장례', '제사', '차례'],
 }
 
 // 카테고리 관련성 필터
@@ -45,6 +48,9 @@ const CATEGORY_RELEVANCE: Record<string, string[]> = {
     'snap': ['사진', '스냅', '촬영', '웨딩', '결혼', '영상', '스튜디오', 'dvd'],
     'jewelry': ['보석', '귀금속', '주얼리', '쥬얼리', '반지', '예물', '다이아'],
     'suit': ['테일러', '맞춤', '정장', '의류', '양복', '예복', '턱시도', '가먼트', '수트'],
+    'hanbok': ['한복', '전통', '혼주', '폐백', '맞춤', '대여', '의류', '의상', '한복집'],
+    'invitation': ['청첩장', '카드', '인쇄', '초대장', '웨딩', '디자인', '모바일'],
+    'pyebaek': ['폐백', '이바지', '떡', '한과', '전통', '음식', '케이터링', '답례'],
     'bouquet': ['꽃', '화원', '플라워', '부케', '식물', '플로리스트', '가든'],
 }
 
@@ -57,6 +63,9 @@ const CATEGORY_QUERIES: Record<string, string[]> = {
     'snap': ['본식스냅', '웨딩스냅', '영상'],
     'jewelry': ['예물', '웨딩밴드', '결혼반지'],
     'suit': ['맞춤정장', '예복', '테일러'],
+    'hanbok': ['한복대여', '한복맞춤', '한복샵'],
+    'invitation': ['청첩장', '웨딩카드', '모바일청첩장'],
+    'pyebaek': ['폐백음식', '이바지', '폐백'],
     'bouquet': ['부케', '꽃집', '플라워'],
 }
 
@@ -92,15 +101,20 @@ export async function GET(request: NextRequest) {
     queriesToTry.push(baseQuery)
 
     // 카테고리가 있으면 카테고리 키워드를 조합하여 검색의 정확도를 높인다.
-    // 예: "수성" -> "대구 수성", "대구 수성 웨딩홀", "대구 수성 예식장" 등
     if (category && CATEGORY_QUERIES[category]) {
-        queriesToTry.push(`${baseQuery} ${CATEGORY_QUERIES[category][0]}`)
-        queriesToTry.push(`${baseQuery} ${CATEGORY_QUERIES[category][1]}`)
+        for (const catKw of CATEGORY_QUERIES[category]) {
+            queriesToTry.push(`${baseQuery} ${catKw}`)
+        }
     }
 
+    // 역순 쿼리도 추가 (네이버 API는 어순에 따라 다른 결과 반환)
+    queriesToTry.push(query)
+    if (region) queriesToTry.push(`${query} ${region}`)
+
     try {
-        const fetchPromises = queriesToTry.map(async (q) => {
-            const url = `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(q)}&display=5&start=1&sort=random`
+        const uniqueQueries = Array.from(new Set(queriesToTry)).slice(0, 8)
+        const fetchPromises = uniqueQueries.map(async (q) => {
+            const url = `https://openapi.naver.com/v1/search/local.json?query=${encodeURIComponent(q)}&display=5&start=1&sort=comment`
             const res = await fetch(url, {
                 headers: {
                     'X-Naver-Client-Id': clientId,
@@ -140,8 +154,9 @@ export async function GET(request: NextRequest) {
         })
 
         const relevanceKeywords = category && CATEGORY_RELEVANCE[category] ? CATEGORY_RELEVANCE[category] : []
-        const filtered = relevanceKeywords.length > 0
-            ? afterExclusion.filter(item => {
+        let filtered = afterExclusion
+        if (relevanceKeywords.length > 0) {
+            const strictFiltered = afterExclusion.filter(item => {
                 const cat = item.category.toLowerCase()
                 const title = stripHtml(item.title).toLowerCase()
                 const desc = item.description.toLowerCase()
@@ -149,7 +164,9 @@ export async function GET(request: NextRequest) {
                     cat.includes(kw) || title.includes(kw) || desc.includes(kw)
                 )
             })
-            : afterExclusion
+            // 관련성 필터 후 결과가 있으면 사용, 없으면 제외 필터만 적용된 결과로 폴백
+            filtered = strictFiltered.length > 0 ? strictFiltered : afterExclusion
+        }
 
         const places = filtered.map(item => ({
             title: stripHtml(item.title),

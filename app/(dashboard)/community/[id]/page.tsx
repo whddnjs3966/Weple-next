@@ -22,7 +22,14 @@ export default async function PostDetailPage({
     if (!post) notFound()
 
     const { data: { user } } = await supabase.auth.getUser()
+    const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user!.id)
+        .single()
+    const isAdmin = currentProfile?.role === 'admin'
     const isAuthor = user?.id === post.user_id
+    const canDelete = isAuthor || isAdmin
 
     const safeContent = sanitizeHtml(post.content, {
         allowedTags: [
@@ -31,11 +38,11 @@ export default async function PostDetailPage({
         ],
         allowedAttributes: {
             a: ['href', 'target', 'rel'],
-            img: ['src', 'alt', 'width', 'height'],
-            span: ['class'],
-            p: ['class'],
+            img: ['src', 'alt', 'width', 'height', 'style', 'class'],
+            span: ['class', 'style'],
+            p: ['class', 'style'],
         },
-        allowedSchemes: ['http', 'https'],
+        allowedSchemes: ['http', 'https', 'data'],
     })
 
     // Simplified Comment Action for inline use
@@ -62,10 +69,11 @@ export default async function PostDetailPage({
                     목록으로
                 </Link>
 
-                {isAuthor && (
+                {canDelete && (
                     <form action={removePost}>
-                        <button aria-label="게시글 삭제" className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-red-50">
-                            <Trash2 size={18} />
+                        <button aria-label="게시글 삭제" className="flex items-center gap-1.5 text-gray-400 hover:text-red-500 transition-colors px-3 py-2 rounded-xl hover:bg-red-50 text-xs font-medium">
+                            <Trash2 size={15} />
+                            삭제
                         </button>
                     </form>
                 )}

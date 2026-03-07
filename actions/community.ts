@@ -163,14 +163,30 @@ export async function deletePost(id: string) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'Unauthorized' }
 
-    // user_id 조건을 추가해 본인 게시글만 삭제 가능하도록 강제
-    const { error } = await supabase
+    // 게시글 작성자 확인 + 현재 유저 역할 확인
+    const adminClient = createAdminClient()
+    const [{ data: post }, { data: profile }] = await Promise.all([
+        adminClient.from('posts').select('user_id').eq('id', id).single(),
+        supabase.from('profiles').select('role').eq('id', user.id).single(),
+    ])
+
+    if (!post) return { error: '게시글을 찾을 수 없습니다.' }
+
+    const isAdmin = profile?.role === 'admin'
+    const isAuthor = post.user_id === user.id
+
+    if (!isAdmin && !isAuthor) {
+        return { error: '삭제 권한이 없습니다.' }
+    }
+
+    // RLS를 우회하여 삭제 (서버 액션에서 이미 권한 검증 완료)
+    const { error } = await adminClient
         .from('posts')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id)
 
     if (error) return { error: error.message }
+
     revalidatePath('/community')
     return { success: true }
 }
