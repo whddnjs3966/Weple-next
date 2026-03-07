@@ -76,8 +76,8 @@ const SIDO_SUB_REGIONS: Record<string, string[]> = {
     '강원': ['춘천', '강릉', '원주'],
 }
 
-// 제외 키워드 (불필요한 공방, 셀프사진관, 학원 등 제거)
-const GLOBAL_EXCLUDED = ['공방', '셀프', '클래스', '원데이', '수강', '레슨', '체험', '취미', 'DIY', '만들기', '교실', '학원', '강좌', '아카데미']
+// 제외 키워드 (불필요한 셀프사진관, 학원 등 제거, '공방' 제외 해제)
+const GLOBAL_EXCLUDED = ['셀프', '클래스', '원데이', '수강', '레슨', '체험', '취미', 'DIY', '만들기', '교실', '학원', '강좌', '아카데미']
 const CATEGORY_EXCLUDED: Record<string, string[]> = {
     'jewelry': ['반지공방', '커플링체험', '실버', '은반지', '체험공방', '우드링', '악세사리', '도매', '부자재'],
     'studio': ['셀프사진관', '포토부스', '증명사진', '여권사진', '인생네컷', '키즈', '가족사진', '베이비', '우정사진', '프로필'],
@@ -169,7 +169,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category') || 'wedding-hall'
-    const sido = searchParams.get('sido') || '서울'
+    const sidoParam = searchParams.get('sido') || '서울'
+    const sidos = sidoParam.split(',').map(s => s.trim()).filter(Boolean)
     const sigungu = searchParams.get('sigungu') || ''
 
     const clientId = process.env.NAVER_CLIENT_ID || process.env.NEXT_PUBLIC_NAVER_CLIENT_ID
@@ -194,7 +195,6 @@ export async function GET(request: NextRequest) {
 
     const keywords = CATEGORY_QUERIES[category] || ['웨딩홀']
     const relevanceKeywords = CATEGORY_RELEVANCE[category] || []
-    const region = sigungu || sido
 
     // 예산 기반 키워드 보강: 예산이 낮으면 가성비, 높으면 프리미엄 검색어 추가
     if (budget > 0) {
@@ -227,36 +227,39 @@ export async function GET(request: NextRequest) {
     // 3) 서울/경기/인천은 하위 지역 + 종속 키워드 추가
     // ──────────────────────────────────────────────────────────
     const queries: string[] = []
+    const targetRegions = sigungu ? [sigungu] : sidos
 
-    for (const kw of keywords) {
-        // 필터가 존재하면 우선적으로 필터를 조합한 쿼리를 대량 생성 (정확도 & 다양성 극대화)
-        if (filterKeywords.length > 0) {
-            for (const fk of filterKeywords) {
-                // 제외 필터나 너무 긴 문장은 네이버 API 검색이 안될 수 있지만, 단어 단위 필터는 아주 유효함
-                queries.push(`${region} ${fk} ${kw}`)
-                queries.push(`${fk} ${kw} ${region}`)
+    for (const region of targetRegions) {
+        for (const kw of keywords) {
+            // 필터가 존재하면 우선적으로 필터를 조합한 쿼리를 대량 생성 (정확도 & 다양성 극대화)
+            if (filterKeywords.length > 0) {
+                for (const fk of filterKeywords) {
+                    // 제외 필터나 너무 긴 문장은 네이버 API 검색이 안될 수 있지만, 단어 단위 필터는 아주 유효함
+                    queries.push(`${region} ${fk} ${kw}`)
+                    queries.push(`${fk} ${kw} ${region}`)
+                }
             }
+            // 필터가 없거나, 필터 결과가 적을 때를 대비해 기본 쿼리도 추가
+            queries.push(`${region} ${kw}`)
         }
-        // 필터가 없거나, 필터 결과가 적을 때를 대비해 기본 쿼리도 추가
-        queries.push(`${region} ${kw}`)
-    }
 
-    // 역순: keyword + region (네이버 API에서 다른 결과를 반환하는 경우가 많음)
-    const reverseKeywords = keywords.slice(0, Math.ceil(keywords.length / 2))
-    for (const kw of reverseKeywords) {
-        queries.push(`${kw} ${region}`)
-    }
+        // 역순: keyword + region (네이버 API에서 다른 결과를 반환하는 경우가 많음)
+        const reverseKeywords = keywords.slice(0, Math.ceil(keywords.length / 2))
+        for (const kw of reverseKeywords) {
+            queries.push(`${kw} ${region}`)
+        }
 
-    // 하위 지역 보강: 서울/경기/인천 등 광역 단위에서 0건 반환 대비
-    const subRegions = SIDO_SUB_REGIONS[sido]
-    if (subRegions && !sigungu) {
-        const coreKeywords = keywords.slice(0, 3)
-        for (const sub of subRegions) {
-            for (const kw of coreKeywords) {
-                queries.push(`${sub} ${kw}`)
-                // 하위 지역 + 필터 조합도 일부 추가
-                if (filterKeywords.length > 0) {
-                    queries.push(`${sub} ${filterKeywords[0]} ${kw}`)
+        // 하위 지역 보강: 서울/경기/인천 등 광역 단위에서 0건 반환 대비
+        const subRegions = SIDO_SUB_REGIONS[region]
+        if (subRegions && !sigungu) {
+            const coreKeywords = keywords.slice(0, 3)
+            for (const sub of subRegions) {
+                for (const kw of coreKeywords) {
+                    queries.push(`${sub} ${kw}`)
+                    // 하위 지역 + 필터 조합도 일부 추가
+                    if (filterKeywords.length > 0) {
+                        queries.push(`${sub} ${filterKeywords[0]} ${kw}`)
+                    }
                 }
             }
         }
@@ -334,7 +337,7 @@ export async function GET(request: NextRequest) {
             if (title.includes(fkLower) || desc.includes(fkLower)) score += 2
         }
         // 지역명이 주소에 포함되면 가산
-        if (item.address.includes(region) || item.roadAddress.includes(region)) score += 2
+        if (targetRegions.some(reg => item.address.includes(reg) || item.roadAddress.includes(reg))) score += 2
 
         // 온보딩 데이터 기반 AI 매칭 보너스 (압도적 가중치 +5)
         if (budget > 0) {
@@ -389,6 +392,6 @@ export async function GET(request: NextRequest) {
         mapy: item.mapy,
     }))
 
-    const primaryQuery = `${region} ${keywords[0]}`
+    const primaryQuery = `${targetRegions.join(', ')} ${keywords[0]}`
     return NextResponse.json({ places, query: primaryQuery })
 }
