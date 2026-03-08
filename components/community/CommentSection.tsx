@@ -118,14 +118,15 @@ export default function CommentSection({ postId, initialComments, currentUserId,
                                             <button
                                                 onClick={() => handleDelete(comment.id)}
                                                 disabled={isDeleting === comment.id}
-                                                className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                                                className="flex items-center gap-1 text-gray-400 hover:text-red-500 hover:bg-red-50 px-2 py-1 rounded-md transition-colors text-[10px] font-medium"
                                                 title="댓글 삭제"
                                             >
                                                 {isDeleting === comment.id ? (
-                                                    <Loader2 size={14} className="animate-spin" />
+                                                    <Loader2 size={12} className="animate-spin" />
                                                 ) : (
-                                                    <Trash2 size={14} />
+                                                    <Trash2 size={12} />
                                                 )}
+                                                삭제
                                             </button>
                                         )}
                                     </div>

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect, useRef } from 'react'
 import { signOutAction } from '@/actions/auth'
 import { updateWeddingDate } from '@/actions/profile'
+import { joinByInviteCode } from '@/actions/invite'
 import { cn } from '@/lib/utils'
 import { WEDDING_LOCATIONS, SIDO_LIST } from '@/lib/constants/wedding-locations'
 
@@ -21,6 +22,8 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
     const [regionSido, setRegionSido] = useState('')
     const [regionSigungu, setRegionSigungu] = useState('')
     const [inviteCode, setInviteCode] = useState('')
+    const [inputInviteCode, setInputInviteCode] = useState('')
+    const [isJoining, setIsJoining] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
     const [copied, setCopied] = useState(false)
@@ -92,6 +95,42 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
         }
         setIsUpdating(false)
         setIsProfileOpen(false)
+    }
+
+    const handleJoinPartner = async () => {
+        if (!inputInviteCode.trim()) {
+            alert('초대 코드를 입력해주세요.')
+            return
+        }
+        setIsJoining(true)
+
+        try {
+            // 먼저 일반적인 연결 시도
+            const result = await joinByInviteCode(inputInviteCode, false)
+
+            if (result?.error === 'ALREADY_IN_GROUP') {
+                const proceed = window.confirm(result.message || '현재 데이터를 삭제하고 연결하시겠습니까?')
+                if (proceed) {
+                    const forceResult = await joinByInviteCode(inputInviteCode, true)
+                    if (forceResult?.error) {
+                        alert(forceResult.error)
+                    } else {
+                        alert('파트너와 연결되었습니다!')
+                        window.location.reload() // 리로드하여 새 데이터 반영
+                    }
+                }
+            } else if (result?.error) {
+                alert(result.error)
+            } else {
+                alert('파트너와 연결되었습니다!')
+                window.location.reload() // 리로드하여 새 데이터 반영
+            }
+        } catch (error) {
+            console.error('Join partner error:', error)
+            alert('파트너 연결 중 오류가 발생했습니다.')
+        } finally {
+            setIsJoining(false)
+        }
     }
 
     const copyInviteCode = async () => {
@@ -262,7 +301,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                         type="text"
                                         value={nickname}
                                         onChange={(e) => setNickname(e.target.value)}
-                                        placeholder="닉네임을 입력하세요"
+                                        placeholder={displayName !== '👑관리자' && displayName ? displayName : "닉네임을 입력하세요"}
                                         className="w-full bg-indigo-50/50 border-2 border-indigo-100 rounded-[14px] px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
                                     />
                                 </div>
@@ -338,6 +377,33 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
                                         </button>
                                     </div>
                                     <p className="text-[11px] text-gray-400 mt-2 ml-1">이 코드를 파트너에게 공유하여 함께 관리하세요</p>
+                                </div>
+
+                                {/* Join Partner with Code */}
+                                <div className="pt-2 border-t border-indigo-100/50">
+                                    <label className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-2">
+                                        <Users size={12} className="text-indigo-400" />
+                                        초대 코드로 연결하기
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={inputInviteCode}
+                                            onChange={(e) => setInputInviteCode(e.target.value.toUpperCase())}
+                                            placeholder="전달받은 초대 코드 입력"
+                                            className="flex-1 bg-indigo-50/50 border-2 border-indigo-100 rounded-[14px] px-4 py-3 text-sm text-gray-800 outline-none transition-all focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 uppercase"
+                                            maxLength={8}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleJoinPartner}
+                                            disabled={isJoining || !inputInviteCode.trim()}
+                                            className="px-4 py-3 rounded-[14px] border-none bg-indigo-100 text-indigo-600 font-bold hover:bg-indigo-200 transition-all disabled:opacity-50 whitespace-nowrap text-sm"
+                                        >
+                                            {isJoining ? '연결 중...' : '연결'}
+                                        </button>
+                                    </div>
+                                    <p className="text-[11px] text-gray-400 mt-2 ml-1">초대 코드를 입력하면 현재 데이터는 삭제되고 파트너의 데이터로 덮어써집니다.</p>
                                 </div>
 
                                 {/* Submit Button */}

@@ -49,7 +49,7 @@ export async function generateInviteCode() {
  * - 입력받은 초대 코드의 소유자를 찾아 같은 wedding_group으로 연결
  * - 두 유저의 데이터(체크리스트, 일정 등)가 공유됨
  */
-export async function joinByInviteCode(inviteCode: string) {
+export async function joinByInviteCode(inviteCode: string, forceOverwrite: boolean = false) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -67,9 +67,9 @@ export async function joinByInviteCode(inviteCode: string) {
         .eq('id', user.id)
         .single()
 
-    // 이미 그룹에 속한 유저가 다른 그룹에 참여 시 차단
-    if (myProfile?.wedding_group_id) {
-        return { error: '이미 파트너와 연결되어 있습니다. 기존 연결을 해제한 후 다시 시도해주세요.' }
+    // 이미 그룹에 속한 유저가 다른 그룹에 참여 시 차단 (강제 덮어쓰기 허용 시 패스)
+    if (myProfile?.wedding_group_id && !forceOverwrite) {
+        return { error: 'ALREADY_IN_GROUP', message: '이미 파트너와 연결되어 있습니다. 기존 데이터를 삭제하고 다시 연결하시겠습니까?' }
     }
 
     // 1. 초대 코드 소유자 찾기

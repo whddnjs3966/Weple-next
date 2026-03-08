@@ -217,6 +217,11 @@
   }
 
   /* ─── React Quill Viewer Overrides for Tailwind ─── */
+  .ql-editor p {
+    line-height: 1.1 !important;
+    margin-bottom: 1rem !important;
+  }
+
   .ql-editor p:empty::before {
     content: '\00a0';
     /* 빈 줄(엔터) 높이 유지 */

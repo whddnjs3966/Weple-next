@@ -65,7 +65,7 @@ function LoginPageContent() {
                     <div className="relative bg-white p-3 pb-12 rounded-xl shadow-xl transform rotate-[2deg] transition-transform duration-500 hover:rotate-0 z-10">
                         <div className="relative aspect-[3/4] overflow-hidden rounded-lg">
                             <Image
-                                src="/images/login_bouquet.jpg"
+                                src="/images/login_floral_bouquet_v2.png"
                                 alt="Wedding Bouquet"
                                 fill
                                 className="object-cover hover:scale-105 transition-transform duration-700"
@@ -94,7 +94,7 @@ function LoginPageContent() {
                 >
                     <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg">
                         <Image
-                            src="/images/login_bouquet.jpg"
+                            src="/images/login_floral_bouquet_v2.png"
                             alt="Wedding Bouquet"
                             fill
                             className="object-cover"
