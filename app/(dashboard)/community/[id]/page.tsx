@@ -8,6 +8,8 @@ import sanitizeHtml from 'sanitize-html'
 import 'react-quill-new/dist/quill.snow.css'
 import { createClient } from '@/lib/supabase/server'
 
+import CommentSection from '@/components/community/CommentSection'
+
 export default async function PostDetailPage({
     params,
 }: {
@@ -44,12 +46,6 @@ export default async function PostDetailPage({
         },
         allowedSchemes: ['http', 'https', 'data'],
     })
-
-    // Simplified Comment Action for inline use
-    async function submitComment(formData: FormData) {
-        'use server'
-        await createComment(formData)
-    }
 
     async function removePost() {
         'use server'
@@ -117,53 +113,17 @@ export default async function PostDetailPage({
                 </div>
 
                 <div className="p-8 min-h-[300px] ql-snow">
-                    <div className="ql-editor !p-0 text-gray-700 leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-3" dangerouslySetInnerHTML={{ __html: safeContent }} />
+                    <div className="ql-editor !p-0 text-gray-700 leading-loose [&_p]:mb-2 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-3" dangerouslySetInnerHTML={{ __html: safeContent }} />
                 </div>
             </div>
 
             {/* Comments Section */}
-            <div className="bg-white/50 backdrop-blur-md rounded-[24px] p-8 border border-white/50 shadow-sm">
-                <h3 className="font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    댓글 <span className="text-primary">{comments.length}</span>
-                </h3>
-
-                {/* List */}
-                <div className="space-y-6 mb-8">
-                    {comments.map(comment => (
-                        <div key={comment.id} className="flex gap-3">
-                            <div className="w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-400 flex-shrink-0">
-                                <User size={14} />
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="font-bold text-xs text-gray-800">{comment.author?.role === 'admin' ? '👑관리자' : (comment.author?.username || comment.author?.full_name || '익명')}</span>
-                                    <span className="text-[10px] text-gray-400">{format(new Date(comment.created_at), 'yyyy/MM/dd')}</span>
-                                </div>
-                                <p className="text-sm text-gray-600 bg-white p-3 rounded-xl border border-gray-100 shadow-sm">
-                                    {comment.content}
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Form */}
-                <form action={submitComment} className="relative">
-                    <input type="hidden" name="post_id" value={post.id} />
-                    <textarea
-                        name="content"
-                        className="w-full h-24 bg-white/60 backdrop-blur-sm border border-white/50 rounded-xl p-4 text-sm focus:ring-2 focus:ring-pink-300/50 focus:border-pink-300 outline-none resize-none shadow-sm transition-all placeholder-gray-400"
-                        placeholder="댓글을 남겨보세요..."
-                        required
-                    ></textarea>
-                    <button
-                        type="submit"
-                        className="absolute bottom-3 right-3 px-4 py-1.5 bg-gradient-to-r from-pink-400 to-rose-400 text-white text-xs font-bold rounded-lg hover:shadow-lg hover:shadow-pink-300/30 hover:-translate-y-0.5 transition-all focus:ring-2 focus:ring-offset-2 focus:ring-pink-300"
-                    >
-                        등록
-                    </button>
-                </form>
-            </div>
+            <CommentSection
+                postId={id}
+                initialComments={comments}
+                currentUserId={user?.id || null}
+                isAdmin={isAdmin}
+            />
 
         </div>
     )

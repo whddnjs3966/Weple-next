@@ -234,3 +234,37 @@ export async function deletePost(id: string) {
     revalidatePath('/community')
     return { success: true }
 }
+
+export async function deleteComment(id: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
+    // RLS 대신 어드민 클라이언트로 삭제 (이미 서버에서 검증)
+    const adminClient = createAdminClient()
+
+    // 댓글 정보와 유저 역할 확인
+    const [{ data: comment }, { data: profile }] = await Promise.all([
+        adminClient.from('comments').select('user_id, post_id').eq('id', id).single(),
+        supabase.from('profiles').select('role').eq('id', user.id).single(),
+    ])
+
+    if (!comment) return { error: '댓글을 찾을 수 없습니다.' }
+
+    const isAdmin = profile?.role === 'admin'
+    const isOwner = comment.user_id === user.id
+
+    if (!isAdmin && !isOwner) {
+        return { error: '삭제 권한이 없습니다.' }
+    }
+
+    const { error } = await adminClient
+        .from('comments')
+        .delete()
+        .eq('id', id)
+
+    if (error) return { error: error.message }
+
+    revalidatePath(`/community/${comment.post_id}`)
+    return { success: true }
+}
