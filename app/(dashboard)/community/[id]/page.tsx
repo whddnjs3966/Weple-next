@@ -113,7 +113,7 @@ export default async function PostDetailPage({
                 </div>
 
                 <div className="p-8 min-h-[300px] ql-snow">
-                    <div className="ql-editor !p-0 text-gray-700 leading-loose [&_p]:mb-2 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-3" dangerouslySetInnerHTML={{ __html: safeContent }} />
+                    <div className="ql-editor !p-0 text-gray-700 leading-[2.2] [&_p]:mb-4 [&_p:last-child]:mb-0 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-3" dangerouslySetInnerHTML={{ __html: safeContent }} />
                 </div>
             </div>
 

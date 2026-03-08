@@ -118,7 +118,7 @@ export default function CommentSection({ postId, initialComments, currentUserId,
                                             <button
                                                 onClick={() => handleDelete(comment.id)}
                                                 disabled={isDeleting === comment.id}
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 p-1"
+                                                className="text-gray-400 hover:text-red-500 p-1 transition-colors"
                                                 title="댓글 삭제"
                                             >
                                                 {isDeleting === comment.id ? (
