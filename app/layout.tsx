@@ -28,10 +28,10 @@ const cinzel = Cinzel({
 export const metadata: Metadata = {
   metadataBase: new URL('https://wepln.com'),
   title: {
-    default: "WEPLN - 나만의 웨딩플래너",
+    default: "WEPLN 💍 설레는 결혼 준비, 나만의 웨딩플래너",
     template: "%s | WEPLN"
   },
-  description: "당신만의 완벽한 웨딩을 위한 스마트 플래너. 예산 관리부터 일정 체크까지 한 번에 해결하세요.",
+  description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
   keywords: ["웨딩", "웨딩플래너", "결혼준비", "가계부", "결혼일정", "스드메", "Wepln", "위플랜"],
   authors: [{ name: "Wepln Team" }],
   creator: "Wepln Team",
@@ -42,8 +42,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   openGraph: {
-    title: "WEPLN - 나만의 웨딩플래너",
-    description: "당신만의 완벽한 웨딩을 위한 스마트 플래너. 예산 관리부터 일정 체크까지 한 번에 해결하세요.",
+    title: "WEPLN 💍 설레는 결혼 준비, 나만의 웨딩플래너",
+    description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
     url: "https://wepln.com",
     siteName: "WEPLN",
     images: [
@@ -70,8 +70,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wepln - 당신만의 완벽한 웨딩 플래너",
-    description: "당신만의 완벽한 웨딩을 위한 스마트 플래너",
+    title: "WEPLN 💍 설레는 결혼 준비, 나만의 웨딩플래너",
+    description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
     images: ["/og-image.png"],
   },
   // If you ever need Naver-specific meta tags for site verification 
