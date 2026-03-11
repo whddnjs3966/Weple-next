@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import CommunityClient from "@/components/community/CommunityClient";
 import { getPosts, type Post } from "@/actions/community";
+
+export const metadata: Metadata = {
+    title: '커뮤니티 - 결혼 준비 이야기',
+    description: '예비 신랑신부들의 결혼 준비 이야기를 나누세요. 웨딩 팁, 후기, 질문을 자유롭게 공유합니다.',
+}
 
 export default async function CommunityPage() {
     // 초기 데이터 로드 (전체 보기)

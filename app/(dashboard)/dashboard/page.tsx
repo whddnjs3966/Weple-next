@@ -1,3 +1,4 @@
+import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { differenceInDays } from "date-fns"
@@ -7,6 +8,11 @@ import Link from "next/link"
 import { getInviteCode } from "@/actions/settings"
 import { getBudgetSummary } from "@/actions/budget"
 import DashboardGrid from "@/components/dashboard/DashboardGrid"
+
+export const metadata: Metadata = {
+    title: '대시보드 - 결혼 준비 현황',
+    description: 'D-Day 카운트다운, 체크리스트 진행률, 예산 현황을 한눈에 확인하세요.',
+}
 
 export default async function Dashboard() {
     const supabase = await createClient()
@@ -100,10 +106,13 @@ export default async function Dashboard() {
             {/* Dashboard-only: Dark Elegant Background */}
             <div className="fixed inset-0 bg-[#0f1015]">
                 {/* 웨딩 사진 - 은은하게 */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                     src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
                     alt="Wedding Background"
                     className="absolute inset-0 w-full h-full object-cover opacity-[0.08]"
+                    loading="lazy"
+                    decoding="async"
                     style={{ animation: 'slow-zoom 20s infinite alternate ease-in-out' }}
                 />
                 {/* 어두운 그라디언트 오버레이 */}

@@ -1,8 +1,14 @@
+import { Metadata } from 'next'
 import Navbar from '@/components/Navbar'
 import Providers from './Providers'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Instagram } from 'lucide-react'
+
+export const metadata: Metadata = {
+    title: '대시보드',
+    description: '결혼 준비 현황을 한눈에 확인하세요. D-Day, 체크리스트, 예산 관리, 일정을 커플이 함께 관리하는 WEPLN 웨딩플래너.',
+}
 
 export default async function DashboardLayout({
     children,
@@ -36,10 +42,13 @@ export default async function DashboardLayout({
             <div className="min-h-screen relative">
                 {/* Fixed Background with Wedding Photo & Gradient Overlay */}
                 <div className="fixed inset-0 z-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80"
                         alt="Wedding Background"
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                     />
                     <div
                         className="absolute inset-0"

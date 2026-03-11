@@ -49,14 +49,6 @@ export const metadata: Metadata = {
     description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
     url: "https://wepln.com",
     siteName: "WEPLN",
-    images: [
-      {
-        url: "/og-image.png", // Will need to make sure this image exists or change it later
-        width: 1200,
-        height: 630,
-        alt: "Wepln - 웨딩 플래너 Preview",
-      },
-    ],
     locale: "ko_KR",
     type: "website",
   },
@@ -75,7 +67,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "WEPLN 💍 설레는 결혼 준비, 나만의 웨딩플래너",
     description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
-    images: ["/og-image.png"],
+    // opengraph-image.tsx가 자동으로 이미지를 생성합니다
   },
   verification: {
     google: "구글과 네이버 서치콘솔에서 발급받은 코드를 여기에 입력하세요", // TODO: Replace with actual Google verification code
@@ -97,6 +89,23 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${cormorant.variable} ${dancingScript.variable} ${cinzel.variable} antialiased`}>
       <body className="font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "WEPLN",
+              "alternateName": "위플랜",
+              "url": "https://wepln.com",
+              "logo": "https://wepln.com/opengraph-image",
+              "sameAs": [
+                "https://instagram.com/wepln_for_all"
+              ],
+              "description": "설레는 결혼 준비, 나만의 모바일 웨딩플래너. 일정, 예산, 체크리스트, AI 업체 추천을 커플이 함께 관리합니다."
+            })
+          }}
+        />
         <InAppBrowserBlocker />
         <AnalyticsTracker />
         <SessionGuard />

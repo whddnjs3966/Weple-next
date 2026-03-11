@@ -6,15 +6,53 @@ export const metadata: Metadata = {
     title: '결혼 준비 가이드 | 무료 모바일 웨딩플래너 WEPLN',
     description: '웨딩플래너 없이도 완벽한 결혼 준비! 상견례, 웨딩홀 투어부터 스드메 체크리스트까지 WEPLN(위플랜) 가이드와 함께 똑똑하고 스마트하게 예산을 관리하며 결혼을 준비하세요.',
     keywords: ['결혼준비', '웨딩플래너', '모바일 웨딩플래너', '결혼체크리스트', '결혼예산', '결혼 준비 엑셀'],
+    alternates: {
+        canonical: 'https://wepln.com/guides',
+    },
     openGraph: {
         title: '스마트한 모바일 웨딩플래너 WEPLN 가이드',
         description: '결혼 준비 엑셀 대신 WEPLN 어플리케이션으로 커플이 함께 완벽한 결혼을 다이렉트로 준비하세요.',
     }
 }
 
+const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "웨딩플래너 없이 결혼 준비할 수 있나요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "네, WEPLN 모바일 웨딩플래너를 사용하면 일정 관리, 예산 관리, 체크리스트, AI 업체 추천까지 스마트폰 하나로 결혼 준비가 가능합니다."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "결혼 준비 엑셀 대신 사용할 수 있는 앱이 있나요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "WEPLN은 결혼 준비 엑셀을 대체하는 모바일 웨딩플래너입니다. D-Day 기반 자동 일정 관리, 커플 동기화, 예산 관리 기능을 제공합니다."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "커플이 함께 결혼 준비를 관리할 수 있나요?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "네, WEPLN의 초대 코드 기능으로 파트너를 초대하면 체크리스트와 예산을 실시간으로 공유하며 함께 관리할 수 있습니다."
+            }
+        }
+    ]
+}
+
 export default function WeddingGuidePage() {
     return (
         <div className="min-h-screen bg-[#FCFAF6] font-sans text-gray-800 pb-20">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+            />
 
             {/* ─────────────────────────────────────────────
           헤더 및 네비게이션 간이 버전

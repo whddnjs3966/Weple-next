@@ -1,3 +1,4 @@
+import { Metadata } from 'next'
 import { getPost, getComments, createComment, deletePost } from '@/actions/community'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -9,6 +10,32 @@ import 'react-quill-new/dist/quill.snow.css'
 import { createClient } from '@/lib/supabase/server'
 
 import CommentSection from '@/components/community/CommentSection'
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>
+}): Promise<Metadata> {
+    const { id } = await params
+    const post = await getPost(id)
+
+    if (!post) {
+        return { title: '게시글을 찾을 수 없습니다' }
+    }
+
+    const plainContent = post.content.replace(/<[^>]+>/g, '').slice(0, 160)
+
+    return {
+        title: post.title,
+        description: plainContent || '위플랜 커뮤니티 게시글',
+        openGraph: {
+            title: post.title,
+            description: plainContent || '위플랜 커뮤니티 게시글',
+            type: 'article',
+            publishedTime: post.created_at,
+        },
+    }
+}
 
 export default async function PostDetailPage({
     params,

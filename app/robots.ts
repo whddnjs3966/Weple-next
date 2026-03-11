@@ -6,8 +6,8 @@ export default function robots(): MetadataRoute.Robots {
     return {
         rules: {
             userAgent: '*',
-            allow: ['/', '/login', '/signup', '/naver*', '/guides'], // Include naver verification files and seo guides
-            disallow: ['/dashboard/', '/onboarding/', '/api/', '/auth/'], // Protect private routes
+            allow: ['/', '/login', '/signup', '/naver*', '/guides', '/community/', '/places/'], // Public SEO pages
+            disallow: ['/dashboard/', '/onboarding/', '/api/', '/auth/', '/admin/', '/community/write', '/community/new'], // Protect private routes
         },
         sitemap: `${baseUrl}/sitemap.xml`,
     }

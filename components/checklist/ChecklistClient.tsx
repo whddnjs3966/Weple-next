@@ -243,6 +243,18 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
 
     const dateModalTask = tasks.find(t => t.id === dateModalTaskId)
 
+    // AI 체크리스트에서 추가된 항목인지 title 매칭으로 판별
+    const aiTitles = new Set<string>()
+    AI_CHECKLIST_SECTIONS.forEach(section => {
+        section.items.forEach(item => {
+            aiTitles.add(item.title)
+        })
+    })
+    const isAiAdded = (title: string) => aiTitles.has(title)
+
+    // 모바일 예산 편집 상태
+    const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null)
+
     return (
         <div className="max-w-6xl mx-auto px-3 sm:px-6 pb-20">
             {/* Header */}
@@ -411,7 +423,7 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                                                     exit={{ opacity: 0, x: -20 }}
                                                     transition={{ delay: index * 0.02 }}
                                                     layout
-                                                    className={`border-b border-gray-200 transition-colors group ${task.isDone ? 'bg-gray-50/40' : 'hover:bg-pink-50/20'}`}
+                                                    className={`border-b border-gray-200 transition-colors group ${task.isDone ? 'bg-gray-50/40' : 'hover:bg-pink-50/20'} ${isAiAdded(task.title) && !task.isDone ? 'border-l-[3px] border-l-violet-400 bg-violet-50/20' : ''}`}
                                                 >
                                                     <td className="py-3 px-2 text-center">
                                                         <input
@@ -434,10 +446,68 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                                                                     <Heart size={8} fill="currentColor" /> 파트너
                                                                 </span>
                                                             )}
+                                                            {isAiAdded(task.title) && (
+                                                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-500 text-[9px] font-bold border border-violet-200" title="AI 추천으로 추가됨">
+                                                                    <Sparkles size={8} /> AI
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         {task.description && (
                                                             <p className="text-[11px] text-gray-400 mt-0.5 leading-relaxed">{task.description}</p>
                                                         )}
+                                                        {/* 모바일 예산 + 일정 인라인 표시 */}
+                                                        <div className="sm:hidden mt-1.5 flex items-center gap-2 flex-wrap">
+                                                            {editingBudgetId === task.id ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    <input
+                                                                        type="text"
+                                                                        inputMode="numeric"
+                                                                        value={task.estimatedBudget > 0 ? task.estimatedBudget.toLocaleString() : ''}
+                                                                        onChange={(e) => updateBudget(task.id, e.target.value)}
+                                                                        placeholder="0"
+                                                                        className="w-24 text-right text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg px-2 py-1.5 outline-none focus:border-pink-400 focus:ring-2 focus:ring-pink-100 placeholder-gray-300"
+                                                                        autoFocus
+                                                                    />
+                                                                    <span className="text-[11px] text-gray-400">원</span>
+                                                                    <button
+                                                                        onClick={() => { saveBudget(task.id); setEditingBudgetId(null); }}
+                                                                        className="w-7 h-7 rounded-md bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-500 active:bg-emerald-100"
+                                                                    >
+                                                                        <Save size={12} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setEditingBudgetId(null)}
+                                                                        className="w-7 h-7 rounded-md bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 active:bg-gray-100"
+                                                                    >
+                                                                        <X size={12} />
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => setEditingBudgetId(task.id)}
+                                                                    className="text-[11px] text-gray-400 flex items-center gap-1 px-1.5 py-0.5 rounded-md hover:bg-gray-50 active:bg-gray-100"
+                                                                >
+                                                                    💰 {task.estimatedBudget > 0 ? `${task.estimatedBudget.toLocaleString()}원` : '예산 입력'}
+                                                                </button>
+                                                            )}
+                                                            {task.scheduledDate ? (
+                                                                <button
+                                                                    onClick={() => openDateModal(task.id)}
+                                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 active:bg-emerald-100"
+                                                                >
+                                                                    <Calendar size={11} />
+                                                                    {task.scheduledDate.slice(5).replace('-', '/')}
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => openDateModal(task.id)}
+                                                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold bg-pink-50 text-pink-400 border border-pink-100 active:bg-pink-100"
+                                                                >
+                                                                    <Calendar size={11} />
+                                                                    일정 등록
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="hidden sm:table-cell py-3 px-2">
                                                         <div className="flex items-center gap-1 justify-center">
@@ -480,12 +550,12 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                                                         <button
                                                             onClick={() => toggleStatus(task.id)}
                                                             disabled={isToggling === task.id}
-                                                            className="transition-all hover:scale-110 disabled:opacity-50"
+                                                            className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-50"
                                                         >
                                                             {task.isDone ? (
-                                                                <CheckCircle size={20} className="text-emerald-500" />
+                                                                <CheckCircle size={24} className="text-emerald-500" />
                                                             ) : (
-                                                                <Circle size={20} className="text-gray-200 hover:text-pink-300" />
+                                                                <Circle size={24} className="text-gray-300 hover:text-pink-300" />
                                                             )}
                                                         </button>
                                                     </td>

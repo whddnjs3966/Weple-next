@@ -1,7 +1,34 @@
+import { Metadata } from 'next'
 import { getPlaceById } from '@/actions/places'
 import { ArrowLeft, MapPin, Star, Phone, Globe, Clock, ThumbsUp, ThumbsDown } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ id: string }>
+}): Promise<Metadata> {
+    const { id } = await params
+    const place = await getPlaceById(Number(id))
+
+    if (!place) {
+        return { title: '업체를 찾을 수 없습니다' }
+    }
+
+    const categoryName = place.category?.name || '웨딩 업체'
+    const region = [place.region_sido, place.region_sigungu].filter(Boolean).join(' ')
+
+    return {
+        title: `${place.name} - ${categoryName}`,
+        description: `${region} ${categoryName} ${place.name}의 상세 정보, 리뷰, 위치를 확인하세요.`,
+        openGraph: {
+            title: `${place.name} - ${categoryName} | WEPLN`,
+            description: `${region} ${categoryName} ${place.name}의 상세 정보와 리뷰를 확인하세요.`,
+            ...(place.image_url && { images: [{ url: place.image_url }] }),
+        },
+    }
+}
 
 export default async function PlaceDetailPage({
     params,
