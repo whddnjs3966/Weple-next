@@ -189,7 +189,25 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-[#FCFAF6] font-sans text-gray-800 relative selection:bg-rose-200">
-
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "WEPLN",
+            "applicationCategory": "LifestyleApplication",
+            "operatingSystem": "Web",
+            "description": "설레는 결혼 준비, 나만의 모바일 웨딩플래너. 복잡한 예산 관리부터 꼼꼼한 일정 체크까지 커플이 함께 관리해요.",
+            "url": "https://wepln.com",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "KRW"
+            }
+          })
+        }}
+      />
       {/* Shimmer keyframe */}
       <style jsx global>{`
         @keyframes shimmer-sweep {
@@ -243,7 +261,7 @@ export default function LandingPage() {
         >
           <Image
             src="/images/landing_bg.png"
-            alt="Wedding scene"
+            alt="결혼 준비 필수 웨딩플래너 위플랜"
             fill
             className="object-cover object-center"
             priority
@@ -280,7 +298,7 @@ export default function LandingPage() {
               결혼 준비의 모든 것,
               <br />
               <span className="relative text-[#BA9776]">
-                Wepln 하나로
+                웨딩플래너 Wepln 하나로
                 <DiamondSparkle className="w-3 h-3 -top-1 -right-4 text-amber-400" delay={1} />
               </span>
             </motion.h1>
@@ -330,7 +348,7 @@ export default function LandingPage() {
               FEATURES
             </span>
             <h2 className="text-3xl md:text-[2rem] font-bold text-gray-800 tracking-tight">
-              어떤 기능이 있나요?
+              스마트한 웨딩플래너 주요 기능
             </h2>
           </div>
 
@@ -503,9 +521,9 @@ export default function LandingPage() {
                     <br />
                     최적의 웨딩홀·스드메 업체를 추천해드려요.
                     <br />
-                    수백 개의 업체 중 나에게 맞는 곳을
+                    수백 개의 업체 중 우리 커플에게 맞는 곳을
                     <br />
-                    한눈에 비교하고 바로 찜해보세요.
+                    웨딩플래너처럼 한눈에 비교하고 찜해보세요.
                   </p>
 
                   {/* Category tags */}
@@ -573,7 +591,7 @@ export default function LandingPage() {
               이런 커플에게 딱
             </span>
             <h2 className="text-3xl md:text-[2rem] font-bold text-gray-800 tracking-tight">
-              이런 고민, 있으신가요?
+              결혼 준비, 이런 고민 있으신가요?
             </h2>
           </div>
 
@@ -653,7 +671,7 @@ export default function LandingPage() {
           <span className="text-[12px] font-bold tracking-[2px] text-[#BA9776] uppercase mb-2 block font-serif">
             HOW IT WORKS
           </span>
-          <h2 className="text-3xl font-bold text-gray-800 tracking-tight mb-20">3단계로 시작하세요</h2>
+          <h2 className="text-3xl font-bold text-gray-800 tracking-tight mb-20">웨딩플래너 위플랜, 3단계로 시작하세요</h2>
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4 relative">
             {/* Connecting line (desktop) */}

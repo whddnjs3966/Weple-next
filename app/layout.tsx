@@ -41,6 +41,9 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  alternates: {
+    canonical: 'https://wepln.com',
+  },
   openGraph: {
     title: "WEPLN 💍 설레는 결혼 준비, 나만의 웨딩플래너",
     description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
@@ -74,13 +77,12 @@ export const metadata: Metadata = {
     description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
     images: ["/og-image.png"],
   },
-  // If you ever need Naver-specific meta tags for site verification 
-  // without relying solely on the HTML file method:
-  // verification: {
-  //   other: {
-  //     "naver-site-verification": ["YOUR_VERIFICATION_CODE_HERE"]
-  //   }
-  // }
+  verification: {
+    google: "구글과 네이버 서치콘솔에서 발급받은 코드를 여기에 입력하세요", // TODO: Replace with actual Google verification code
+    other: {
+      "naver-site-verification": ["네이버 서치어드바이저 코드를 여기에 입력하세요"] // TODO: Replace with actual Naver verification code
+    }
+  }
 };
 
 import SessionGuard from '@/components/SessionGuard'

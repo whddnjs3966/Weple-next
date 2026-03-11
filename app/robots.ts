@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     return {
         rules: {
             userAgent: '*',
-            allow: ['/', '/login', '/signup', '/naver*'], // Include naver verification files
+            allow: ['/', '/login', '/signup', '/naver*', '/guides'], // Include naver verification files and seo guides
             disallow: ['/dashboard/', '/onboarding/', '/api/', '/auth/'], // Protect private routes
         },
         sitemap: `${baseUrl}/sitemap.xml`,
