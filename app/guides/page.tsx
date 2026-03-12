@@ -4,7 +4,7 @@ import { CheckCircle2, HeartHandshake, Sparkles } from 'lucide-react'
 
 export const metadata: Metadata = {
     title: '결혼 준비 가이드 | 무료 모바일 웨딩플래너 WEPLN',
-    description: '웨딩플래너 없이도 완벽한 결혼 준비! 상견례, 웨딩홀 투어부터 스드메 체크리스트까지 WEPLN(위플랜) 가이드와 함께 똑똑하고 스마트하게 예산을 관리하며 결혼을 준비하세요.',
+    description: '웨딩플래너 없이도 완벽한 결혼 준비! 상견례, 웨딩홀 투어부터 스드메 체크리스트까지 위플(WEPLN) 가이드와 함께 똑똑하고 스마트하게 예산을 관리하며 결혼을 준비하세요.',
     keywords: ['결혼준비', '웨딩플래너', '모바일 웨딩플래너', '결혼체크리스트', '결혼예산', '결혼 준비 엑셀'],
     alternates: {
         canonical: 'https://wepln.com/guides',
@@ -82,11 +82,11 @@ export default function WeddingGuidePage() {
                     </div>
                     <h1 className="text-3xl sm:text-4xl md:text-[2.5rem] font-bold text-gray-800 mb-6 tracking-tight leading-snug">
                         스마트한 모바일 웨딩플래너,<br />
-                        <span className="text-[#BA9776]">위플랜(WEPLN)</span> 활용 완벽 가이드
+                        <span className="text-[#BA9776]">위플(WEPLN)</span> 활용 완벽 가이드
                     </h1>
                     <p className="text-gray-600 text-[16px] sm:text-[18px] leading-[1.7] break-keep font-medium">
                         복잡한 결혼 준비 엑셀은 이제 그만!<br className="hidden sm:block" />
-                        위플랜 앱 하나로 예비 부부가 함께 똑똑하게 결혼을 준비하는 방법을 안내합니다.
+                        위플(WEPLN) 앱 하나로 예비 부부가 함께 똑똑하게 결혼을 준비하는 방법을 안내합니다.
                     </p>
                 </header>
 
@@ -100,9 +100,9 @@ export default function WeddingGuidePage() {
                         그래서 탄생한 것이 바로 <strong>모바일 웨딩플래너 어플 WEPLN</strong>입니다. 당신의 스마트폰 속에 언제나 함께하는 웨딩플래너로, 시공간의 제약 없이 언제 어디서나 결혼 준비의 모든 것을 체크할 수 있습니다.
                     </p>
 
-                    <h2>2. 엑셀파일을 대체하는 위플랜의 스마트한 기능</h2>
+                    <h2>2. 엑셀파일을 대체하는 위플(WEPLN)의 스마트한 기능</h2>
                     <p>
-                        인터넷 커뮤니티에서 구한 복잡한 '결혼준비 엑셀', 모바일에서 열어보기 힘들고 파트너와 동기화도 안 되셨나요? 위플랜은 다음과 같은 기능으로 결혼 준비의 피로도를 낮춥니다.
+                        인터넷 커뮤니티에서 구한 복잡한 '결혼준비 엑셀', 모바일에서 열어보기 힘들고 파트너와 동기화도 안 되셨나요? 위플(WEPLN)은 다음과 같은 기능으로 결혼 준비의 피로도를 낮춥니다.
                     </p>
 
                     <ul className="list-none space-y-6 pl-0 my-8">
@@ -135,7 +135,7 @@ export default function WeddingGuidePage() {
 
                     <h2>4. 더 이상 혼자 준비하지 마세요!</h2>
                     <p>
-                        결혼 준비 과정이 스트레스가 아니라 설레는 여정이 될 수 있도록 <strong>모바일 웨딩플래너 위플랜</strong>이 가장 든든한 조력자가 되겠습니다.
+                        결혼 준비 과정이 스트레스가 아니라 설레는 여정이 될 수 있도록 <strong>모바일 웨딩플래너 위플(WEPLN)</strong>이 가장 든든한 조력자가 되겠습니다.
                     </p>
                     <p className="flex items-center gap-2 font-bold text-[#BA9776]">
                         <HeartHandshake className="text-[#E07A84]" /> 당신의 아름다운 출발을 응원합니다.
@@ -152,7 +152,7 @@ export default function WeddingGuidePage() {
                     <div className="absolute bottom-6 left-8 text-rose-200 opacity-50">✨</div>
 
                     <h2 className="text-2xl font-bold text-gray-800 mb-4 tracking-tight">
-                        지금 위플랜과 함께 결혼 준비를 시작하세요
+                        지금 위플(WEPLN)과 함께 결혼 준비를 시작하세요
                     </h2>
                     <p className="text-gray-600 font-medium mb-8 text-[15px] break-keep max-w-md mx-auto">
                         웨딩 일정, 체크리스트, 예산 관리를 커플과 함께 공유하며 스마트하게 시작해 보세요!
@@ -165,7 +165,7 @@ export default function WeddingGuidePage() {
                             background: 'linear-gradient(135deg, #D4B896 0%, #C4A07A 40%, #BA9776 70%, #B08A6A 100%)',
                         }}
                     >
-                        무료로 위플랜 시작하기
+                        무료로 위플(WEPLN) 시작하기
                     </Link>
                 </section>
 

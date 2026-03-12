@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     template: "%s | WEPLN"
   },
   description: "당신의 가장 빛나는 순간을 위한 스마트 플래너예요 ✨ 복잡한 예산 관리부터 꼼꼼한 일정 체크까지, WEPLN과 함께 편안하고 행복하게 준비해 보세요 💖",
-  keywords: ["웨딩", "웨딩플래너", "결혼준비", "가계부", "결혼일정", "스드메", "Wepln", "위플랜"],
+  keywords: ["웨딩", "웨딩플래너", "결혼준비", "가계부", "결혼일정", "스드메", "Wepln", "위플", "WEPLN"],
   authors: [{ name: "Wepln Team" }],
   creator: "Wepln Team",
   publisher: "Wepln",
@@ -96,7 +96,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "WEPLN",
-              "alternateName": "위플랜",
+              "alternateName": "위플(WEPLN)",
               "url": "https://wepln.com",
               "logo": "https://wepln.com/opengraph-image",
               "sameAs": [

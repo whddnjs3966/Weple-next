@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Star, Users, MessageSquare, Search, Trash2, Crown, X, CheckCircle2, MapPin, BarChart3 } from 'lucide-react'
+import { Star, Users, MessageSquare, Search, Trash2, Crown, X, CheckCircle2, MapPin, BarChart3, UserCircle, ChevronDown, ChevronUp, Clock } from 'lucide-react'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell
 } from 'recharts'
 import type { Place } from '@/actions/places'
-import type { AdminMember, AnalyticsData } from '@/actions/admin'
+import type { AdminMember, AnalyticsData, UserAnalyticsData } from '@/actions/admin'
 
 type Post = {
     id: string
@@ -25,14 +25,15 @@ interface AdminClientProps {
     members: AdminMember[]
     places: Place[]
     analytics?: AnalyticsData[]
+    userAnalytics?: UserAnalyticsData[]
 }
 
-type Tab = 'featured' | 'posts' | 'members' | 'analytics'
+type Tab = 'featured' | 'posts' | 'members' | 'analytics' | 'user-analytics'
 
 // 최대 4개 슬롯
 const SLOT_COUNT = 4
 
-export default function AdminClient({ posts: initialPosts, members: initialMembers, places, analytics = [] }: AdminClientProps) {
+export default function AdminClient({ posts: initialPosts, members: initialMembers, places, analytics = [], userAnalytics = [] }: AdminClientProps) {
     const [tab, setTab] = useState<Tab>('analytics')
     const [posts, setPosts] = useState(initialPosts)
     const [members, setMembers] = useState(initialMembers)
@@ -53,6 +54,10 @@ export default function AdminClient({ posts: initialPosts, members: initialMembe
     // 멤버 관련
     const [promotingId, setPromotingId] = useState<string | null>(null)
     const [memberSearch, setMemberSearch] = useState('')
+
+    // 사용자별 통계 관련
+    const [userAnalyticsSearch, setUserAnalyticsSearch] = useState('')
+    const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
 
     function showToast(msg: string) {
         setToastMsg(msg)
@@ -161,6 +166,7 @@ export default function AdminClient({ posts: initialPosts, members: initialMembe
             <div className="flex gap-1 border-b border-gray-200">
                 {([
                     { key: 'analytics', label: '통계 및 분석', icon: BarChart3 },
+                    { key: 'user-analytics', label: '사용자별 통계', icon: UserCircle },
                     { key: 'featured', label: '추천 장소 관리', icon: Star },
                     { key: 'posts', label: '게시판 관리', icon: MessageSquare },
                     { key: 'members', label: '멤버 관리', icon: Users },
@@ -248,6 +254,142 @@ export default function AdminClient({ posts: initialPosts, members: initialMembe
                                 {analytics.length === 0 && (
                                     <tr>
                                         <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-400">수집된 데이터가 없습니다.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* ── 탭: 사용자별 통계 ─────────────────────────────── */}
+            {tab === 'user-analytics' && (
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-500">사용자별 페이지 방문 수 및 체류 시간 통계입니다.</p>
+
+                    {/* 검색 */}
+                    <div className="relative">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                            value={userAnalyticsSearch}
+                            onChange={e => setUserAnalyticsSearch(e.target.value)}
+                            placeholder="이름 또는 아이디 검색..."
+                            className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-200 bg-white"
+                        />
+                    </div>
+
+                    {/* 요약 카드 */}
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                            <p className="text-xs text-gray-400 font-medium">활성 사용자 수</p>
+                            <p className="text-2xl font-bold text-gray-800 mt-1">{userAnalytics.length}</p>
+                        </div>
+                        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                            <p className="text-xs text-gray-400 font-medium">전체 페이지뷰</p>
+                            <p className="text-2xl font-bold text-gray-800 mt-1">{userAnalytics.reduce((s, u) => s + u.total_views, 0).toLocaleString()}</p>
+                        </div>
+                        <div className="bg-white rounded-2xl border border-gray-200 p-4">
+                            <p className="text-xs text-gray-400 font-medium">전체 체류 시간</p>
+                            <p className="text-2xl font-bold text-gray-800 mt-1">{Math.round(userAnalytics.reduce((s, u) => s + u.total_duration, 0) / 60)}분</p>
+                        </div>
+                    </div>
+
+                    {/* 사용자 목록 */}
+                    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-gray-50 border-b border-gray-200">
+                                    <th className="px-4 py-3 text-left text-xs font-bold text-gray-500">사용자</th>
+                                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-500">총 방문 수</th>
+                                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 hidden md:table-cell">총 체류 시간</th>
+                                    <th className="px-4 py-3 text-right text-xs font-bold text-gray-500 hidden lg:table-cell">방문 페이지 수</th>
+                                    <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 w-12">상세</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {userAnalytics
+                                    .filter(u =>
+                                        (u.username || '').includes(userAnalyticsSearch) ||
+                                        (u.full_name || '').includes(userAnalyticsSearch)
+                                    )
+                                    .map(user => (
+                                    <>
+                                        <tr
+                                            key={user.user_id}
+                                            className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                            onClick={() => setExpandedUserId(expandedUserId === user.user_id ? null : user.user_id)}
+                                        >
+                                            <td className="px-4 py-3">
+                                                <p className="font-medium text-gray-800">{user.full_name || '—'}</p>
+                                                <p className="text-[10px] text-gray-400">@{user.username || '—'}</p>
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-gray-600 font-medium">{user.total_views.toLocaleString()}회</td>
+                                            <td className="px-4 py-3 text-right text-gray-600 hidden md:table-cell">
+                                                <span className="inline-flex items-center gap-1">
+                                                    <Clock size={12} className="text-gray-400" />
+                                                    {user.total_duration >= 3600
+                                                        ? `${Math.floor(user.total_duration / 3600)}시간 ${Math.round((user.total_duration % 3600) / 60)}분`
+                                                        : `${Math.round(user.total_duration / 60)}분`
+                                                    }
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right text-gray-600 hidden lg:table-cell">{user.pages.length}개</td>
+                                            <td className="px-4 py-3 text-center">
+                                                {expandedUserId === user.user_id
+                                                    ? <ChevronUp size={16} className="inline text-gray-400" />
+                                                    : <ChevronDown size={16} className="inline text-gray-400" />
+                                                }
+                                            </td>
+                                        </tr>
+                                        {expandedUserId === user.user_id && (
+                                            <tr key={`${user.user_id}-detail`}>
+                                                <td colSpan={5} className="px-4 py-0">
+                                                    <div className="bg-gray-50 rounded-xl p-4 my-2">
+                                                        <h4 className="text-xs font-bold text-gray-500 mb-3 flex items-center gap-1.5">
+                                                            <BarChart3 size={13} className="text-rose-400" />
+                                                            페이지별 상세 통계
+                                                        </h4>
+                                                        <div className="space-y-2">
+                                                            {user.pages.map(page => {
+                                                                const maxViews = Math.max(...user.pages.map(p => p.views))
+                                                                const barWidth = maxViews > 0 ? (page.views / maxViews) * 100 : 0
+                                                                return (
+                                                                    <div key={page.tab_name} className="flex items-center gap-3">
+                                                                        <span className="text-xs font-medium text-gray-700 w-20 shrink-0">{page.tab_name}</span>
+                                                                        <div className="flex-1 h-5 bg-white rounded-full overflow-hidden border border-gray-100">
+                                                                            <div
+                                                                                className="h-full rounded-full bg-gradient-to-r from-rose-300 to-pink-400"
+                                                                                style={{ width: `${barWidth}%` }}
+                                                                            />
+                                                                        </div>
+                                                                        <span className="text-[11px] text-gray-500 w-14 text-right shrink-0">{page.views}회</span>
+                                                                        <span className="text-[11px] text-gray-400 w-16 text-right shrink-0">
+                                                                            {page.total_duration >= 3600
+                                                                                ? `${Math.floor(page.total_duration / 3600)}h ${Math.round((page.total_duration % 3600) / 60)}m`
+                                                                                : page.total_duration >= 60
+                                                                                    ? `${Math.round(page.total_duration / 60)}분`
+                                                                                    : `${page.total_duration}초`
+                                                                            }
+                                                                        </span>
+                                                                        <span className="text-[10px] text-gray-300 w-16 text-right shrink-0">평균 {page.avg_duration}초</span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
+                                ))}
+                                {userAnalytics.filter(u =>
+                                    (u.username || '').includes(userAnalyticsSearch) ||
+                                    (u.full_name || '').includes(userAnalyticsSearch)
+                                ).length === 0 && (
+                                    <tr>
+                                        <td colSpan={5} className="px-4 py-8 text-center text-sm text-gray-400">
+                                            {userAnalyticsSearch ? '검색 결과가 없습니다.' : '수집된 데이터가 없습니다.'}
+                                        </td>
                                     </tr>
                                 )}
                             </tbody>

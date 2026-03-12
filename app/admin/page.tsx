@@ -1,12 +1,13 @@
-import { getAllPostsAdmin, getAllMembers, getAllPlacesForAdmin, getAnalyticsData } from '@/actions/admin'
+import { getAllPostsAdmin, getAllMembers, getAllPlacesForAdmin, getAnalyticsData, getUserAnalyticsData } from '@/actions/admin'
 import AdminClient from '@/components/admin/AdminClient'
 
 export default async function AdminPage() {
-    const [posts, members, places, analytics] = await Promise.all([
+    const [posts, members, places, analytics, userAnalytics] = await Promise.all([
         getAllPostsAdmin(),
         getAllMembers(),
         getAllPlacesForAdmin(),
-        getAnalyticsData()
+        getAnalyticsData(),
+        getUserAnalyticsData()
     ])
 
     return (
@@ -15,6 +16,7 @@ export default async function AdminPage() {
             members={members}
             places={places}
             analytics={analytics}
+            userAnalytics={userAnalytics}
         />
     )
 }

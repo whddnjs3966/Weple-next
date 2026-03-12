@@ -261,7 +261,7 @@ export default function LandingPage() {
         >
           <Image
             src="/images/landing_bg.png"
-            alt="결혼 준비 필수 웨딩플래너 위플랜"
+            alt="결혼 준비 필수 웨딩플래너 위플(WEPLN)"
             fill
             className="object-cover object-center"
             priority
@@ -671,7 +671,7 @@ export default function LandingPage() {
           <span className="text-[12px] font-bold tracking-[2px] text-[#BA9776] uppercase mb-2 block font-serif">
             HOW IT WORKS
           </span>
-          <h2 className="text-3xl font-bold text-gray-800 tracking-tight mb-20">웨딩플래너 위플랜, 3단계로 시작하세요</h2>
+          <h2 className="text-3xl font-bold text-gray-800 tracking-tight mb-20">웨딩플래너 위플(WEPLN), 3단계로 시작하세요</h2>
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4 relative">
             {/* Connecting line (desktop) */}

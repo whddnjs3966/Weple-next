@@ -27,10 +27,10 @@ export async function generateMetadata({
 
     return {
         title: post.title,
-        description: plainContent || '위플랜 커뮤니티 게시글',
+        description: plainContent || '위플(WEPLN) 커뮤니티 게시글',
         openGraph: {
             title: post.title,
-            description: plainContent || '위플랜 커뮤니티 게시글',
+            description: plainContent || '위플(WEPLN) 커뮤니티 게시글',
             type: 'article',
             publishedTime: post.created_at,
         },

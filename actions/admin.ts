@@ -144,3 +144,83 @@ export async function getAnalyticsData(): Promise<AnalyticsData[]> {
     // 조회수 기준으로 내림차순 정렬
     return result.sort((a, b) => b.views - a.views)
 }
+
+export type UserAnalyticsData = {
+    user_id: string
+    username: string | null
+    full_name: string | null
+    pages: {
+        tab_name: string
+        views: number
+        total_duration: number
+        avg_duration: number
+    }[]
+    total_views: number
+    total_duration: number
+}
+
+export async function getUserAnalyticsData(): Promise<UserAnalyticsData[]> {
+    const supabase = await requireAdmin()
+
+    const { data: events, error } = await supabase
+        .from('analytics_events' as any)
+        .select('user_id, tab_name, duration_seconds')
+        .eq('event_type', 'page_view')
+        .not('user_id', 'is', null)
+
+    if (error) {
+        console.error('getUserAnalyticsData error:', error)
+        return []
+    }
+
+    // 사용자별 + 페이지별 집계
+    const userMap: Record<string, Record<string, { views: number; total_duration: number }>> = {}
+
+    ;(events as any[]).forEach((event: any) => {
+        const uid = event.user_id
+        if (!uid) return
+        const tab = event.tab_name || 'Unknown'
+        if (!userMap[uid]) userMap[uid] = {}
+        if (!userMap[uid][tab]) userMap[uid][tab] = { views: 0, total_duration: 0 }
+        userMap[uid][tab].views += 1
+        userMap[uid][tab].total_duration += (event.duration_seconds || 0)
+    })
+
+    // 프로필 정보 가져오기
+    const userIds = Object.keys(userMap)
+    if (userIds.length === 0) return []
+
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, full_name')
+        .in('id', userIds)
+
+    const profileMap: Record<string, { username: string | null; full_name: string | null }> = {}
+    ;(profiles ?? []).forEach((p: any) => {
+        profileMap[p.id] = { username: p.username, full_name: p.full_name }
+    })
+
+    const result: UserAnalyticsData[] = userIds.map(uid => {
+        const tabs = userMap[uid]
+        const pages = Object.keys(tabs).map(tab => ({
+            tab_name: tab,
+            views: tabs[tab].views,
+            total_duration: tabs[tab].total_duration,
+            avg_duration: tabs[tab].views > 0 ? Math.round(tabs[tab].total_duration / tabs[tab].views) : 0,
+        })).sort((a, b) => b.views - a.views)
+
+        const total_views = pages.reduce((s, p) => s + p.views, 0)
+        const total_duration = pages.reduce((s, p) => s + p.total_duration, 0)
+
+        return {
+            user_id: uid,
+            username: profileMap[uid]?.username ?? null,
+            full_name: profileMap[uid]?.full_name ?? null,
+            pages,
+            total_views,
+            total_duration,
+        }
+    })
+
+    return result.sort((a, b) => b.total_views - a.total_views)
+}
