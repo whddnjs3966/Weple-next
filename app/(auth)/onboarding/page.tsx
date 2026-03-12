@@ -347,7 +347,7 @@ export default function OnboardingPage() {
                                 </div>
                                 <input
                                     type="date"
-                                    className="w-full rounded-xl p-5 text-lg sm:text-xl outline-none transition-all text-white font-medium"
+                                    className="w-full rounded-xl p-4 sm:p-5 text-base sm:text-xl outline-none transition-all text-white font-medium box-border max-w-full"
                                     style={{
                                         background: 'rgba(0,0,0,0.2)',
                                         border: '1px solid rgba(255,255,255,0.15)',

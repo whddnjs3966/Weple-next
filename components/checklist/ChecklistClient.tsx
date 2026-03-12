@@ -406,11 +406,11 @@ export default function ChecklistClient({ initialTasks, currentUserId = '' }: { 
                                                     className="w-3.5 h-3.5 rounded border-gray-300 text-pink-300 focus:ring-pink-400 cursor-pointer"
                                                 />
                                             </th>
-                                            <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '120px' }}>시기 (D-Day)</th>
+                                            <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '72px' }}>시기</th>
                                             <th className="py-3 px-3 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">할 일 (TODO)</th>
                                             <th className="hidden sm:table-cell py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '180px' }}>예상 예산</th>
                                             <th className="hidden sm:table-cell py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '130px' }}>일정 등록</th>
-                                            <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '100px' }}>완료</th>
+                                            <th className="py-3 px-2 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider" style={{ width: '56px' }}>완료</th>
                                         </tr>
                                     </thead>
                                     <tbody>

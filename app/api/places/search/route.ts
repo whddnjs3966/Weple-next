@@ -11,6 +11,7 @@ const CATEGORY_QUERIES: Record<string, string[]> = {
     'wedding-hall': [
         '웨딩홀', '예식장', '결혼식장', '웨딩컨벤션',
         '호텔웨딩', '하우스웨딩', '스몰웨딩', '소규모웨딩',
+        '호텔 예식', '웨딩 연회', '그랜드볼룸', '웨딩뷔페',
     ],
     'studio': [
         '웨딩스튜디오', '웨딩촬영', '웨딩사진', '결혼사진',
@@ -59,21 +60,23 @@ const CATEGORY_QUERIES: Record<string, string[]> = {
 // 대표 하위 지역을 추가 검색하여 결과를 보강한다.
 // ──────────────────────────────────────────────────────────────
 const SIDO_SUB_REGIONS: Record<string, string[]> = {
-    '서울': ['강남', '잠실', '종로', '서초', '마포', '여의도', '청담'],
-    '경기': ['수원', '분당', '일산', '판교', '용인', '성남'],
-    '인천': ['송도', '부평', '인천시'],
-    '부산': ['해운대', '서면', '센텀시티', '남포동'],
-    '대구': ['수성구', '동성로', '범어'],
-    '대전': ['유성구', '둔산동'],
-    '광주': ['상무지구', '충장로'],
-    '울산': ['남구', '삼산동'],
-    '경남': ['창원', '김해', '진주'],
-    '경북': ['포항', '경주', '구미'],
-    '충남': ['천안', '아산'],
-    '충북': ['청주'],
-    '전남': ['여수', '순천', '목포'],
-    '전북': ['전주', '군산'],
-    '강원': ['춘천', '강릉', '원주'],
+    '서울': ['강남', '잠실', '종로', '서초', '마포', '여의도', '청담', '압구정', '송파'],
+    '경기': ['수원', '분당', '일산', '판교', '용인', '성남', '고양', '화성', '안양'],
+    '인천': ['송도', '부평', '인천시', '남동구', '연수구'],
+    '부산': ['해운대', '서면', '센텀시티', '남포동', '부산진구', '동래', '사상'],
+    '대구': ['수성구', '동성로', '범어', '달서구', '북구', '중구', '동구', '대구시', '두류', '상인'],
+    '대전': ['유성구', '둔산동', '서구', '중구'],
+    '광주': ['상무지구', '충장로', '서구', '북구'],
+    '울산': ['남구', '삼산동', '중구', '북구'],
+    '세종': ['세종시', '조치원'],
+    '경남': ['창원', '김해', '진주', '양산', '거제'],
+    '경북': ['포항', '경주', '구미', '안동'],
+    '충남': ['천안', '아산', '서산'],
+    '충북': ['청주', '충주'],
+    '전남': ['여수', '순천', '목포', '광양'],
+    '전북': ['전주', '군산', '익산'],
+    '강원': ['춘천', '강릉', '원주', '속초'],
+    '제주': ['제주시', '서귀포'],
 }
 
 // 제외 키워드 (불필요한 셀프사진관, 학원 등 제거, '공방' 제외 해제)
@@ -95,7 +98,7 @@ const CATEGORY_EXCLUDED: Record<string, string[]> = {
 // 카테고리 관련성 필터 — 네이버 API category 필드 + 장소명 + 설명에서 확인
 // 빈 배열이면 필터링하지 않음
 const CATEGORY_RELEVANCE: Record<string, string[]> = {
-    'wedding-hall': ['웨딩', '예식', '컨벤션', '호텔', '연회', '홀', '채플', '결혼', '하우스', '가든', '뷔페'],
+    'wedding-hall': ['웨딩', '예식', '컨벤션', '호텔', '연회', '홀', '채플', '결혼', '하우스', '가든', '뷔페', '볼룸', '리조트', '그랜드'],
     'studio': ['사진', '스튜디오', '촬영', '영상', '포토', '웨딩', '브라이덜', '브라이달'],
     'dress': ['웨딩', '드레스', '의류', '의상', '브라이덜', '브라이달', '샵'],
     'makeup': ['미용', '메이크업', '뷰티', '헤어', '웨딩', '살롱', '브라이덜'],
@@ -221,56 +224,63 @@ export async function GET(request: NextRequest) {
     }
 
     // ──────────────────────────────────────────────────────────
-    // 검색 쿼리 생성 전략:
-    // 1) 사용자가 선택한 필터(옵션)가 있으면 적극 활용하여 수십 개의 다채로운 쿼리 생산 (예: "대구 인물위주 스튜디오")
-    // 2) 기본 "{지역} {키워드}", 역순 "{키워드} {지역}"
-    // 3) 서울/경기/인천은 하위 지역 + 종속 키워드 추가
+    // 검색 쿼리 생성 전략 (우선순위 순서):
+    // 1) 기본 쿼리: "{지역} {키워드}" — 가장 결과가 잘 나오는 핵심 쿼리를 최우선
+    // 2) 하위 지역 보강: "{하위지역} {키워드}" — 광역시/도에서 결과 다양성 확보
+    // 3) 필터 조합: "{지역} {필터} {키워드}" — 필터가 있을 때 추가 다양성
     // ──────────────────────────────────────────────────────────
     const queries: string[] = []
     const targetRegions = sigungu ? [sigungu] : sidos
 
+    // Phase 1: 기본 쿼리 (최우선)
     for (const region of targetRegions) {
         for (const kw of keywords) {
-            // 필터가 존재하면 우선적으로 필터를 조합한 쿼리를 대량 생성 (정확도 & 다양성 극대화)
-            if (filterKeywords.length > 0) {
-                for (const fk of filterKeywords) {
-                    // 제외 필터나 너무 긴 문장은 네이버 API 검색이 안될 수 있지만, 단어 단위 필터는 아주 유효함
-                    queries.push(`${region} ${fk} ${kw}`)
-                    queries.push(`${fk} ${kw} ${region}`)
-                }
-            }
-            // 필터가 없거나, 필터 결과가 적을 때를 대비해 기본 쿼리도 추가
             queries.push(`${region} ${kw}`)
         }
-
-        // 역순: keyword + region (네이버 API에서 다른 결과를 반환하는 경우가 많음)
-        const reverseKeywords = keywords.slice(0, Math.ceil(keywords.length / 2))
-        for (const kw of reverseKeywords) {
+        // 역순 (네이버 API에서 다른 결과를 반환하는 경우가 많음)
+        for (const kw of keywords.slice(0, Math.ceil(keywords.length / 2))) {
             queries.push(`${kw} ${region}`)
         }
+    }
 
-        // 하위 지역 보강: 서울/경기/인천 등 광역 단위에서 0건 반환 대비
+    // Phase 2: 하위 지역 보강
+    for (const region of targetRegions) {
         const subRegions = SIDO_SUB_REGIONS[region]
         if (subRegions && !sigungu) {
-            const coreKeywords = keywords.slice(0, 3)
+            const coreKeywords = keywords.slice(0, 4)
             for (const sub of subRegions) {
                 for (const kw of coreKeywords) {
                     queries.push(`${sub} ${kw}`)
-                    // 하위 지역 + 필터 조합도 일부 추가
-                    if (filterKeywords.length > 0) {
-                        queries.push(`${sub} ${filterKeywords[0]} ${kw}`)
-                    }
+                    queries.push(`${kw} ${sub}`)
                 }
             }
         }
     }
 
-    // API Rate Limit 방지 및 응답 속도 최적화를 위해 중복 제거 후 최대 25개로 쿼리 제한
-    const uniqueQueries = Array.from(new Set(queries)).slice(0, 25)
+    // Phase 3: 필터 조합 쿼리 (보너스 — 슬롯이 남을 때만 사용됨)
+    // 필터 키워드를 네이버 검색에 유효한 짧은 핵심어로 가공
+    const shortFilterKws = filterKeywords
+        .flatMap(fk => fk.split(/[\s·,]+/))
+        .filter(w => w.length >= 2 && w.length <= 5)
+        .slice(0, 3)
 
-    // 병렬 요청: 핵심 키워드(처음 3개)는 start=1,6으로 2페이지씩, 나머지는 1페이지
+    if (shortFilterKws.length > 0) {
+        for (const region of targetRegions) {
+            const coreKeywords = keywords.slice(0, 4)
+            for (const kw of coreKeywords) {
+                for (const fk of shortFilterKws) {
+                    queries.push(`${region} ${fk} ${kw}`)
+                }
+            }
+        }
+    }
+
+    // API Rate Limit 방지 및 응답 속도 최적화를 위해 중복 제거 후 최대 40개로 쿼리 제한
+    const uniqueQueries = Array.from(new Set(queries)).slice(0, 40)
+
+    // 병렬 요청: 핵심 키워드(처음 5개)는 start=1,6으로 2페이지씩, 나머지는 1페이지
     console.log(`[Naver Search] Category: ${category}, Queries: ${uniqueQueries.length}`)
-    const coreCount = Math.min(3, uniqueQueries.length)
+    const coreCount = Math.min(5, uniqueQueries.length)
     const fetchPromises = [
         ...uniqueQueries.slice(0, coreCount).flatMap(q => [
             fetchLocal(q, clientId, clientSecret, 1),
@@ -319,8 +329,15 @@ export async function GET(request: NextRequest) {
         filtered = strictFiltered.length >= 3 ? strictFiltered : afterExclusion
     }
 
+    // 지역 하드 필터: 주소에 검색한 시도/시군구가 포함된 결과만 남김
+    const regionFiltered = filtered.filter(item => {
+        const matchesSido = sidos.some(s => item.address.includes(s) || item.roadAddress.includes(s))
+        const matchesSigungu = sigungu ? (item.address.includes(sigungu) || item.roadAddress.includes(sigungu)) : false
+        return matchesSido || matchesSigungu
+    })
+
     // 관련성 점수 계산 후 정렬 (높은 점수 우선, 동일 점수는 셔플)
-    const scored = filtered.map(item => {
+    const scored = regionFiltered.map(item => {
         const title = stripHtml(item.title).toLowerCase()
         const cat = item.category.toLowerCase()
         const desc = item.description.toLowerCase()
@@ -336,8 +353,8 @@ export async function GET(request: NextRequest) {
             const fkLower = fk.toLowerCase()
             if (title.includes(fkLower) || desc.includes(fkLower)) score += 2
         }
-        // 지역명이 주소에 포함되면 가산
-        if (targetRegions.some(reg => item.address.includes(reg) || item.roadAddress.includes(reg))) score += 2
+        // 지역 매칭 보너스
+        score += 2
 
         // 온보딩 데이터 기반 AI 매칭 보너스 (압도적 가중치 +5)
         if (budget > 0) {
